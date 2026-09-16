@@ -1,0 +1,38 @@
+/* v0.7: 초4 노트형 한 글자 학습 + Apple Pencil/S Pen 선택 방지 */
+.penSafeZone,.penSafeZone *:not(input):not(textarea):not(select){-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;-webkit-user-drag:none!important;-webkit-tap-highlight-color:transparent}
+.penSafeZone{overscroll-behavior:contain}
+.characterCards{display:grid;grid-template-columns:1fr;gap:18px}
+.charCard{border:2px solid #e0e4eb;border-radius:22px;padding:20px;background:#fff;overflow:hidden}
+.charCard.completed{border-color:#9ad2b0;background:#fbfffc}
+.charHead{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}
+.charIdentity{display:flex;align-items:center;gap:20px;min-width:0}
+.lessonChar{font-family:"Noto Serif CJK KR","Apple SD Gothic Neo",serif;font-size:88px;line-height:.95;font-weight:900;color:#111827;min-width:92px;text-align:center}
+.charLearn{font-size:24px;font-weight:950;line-height:1.45;letter-spacing:-.025em}
+.charLearn .hunEum{font-size:30px;font-weight:1000;color:#111827;display:block}
+.charLearn .metaLine{font-size:17px;color:#596274;font-weight:900;margin-top:6px}
+.charAnswerHidden{font-size:20px;font-weight:950;color:#4d5666}
+.wordExamples{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.wordExamples .wordChip{font-size:14px;font-weight:850}
+.notebookScroller{overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
+.notebookRow{display:grid;grid-template-columns:repeat(5,minmax(135px,1fr));gap:10px;min-width:720px}
+.noteCell{position:relative;border:2px solid #d7dce5;border-radius:16px;background:#fff;padding:9px;min-height:238px;isolation:isolate}
+.noteCell.current{border-color:#3558d4;box-shadow:0 0 0 3px rgba(53,88,212,.08)}
+.noteCell.done{border-color:#9ad2b0;background:#fbfffc}.noteCell.locked{background:#f7f8fa}.noteCell.waiting{border-color:#e7b44f;background:#fffaf0}
+.noteHead{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:14px;font-weight:950;color:#596274;margin-bottom:7px}
+.noteHead .doneMark{color:#167645}
+.noteStage{position:relative;height:164px;border:1.5px solid #cbd2dc;border-radius:12px;background:#fff;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.noteGuide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Noto Serif CJK KR",serif;font-size:118px;line-height:1;font-weight:800;color:#263248;pointer-events:none;z-index:1}
+.noteCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;background:transparent!important;touch-action:none;z-index:2;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.noteOverlay{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;background:rgba(247,248,250,.82);font-size:15px;font-weight:950;color:#596274;pointer-events:none}
+.noteOverlay.wait{background:rgba(255,249,235,.9);color:#8a5a00}
+.noteMeter{text-align:center;font-size:13px;font-weight:950;margin-top:7px;color:#6c7482}.noteMeter.match{color:#167645}.noteMeter.over{color:#b52d25}
+.noteTools{display:flex;gap:6px;justify-content:center;margin-top:7px}.noteTools .miniBtn{font-size:12px;padding:7px 9px}
+.recallPanel{margin-top:16px;border-top:2px dashed #d9dee6;padding-top:16px}
+.recallPrompt{font-size:19px;font-weight:950;margin-bottom:10px}.recallFields{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
+.recallField label{display:block;font-size:14px;font-weight:950;color:#596274;margin-bottom:6px}
+.recallInput{width:100%;height:62px;border:2px solid #cbd2dc;border-radius:14px;padding:0 16px;background:#fff;font-size:25px;font-weight:950;color:#111827;-webkit-user-select:text!important;user-select:text!important}
+.recallInput:focus{outline:none;border-color:#3558d4;box-shadow:0 0 0 4px rgba(53,88,212,.10)}.recallInput.ok{border-color:#2f9d62;background:#f4fcf7}.recallInput.ng{border-color:#d74b42;background:#fff7f6}
+.recallBtn{height:62px}.recallStatus{margin-top:9px;font-size:15px;font-weight:900;color:#596274}.recallStatus.ok{color:#167645}.recallStatus.ng{color:#b52d25}
+.autoProgressBox{display:grid;gap:9px}.autoRule{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:850}.autoRule b{width:31px;height:31px;border-radius:10px;background:#edf1ff;color:#3558d4;display:flex;align-items:center;justify-content:center;font-size:15px}
+.charCompleteBadge{padding:9px 13px;border-radius:999px;background:#e8f8ef;color:#167645;font-size:14px;font-weight:950;white-space:nowrap}
+#todayWords .small{font-size:14px}.card h2{font-size:23px;font-weight:950}.btn{font-weight:950}.notice{font-size:15px;font-weight:750}.stat .v{font-weight:1000}
+@media(max-width:900px){.charCard{padding:17px}.lessonChar{font-size:78px}.charLearn{font-size:22px}.charLearn .hunEum{font-size:27px}.notebookRow{min-width:690px}.recallFields{grid-template-columns:1fr 1fr}.recallBtn{grid-column:1/-1}}
