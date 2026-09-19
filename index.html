@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>태이를 위해 아빠가 만든 한자앱 · v0.11</title>
+<title>태이를 위해 아빠가 만든 한자앱 · v0.12</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="data/meta.js?v=0.11.0"></script>
@@ -188,7 +188,8 @@ a.btnlink{display:inline-block;border-radius:14px;padding:12px 20px;font-family:
 .cnt{font-size:19px;font-weight:700}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:12px 22px;border-radius:14px;font-family:'Jua';z-index:20}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-\n.pad.over{box-shadow:0 0 0 4px var(--seal)!important}.pad.over::before{content:"획수가 많아요 · 이 칸 지우기";position:absolute;left:8px;right:8px;bottom:8px;z-index:8;background:var(--seal);color:#fff;border-radius:9px;padding:5px 7px;text-align:center;font-family:"Jua";font-size:14px;pointer-events:none}\n</style>
+\n.pad.over{box-shadow:0 0 0 4px var(--seal)!important}.pad.over::before{content:"획수가 많아요 · 이 칸 지우기";position:absolute;left:8px;right:8px;bottom:8px;z-index:8;background:var(--seal);color:#fff;border-radius:9px;padding:5px 7px;text-align:center;font-family:"Jua";font-size:14px;pointer-events:none}\n.srcMore{margin:8px 0 12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 10px}.srcMore summary{font-family:'Jua';cursor:pointer;color:var(--sky)}.srcTags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.srcTags span{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 7px;font-family:var(--hanja);font-size:17px}
+</style>
 </head>
 <body>
 <header>
@@ -626,7 +627,8 @@ function stepLearn(card,{c},next){
       <div class="hunEum">${c.hun} <span>${c.eum}</span></div>
       <div class="meta">부수 <b>${c.bu}</b> · <b>${c.hoek}</b>획</div>
       <div style="margin:12px 0">${book(c)}</div>
-      <p class="muted" style="margin:0 0 12px"><b class="hz">${c.word}</b>(${c.read})의 <b class="hz">${c.ch}</b> · ${c.cmp}</p>
+      <p class="muted" style="margin:0 0 12px"><b class="hz">${c.word}</b>(${c.read})의 <b class="hz">${c.ch}</b>${c.cmp?` · ${c.cmp}`:''}</p>
+      ${CHAR_INFO[c.ch]?.referenceTerms?.length?`<details class="srcMore"><summary>교재 참고 보기</summary><div class="srcTags">${CHAR_INFO[c.ch].referenceTerms.map(x=>`<span>${x}</span>`).join('')}</div><p class="muted">${(CHAR_INFO[c.ch].semanticSenses||[]).join(' · ')}</p></details>`:''}
       <button class="sun" id="sb">획순 보기</button>
     </div>
   </div>
@@ -966,15 +968,28 @@ function fast(){
     <button class="step" id="f1"><span class="t">오답 다시 보기</span><span class="muted">틀린 한자만 모아서 · ${wrongN}개</span><span class="big" style="color:var(--seal)">誤</span></button>
     <button class="step" id="f2"><span class="t">읽기 스피드</span><span class="muted">한자 단어 보고 5초 안에 읽기 고르기</span><span class="big" style="color:var(--sky)">讀</span></button>
     <button class="step" id="f3"><span class="t">쓰기 스피드</span><span class="muted">한글 보고 바로 쓰고 스스로 채점</span><span class="big" style="color:var(--leaf)">書</span></button>
-    <button class="step" id="f4"><span class="t">시험 범위 몰아보기</span><span class="muted">${ex?`${ex.start}~${ex.end}쪽 카드 넘기기`:'시험 범위가 아직 없어요'}</span><span class="big" style="color:var(--sun)">覽</span></button>
+    <button class="step" id="f4"><span class="t">획수 점검</span><span class="muted">한자를 보고 정확한 획수 고르기</span><span class="big" style="color:var(--sun)">劃</span></button>
+    <button class="step" id="f5"><span class="t">시험 범위 몰아보기</span><span class="muted">${ex?`${ex.start}~${ex.end}쪽 카드 넘기기`:'시험 범위가 아직 없어요'}</span><span class="big" style="color:var(--sun)">覽</span></button>
   </div>`;
-  const pool=()=>{const r=ex?DATA.filter(d=>d.page>=ex.start&&d.page<=ex.end):ITEMS.filter(d=>db.learned.includes(d.id));return uniqWords(r.length?r:ITEMS)};
+  const pool=()=>{const r=ex?ITEMS.filter(d=>inPageRange(d,ex.start,ex.end)):ITEMS.filter(d=>db.learned.includes(d.id));return uniqWords(r.length?r:ITEMS)};
   $('#f1').onclick=()=>wrongReview();
   $('#f2').onclick=()=>speedRead(shuffle(pool()).slice(0,10));
   $('#f3').onclick=()=>speedWrite(shuffle(pool()).slice(0,10));
-  $('#f4').onclick=()=>ex?flipCards(pool()):toast('부모님이 시험 범위를 먼저 정해야 해요');
+  $('#f4').onclick=()=>strokeSpeed(shuffle(pool()).slice(0,10));
+  $('#f5').onclick=()=>ex?flipCards(pool()):toast('부모님이 시험 범위를 먼저 정해야 해요');
 }
-function wrongReview(){
+function strokeSpeed(list){
+  let i=0,ok=0;
+  const step=()=>{
+    if(i>=list.length){logFast('획수 점검',ok,list.length);app.innerHTML=`<div class="card" style="text-align:center"><h2>획수 점검 결과</h2><div class="score">${ok} / ${list.length}</div><button class="pri" onclick="go('fast')">점검 메뉴</button></div>`;return}
+    const w=list[i],cs=charsOf(w),c=cs[Math.random()<.5?0:1],correct=c.hoek;
+    const cand=[correct];for(let d=1;cand.length<4;d++){for(const v of [correct-d,correct+d])if(v>0&&!cand.includes(v))cand.push(v);if(d>8)break}
+    const opts=shuffle(cand.slice(0,4));
+    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="jua">${i+1} / ${list.length}</span><span class="book">📖 ${c.detailPage||c.page}쪽</span></div><div class="card"><div class="qword">${c.ch}</div><div class="q">${c.hun} ${c.eum} · 몇 획일까요?</div><div class="choice">${opts.map(n=>`<button>${n}획</button>`).join('')}</div></div>`;
+    app.querySelectorAll('.choice button').forEach(b=>b.onclick=()=>{const n=parseInt(b.textContent);if(n===correct){ok++;toast('정답!')}else{addWrong(c.id);save();toast(`정답: ${correct}획`)}i++;setTimeout(step,n===correct?350:900)});
+  };step();
+}
+function wrongReview(){function wrongReview(){
   const ids=Object.keys(db.wrong).map(Number).sort((a,b)=>db.wrong[b]-db.wrong[a]);
   if(!ids.length){app.innerHTML=`<div class="card"><h2>오답이 없어요</h2><button class="pri" onclick="go('fast')">돌아가기</button></div>`;return}
   app.innerHTML=`<h2 style="margin-top:0">오답 다시 보기</h2><div class="grid" id="wl"></div>
@@ -994,7 +1009,7 @@ function speedRead(list){
     let left=5;
     app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="jua">${i+1} / ${list.length}</span><span class="timer" id="tm">5초</span></div>
     <div class="prog" style="margin:10px 0"><div style="width:${i/list.length*100}%"></div></div>
-    <div class="card"><div style="text-align:center"><span class="book">📖 ${d.page}쪽</span></div><div class="qword">${d.word}</div><div class="choice" style="margin-top:16px">${opts.map(o=>`<button>${o}</button>`).join('')}</div></div>`;
+    <div class="card"><div style="text-align:center"><span class="book">📖 ${d.page}쪽${d.detailPage?` · 쓰기 ${d.detailPage}쪽`:''}</span></div><div class="qword">${d.word}</div><div class="choice" style="margin-top:16px">${opts.map(o=>`<button>${o}</button>`).join('')}</div></div>`;
     const pick=v=>{clearInterval(timer);
       if(v===d.read){ok++;toast('정답!')}else{addWrong(d.id);save();toast(`정답: ${d.read} · 📖 ${d.page}쪽`)}
       i++;setTimeout(step,v===d.read?400:1200)};
@@ -1010,7 +1025,7 @@ function speedWrite(list){
     const d=list[i];
     app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="jua">${i+1} / ${list.length}</span></div>
     <div class="prog" style="margin:10px 0"><div style="width:${i/list.length*100}%"></div></div>
-    <div class="card"><div style="text-align:center"><span class="book">📖 ${d.page}쪽</span></div><div class="q">${d.read} <span class="muted">(${d.mean})</span></div><div id="ph"></div>
+    <div class="card"><div style="text-align:center"><span class="book">📖 ${d.page}쪽${d.detailPage?` · 쓰기 ${d.detailPage}쪽`:''}</span></div><div class="q">${d.read} <span class="muted">(${d.mean})</span></div><div id="ph"></div>
     <div class="row" style="justify-content:center;margin-top:12px"><button class="ghost" id="c">지우기</button><button class="sun" id="s">정답 보기</button></div>
     <div id="a" class="qword"></div></div>`;
     const pad=makePad($('#ph'),{cells:2,size:cellSize(2)});
@@ -1025,7 +1040,7 @@ function flipCards(list){
   let i=0,back=false;
   const draw=()=>{const d=list[i];
     app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="jua">${i+1} / ${list.length}</span><span class="muted">카드를 누르면 뒤집혀요</span></div>
-    <div class="card flip" id="fc" style="margin-top:10px">${back?`<div><div class="jua" style="font-size:40px">${d.read}</div><p>${d.mean}</p><p class="muted">${d.ch} = ${d.hun} ${d.eum}</p>${book(d)}</div>`:`<div><div class="qword">${d.word}</div><span class="book">📖 ${d.page}쪽</span></div>`}</div>
+    <div class="card flip" id="fc" style="margin-top:10px">${back?`<div><div class="jua" style="font-size:40px">${d.read}</div><p>${d.mean}</p><p class="muted">${d.ch} = ${d.hun} ${d.eum}</p>${book(d)}</div>`:`<div><div class="qword">${d.word}</div><span class="book">📖 ${d.page}쪽${d.detailPage?` · 쓰기 ${d.detailPage}쪽`:''}</span></div>`}</div>
     <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="p" ${i?'':'disabled'}>이전</button><button class="pri" id="n">${i<list.length-1?'다음':'끝'}</button></div>`;
     $('#fc').onclick=()=>{back=!back;draw()};
     $('#p').onclick=()=>{i--;back=false;draw()};
@@ -1113,33 +1128,34 @@ function parent(){
   ({range:pRange,grade:pGrade,status:pStatus,set:pSet})[ptab]($('#pv'));
 }
 function pRange(v){
-  const pages=[...new Set(DATA.map(d=>d.page))];
+  const pages=allPrintedPages();
   const ex=db.exam;
   v.innerHTML=`<div class="card">
     <h3 style="margin-top:0">교재 페이지로 시험 범위 정하기</h3>
-    <div class="row"><input type="number" id="s" value="${ex?.start||pages[0]}"> 쪽부터 <input type="number" id="e" value="${ex?.end||pages[pages.length-1]}"> 쪽까지</div>
+    <div class="row"><input type="number" id="s" min="11" max="52" value="${ex?.start||11}"> 쪽부터 <input type="number" id="e" min="11" max="52" value="${ex?.end||14}"> 쪽까지</div>
     <p id="cnt" class="muted"></p>
-    <p class="muted">읽기 10문제 + 쓰기 10문제를 범위 안에서 무작위로 뽑습니다. 단어가 10개보다 적으면 같은 단어가 읽기·쓰기에 겹칠 수 있습니다.</p>
+    <p class="muted">교재 하단에 인쇄된 페이지 번호를 그대로 입력하세요. 본문편 11~26쪽과 활·응편 29~52쪽을 모두 인식합니다.</p>
+    <p class="muted">읽기 10문제 + 쓰기 10문제. 범위 단어가 20개 이상이면 읽기·쓰기가 서로 겹치지 않습니다.</p>
     <button class="pri" id="mk">시험 만들기</button>
     ${ex?`<button class="ghost" id="del">현재 시험 닫기</button>`:''}
   </div>
   ${ex?`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">현재 시험: ${ex.start}~${ex.end}쪽</h3>
-    <table><tr><th>#</th><th>쪽</th><th>유형</th><th>문제</th><th>정답</th></tr>${ex.items.map((it,k)=>{const d=byId(it.id);return`<tr><td>${k+1}</td><td>${d.page}</td><td>${it.type==='read'?'읽기':'쓰기'}</td><td>${it.type==='read'?`<span style="font-family:var(--hanja)">${d.word}</span>`:d.read}</td><td>${it.type==='read'?d.read:`<span style="font-family:var(--hanja)">${d.word}</span>`}</td></tr>`}).join('')}</table></div>`:''}
-  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">교재 쪽별 단어 (장원급제Ⅲ 준4급)</h3>
-  <table>${pages.map(p=>`<tr><td>${p}쪽</td><td style="font-family:var(--hanja);font-size:22px">${uniqWords(DATA.filter(d=>d.page===p)).map(d=>`${d.word}<span class="muted" style="font-family:Gowun Dodum;font-size:14px">(${d.read})</span>`).join('  ')}</td></tr>`).join('')}</table></div>`;
-  const inR=()=>{const s=+$('#s').value,e=+$('#e').value;return uniqWords(DATA.filter(d=>d.page>=Math.min(s,e)&&d.page<=Math.max(s,e)))};
+    <table><tr><th>#</th><th>쪽</th><th>유형</th><th>문제</th><th>정답</th></tr>${ex.items.map((it,k)=>{const d=byId(it.id);return`<tr><td>${k+1}</td><td>${rangePage(d,ex.start,ex.end)}</td><td>${it.type==='read'?'읽기':'쓰기'}</td><td>${it.type==='read'?`<span style="font-family:var(--hanja)">${d.word}</span>`:d.read}</td><td>${it.type==='read'?d.read:`<span style="font-family:var(--hanja)">${d.word}</span>`}</td></tr>`}).join('')}</table></div>`:''}
+  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">교재 쪽별 단어</h3>
+  <table>${pages.map(p=>`<tr><td>${p}쪽</td><td style="font-family:var(--hanja);font-size:22px">${uniqWords(ITEMS.filter(d=>pageIn(d,p))).map(d=>`${d.word}<span class="muted" style="font-family:Gowun Dodum;font-size:14px">(${d.read})</span>`).join('  ')}</td></tr>`).join('')}</table></div>`;
+  const inR=()=>{const s=+$('#s').value,e=+$('#e').value;return uniqWords(ITEMS.filter(d=>inPageRange(d,s,e)))};
   const upd=()=>{const n=inR().length;$('#cnt').textContent=`범위 안 단어 ${n}개 (한자 ${n*2}자)`};
   $('#s').oninput=upd;$('#e').oninput=upd;upd();
   $('#mk').onclick=()=>{
-    const r=inR();if(!r.length)return toast('범위 안에 단어가 없습니다');
-    const pick=()=>{let out=[];while(out.length<10)out=out.concat(shuffle(r));return out.slice(0,10)};
-    const s=+$('#s').value,e=+$('#e').value;
-    db.exam={start:Math.min(s,e),end:Math.max(s,e),items:[...pick().map(d=>({type:'read',id:d.id})),...pick().map(d=>({type:'write',id:d.id}))],draft:null};
+    const r=inR();if(r.length<10)return toast('정식 20문제 시험은 범위 안 단어가 10개 이상이어야 해요');
+    const s=+$('#s').value,e=+$('#e').value,sh=shuffle(r),read=sh.slice(0,10);
+    let write;if(r.length>=20)write=sh.slice(10,20);else{const readSet=new Set(read.map(x=>x.word));write=[...shuffle(r.filter(x=>!readSet.has(x.word))),...shuffle(r.filter(x=>readSet.has(x.word)))].slice(0,10)}
+    db.exam={start:Math.min(s,e),end:Math.max(s,e),items:[...read.map(d=>({type:'read',id:d.id})),...write.map(d=>({type:'write',id:d.id}))],draft:null};
     save();toast('시험을 만들었습니다');parent();
   };
   if($('#del'))$('#del').onclick=()=>{if(confirm('현재 시험을 닫을까요? (제출된 답안은 남습니다)')){db.exam=null;save();parent()}};
 }
-let openSub=null;
+let openSub=null;let openSub=null;
 function pGrade(v){
   v.innerHTML='<div id="gq"></div><div id="gs" style="margin-top:14px"></div>';
   gradeQuiz($('#gq'));gradeSubs($('#gs'));
@@ -1161,7 +1177,7 @@ function gradeSubs(v){
     const head=k===0?'<h3 style="grid-column:1/-1;margin:14px 0 0">한자 읽기</h3>':k===10?'<h3 style="grid-column:1/-1;margin:14px 0 0">한자 쓰기</h3>':'';
     r.innerHTML=`${head}<b class="jua">${k+1}</b>
       <div>${it.img?`<div class="gradeImgWrap"><img src="${it.img}" alt="${k+1}번 답안"><span class="ansOverlay ${it.type==='read'?'jua':'hz'}">${it.type==='read'?d.read:d.word}</span></div>`:'<span class="muted">빈 답안</span>'}</div>
-      <div><span class="book">📖 ${d.page}쪽</span><div class="muted">${it.type==='read'?d.word:d.read} → 정답</div><div class="${it.type==='read'?'jua':'ans'}" style="font-size:32px">${it.type==='read'?d.read:d.word}</div></div>
+      <div><span class="book">📖 ${d.page}쪽${d.detailPage?` · 쓰기 ${d.detailPage}쪽`:''}</span><div class="muted">${it.type==='read'?d.word:d.read} → 정답</div><div class="${it.type==='read'?'jua':'ans'}" style="font-size:32px">${it.type==='read'?d.read:d.word}</div></div>
       <div class="gbtn"><button data-g="1">O</button><button data-g="0">X</button></div>`;
     const paint=()=>{const [o,x]=r.querySelectorAll('.gbtn button');o.className=s.grades[k]===true?'selO':'';x.className=s.grades[k]===false?'selX':''};
     r.querySelectorAll('.gbtn button').forEach(b=>b.onclick=()=>{s.grades[k]=b.dataset.g==='1';paint();$('#sc').textContent=tally()+'/20';save()});
@@ -1221,9 +1237,9 @@ function pSet(v){
 
 /* ===== 책으로 찾기 ===== */
 function bookIdx(){
-  const pages=[...new Set(DATA.map(d=>d.page))];
+  const pages=allPrintedPages();
   app.innerHTML=`<h2 style="margin-top:0">📖 책으로 찾기</h2><p class="muted">쪽을 누르면 그 쪽 한자를 다시 볼 수 있어요.</p><div id="pl"></div>`;
-  pages.forEach(p=>{const list=DATA.filter(d=>d.page===p);const b=document.createElement('button');b.className='pagebtn';
+  pages.forEach(p=>{const list=ITEMS.filter(d=>pageIn(d,p));const b=document.createElement('button');b.className='pagebtn';
     const done=list.filter(d=>db.learned.includes(d.id)).length;
     b.innerHTML=`<span class="book">📖 ${p}쪽</span><span class="hz">${uniqWords(list).map(d=>d.word).join('  ')}</span><span class="muted">${done}/${list.length} 배움</span>`;
     b.onclick=()=>learn(list,0,()=>go('bookIdx'));$('#pl').appendChild(b)});
