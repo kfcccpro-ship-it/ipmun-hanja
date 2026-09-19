@@ -1,26 +1,1244 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>입문한자 v0.10 · 한 글자 5회 노트 · Apple Pencil · S Pen</title>
-<link rel="stylesheet" href="assets/app.css?v=0.10.0">
-<link rel="stylesheet" href="assets/v07.css?v=0.10.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>태이를 위해 아빠가 만든 한자앱 · v0.11</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
+<script src="data/meta.js?v=0.11.0"></script>
+<script src="data/chars.js?v=0.11.0"></script>
+<script src="data/ref-29-34.js?v=0.11.0"></script>
+<script src="data/ref-35-40.js?v=0.11.0"></script>
+<script src="data/ref-41-46.js?v=0.11.0"></script>
+<script src="data/ref-47-52.js?v=0.11.0"></script>
+<script src="data/phase1-lock.js?v=0.11.0"></script>
+<style>
+:root{
+  --paper:#F3F7FB; --card:#FFFFFF; --ink:#22304A; --sub:#5E6B82;
+  --seal:#D8443A; --leaf:#3A9C7A; --sun:#F2B632; --sky:#4A7FD4; --line:#CBD6E2;
+  --hanja:'Noto Serif KR','Songti SC',serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--paper:#1A2233;--card:#243049;--ink:#EEF2F8;--sub:#A9B5CA;--line:#3E4C66}
+}
+:root[data-theme="dark"]{--paper:#1A2233;--card:#243049;--ink:#EEF2F8;--sub:#A9B5CA;--line:#3E4C66}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+html,body{overscroll-behavior:none}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Gowun Dodum',system-ui,sans-serif;font-size:21px;font-weight:600;touch-action:manipulation}
+h1,h2,h3,button,.jua{font-family:'Jua','Gowun Dodum',sans-serif;font-weight:400}
+header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--card);border-bottom:2px solid var(--line);position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:24px;flex:1;display:flex;align-items:center;gap:10px}
+.seal{display:inline-grid;place-items:center;width:40px;height:40px;background:var(--seal);color:#fff;border-radius:8px;font-family:var(--hanja);font-size:24px;transform:rotate(-4deg)}
+main{max-width:980px;margin:0 auto;padding:20px 20px 60px}
+button{border:0;border-radius:16px;padding:14px 22px;font-size:20px;cursor:pointer;background:var(--line);color:var(--ink);transition:transform .08s}
+button:active{transform:scale(.96)}
+button.pri{background:var(--sky);color:#fff}
+button.ok{background:var(--leaf);color:#fff}
+button.no{background:var(--seal);color:#fff}
+button.sun{background:var(--sun);color:#22304A}
+button.ghost{background:transparent;border:2px solid var(--line)}
+button:disabled{opacity:.4}
+button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.card{background:var(--card);border-radius:20px;padding:24px;border:2px solid var(--line)}
+.muted{color:var(--sub);font-size:15px}
+.grid{display:grid;gap:14px}
+/* 홈 메뉴: 학습 순서 = 실제 흐름이므로 단계 번호 사용 */
+.path{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.step{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:18px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:150px}
+.step b{font-family:'Jua';font-size:15px;color:var(--sub)}
+.step span.t{font-family:'Jua';font-size:26px}
+.step .big{font-size:40px;line-height:1}
+.heroDay{font-family:'Jua';font-size:26px}
+.streak{display:inline-block;margin-top:6px;background:var(--sun);color:#22304A;font-family:'Jua';font-size:15px;padding:4px 12px;border-radius:99px}
+.focusTime{font-family:'Jua';font-size:18px;color:var(--sky);margin-top:2px}
+.focusTime.warn{color:var(--sun)}
+.focusTime.over{color:var(--seal)}
+.focusTime.away{color:var(--sub)}
+.today{display:flex;gap:6px;flex-wrap:wrap;font-family:var(--hanja);font-size:30px}
+.today i{font-style:normal;width:48px;height:48px;display:grid;place-items:center;border-radius:10px;background:var(--paper);border:2px solid var(--line)}
+.today i.done{background:var(--leaf);color:#fff;border-color:var(--leaf)}
+/* 학습 카드 */
+.learn{display:grid;grid-template-columns:260px 1fr;gap:18px}
+@media(max-width:700px){.learn{grid-template-columns:1fr}}
+.bigchar{font-family:var(--hanja);font-size:180px;line-height:1;text-align:center;background:var(--paper);border-radius:16px;padding:18px 0;position:relative}
+.bigchar::before,.bigchar::after{content:"";position:absolute;background:var(--line);opacity:.6}
+.bigchar::before{left:50%;top:8%;bottom:8%;width:1px}
+.bigchar::after{top:50%;left:8%;right:8%;height:1px}
+.hun{font-family:'Jua';font-size:30px;text-align:center;margin-top:8px}
+.word{font-family:var(--hanja);font-size:44px}
+.ex{border-left:6px solid var(--leaf);padding:8px 12px;margin:8px 0;background:var(--paper);border-radius:0 10px 10px 0}
+.ex.star{border-color:var(--sun)}
+.ex.cmp{border-color:var(--sky)}
+.ex small{display:block;font-family:'Jua';color:var(--sub)}
+/* 필기 패드 */
+.pad{position:relative;touch-action:none;margin:0 auto}
+.pad .cells{position:absolute;inset:0;display:flex}
+.pad .cell{flex:1;border:2px solid var(--ink);position:relative;background:#fff;display:grid;place-items:center;font-family:var(--hanja);color:#E3E8EF;overflow:hidden}
+.pad .cell+.cell{border-left:0}
+.pad .cell.grid::before,.pad .cell.grid::after{content:"";position:absolute;border:0 dashed #F0A5A0}
+.pad .cell.grid::before{left:50%;top:0;bottom:0;border-left-width:1.5px}
+.pad .cell.grid::after{top:50%;left:0;right:0;border-top-width:1.5px}
+.pad canvas{position:absolute;inset:0;touch-action:none}
+.q{font-family:'Jua';font-size:24px;text-align:center;margin:6px 0 14px}
+.qword{font-family:var(--hanja);font-size:84px;text-align:center;line-height:1.1}
+.prog{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.prog>div{height:100%;background:var(--sky);transition:width .3s}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice button{font-size:28px;padding:20px;background:var(--card);border:2px solid var(--line)}
+.timer{font-family:'Jua';font-size:22px;color:var(--seal)}
+/* 부모 */
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{background:var(--card);border:2px solid var(--line)}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left}
+.gradeRow{display:grid;grid-template-columns:44px 1fr 170px 130px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+@media(max-width:700px){.gradeRow{grid-template-columns:36px 1fr;}}
+.gradeRow img{width:100%;max-width:320px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.gradeImgWrap{position:relative;width:100%;max-width:320px}
+.gradeImgWrap img{width:100%;display:block}
+.ansOverlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:.32;font-weight:900;font-size:clamp(24px,6vw,48px);color:var(--seal);letter-spacing:2px}
+.ansOverlay.jua{font-family:'Jua';font-weight:400;color:var(--sky)}
+.ansOverlay.hz{font-family:var(--hanja)}
+.ans{font-family:var(--hanja);font-size:34px}
+.gbtn{display:flex;gap:6px}
+.gbtn button{padding:10px 16px;font-size:22px;background:var(--card);border:2px solid var(--line)}
+.gbtn button.selO{background:var(--leaf);color:#fff;border-color:var(--leaf)}
+.gbtn button.selX{background:var(--seal);color:#fff;border-color:var(--seal)}
+input,textarea{-webkit-user-select:text;user-select:text}
+textarea{font-size:14px;padding:10px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);width:100%;font-family:monospace}
+input{font-size:20px;padding:10px;border-radius:10px;border:2px solid var(--line);width:110px;background:var(--card);color:var(--ink);font-family:inherit}
+.score{font-family:'Jua';font-size:40px;color:var(--seal)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:14px;background:var(--paper);border:1px solid var(--line)}
+.pill.wait{background:var(--sun);color:#22304A;border-color:var(--sun)}
+.flip{min-height:260px;display:grid;place-items:center;text-align:center;cursor:pointer}
+.book{display:inline-flex;align-items:center;gap:6px;background:var(--sun);color:#22304A;border-radius:10px;padding:4px 12px;font-family:'Jua';font-size:17px}
+.book b{font-family:var(--hanja);font-weight:700}
+.stroke{background:#fff;border-radius:16px;margin:0 auto;display:block;touch-action:none}
+.pagebtn{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);margin-bottom:8px}
+.pagebtn .hz{font-family:var(--hanja);font-size:24px}
+.note{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start}
+.note .pad{margin:0}
+.note .pad .cell{border-width:1.5px}
+.model{display:grid;place-items:center;background:#FFF4D6;border:2px solid var(--ink);font-family:var(--hanja);color:#1B2A44;position:relative}
+.model small{position:absolute;top:2px;left:4px;font-family:'Jua';font-size:11px;color:var(--seal)}
+.noteHead{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center}
+.noteHead .ch{font-family:var(--hanja);font-size:72px;line-height:1}
+.cnt{font-family:'Jua';font-size:20px}
+.stampOk{display:inline-grid;place-items:center;width:92px;height:92px;border:4px solid var(--seal);border-radius:50%;color:var(--seal);font-family:'Jua';font-size:18px;line-height:1.1;text-align:center;transform:rotate(-12deg)}
+.dots{display:flex;gap:4px;flex-wrap:wrap}.dots i{width:14px;height:14px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--leaf)}.dots i.cur{outline:3px solid var(--sky)}
+
+.hz{font-family:var(--hanja);font-weight:900}
+.bigchar,.word,.qword,.ans,.today,.step .big{font-weight:900}
+.learn1{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}
+@media(max-width:600px){.learn1{grid-template-columns:1fr;justify-items:center}}
+.learn1 .bigchar{padding:0;background:none}
+.learn1 .bigchar::before,.learn1 .bigchar::after{display:none}
+.hunEum{font-family:'Jua';font-size:52px;line-height:1.2}
+.hunEum span{color:var(--seal)}
+.meta{font-size:20px;color:var(--sub)}
+.say{font-family:'Jua';font-size:26px;text-align:center;background:var(--paper);border-radius:14px;padding:16px;margin:18px 0 0}
+button.big{display:block;width:100%;font-size:28px;padding:20px;margin-top:16px}
+a.btnlink{display:inline-block;border-radius:14px;padding:12px 20px;font-family:'Jua';text-decoration:none;background:var(--sky);color:#fff}
+.stepTag{display:inline-block;background:var(--ink);color:var(--paper);font-family:'Jua';font-size:19px;padding:6px 16px;border-radius:10px;margin-bottom:16px}
+.stepCard{margin-top:16px;scroll-margin-top:80px;border-color:var(--sky);border-width:3px}
+.flow{margin:10px 4px 0}
+.flow .fl{padding:4px 8px;font-size:18px;color:var(--sub)}
+.flow .fl .hz{color:var(--ink)}
+.flow .fl.now{color:var(--sky);font-family:'Jua';font-size:22px}
+.flow .fl.nav{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.flow .fl.nav:active{opacity:.6}
+.wchips{display:flex;flex-wrap:wrap;gap:8px}
+.wchip{display:inline-flex;flex-direction:column;align-items:center;padding:10px 18px;border-radius:14px;border:2px solid var(--line);font-family:var(--hanja);font-weight:900;font-size:28px;background:var(--card)}
+.wchip small{font-family:'Gowun Dodum';font-size:13px;font-weight:600;color:var(--sub)}
+.wchip.done{background:var(--leaf);color:#fff;border-color:var(--leaf)}.wchip.done small{color:#fff}
+.wchip.now{border-color:var(--sky);box-shadow:0 0 0 2px var(--sky)}
+.wchip.nav{cursor:pointer}
+.wchip.nav:active{transform:scale(.95)}
+.navRow button:disabled{opacity:.35}
+.note5{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.note5 .pad,.pad.model,.row .pad{margin:0}
+.pad .cell{background:#fff}
+.pad.locked:not(.done):not(.model):not(.view){opacity:.4}
+.pad.locked:not(.done):not(.model):not(.view)::after{content:'🔒';position:absolute;inset:0;display:grid;place-items:center;font-size:30px;pointer-events:none}
+.pad.active{box-shadow:0 0 0 4px var(--sky)}
+.pad.done::after{content:'✓';position:absolute;right:6px;top:0;color:var(--leaf);font-size:28px;font-family:'Jua';pointer-events:none}
+.pad.model .cell{background:#FFF4D6}
+.pad .num{position:absolute;left:5px;top:2px;font-family:'Jua';font-size:14px;color:var(--sub);pointer-events:none}
+.pad .cd{position:absolute;inset:0;display:grid;place-items:center;font-family:'Jua';font-size:70px;color:rgba(74,127,212,.6);pointer-events:none}
+.heIn{display:block;margin-top:6px;font-size:42px;padding:16px 18px;width:100%;border-radius:14px;border:3px solid var(--line);font-family:'Gowun Dodum';font-weight:700;background:var(--card);color:var(--ink)}
+.heIn.bad{border-color:var(--seal);background:#FDECEA;color:#22304A}
+.hint{min-height:34px;margin:14px 0 0;font-family:'Jua';font-size:22px;color:var(--seal)}
+.okMsg{color:var(--leaf);font-family:'Jua';font-size:26px}
+.badMsg{color:var(--seal);font-family:'Jua';font-size:24px}
+.wordBig{font-family:var(--hanja);font-weight:900;font-size:clamp(80px,16vw,130px);text-align:center;line-height:1.1}
+.wordRead{font-family:'Jua';font-size:48px;text-align:center}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:30;padding:16px}
+.modal[hidden]{display:none}
+.modal .card{max-width:640px;max-height:90vh;overflow:auto}
+.capHE{font-family:'Jua';font-size:30px;margin-top:10px;color:var(--ink)}
+.capHE b{color:var(--seal)}
+.note5{gap:16px}
+.note5 .pad{margin:0}
+.pad .num{font-size:16px}
+.cnt{font-size:19px;font-weight:700}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:12px 22px;border-radius:14px;font-family:'Jua';z-index:20}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+\n.pad.over{box-shadow:0 0 0 4px var(--seal)!important}.pad.over::before{content:"획수가 많아요 · 이 칸 지우기";position:absolute;left:8px;right:8px;bottom:8px;z-index:8;background:var(--seal);color:#fff;border-radius:9px;padding:5px 7px;text-align:center;font-family:"Jua";font-size:14px;pointer-events:none}\n</style>
 </head>
 <body>
-<div class="app">
-<div id="compatBanner" class="compatBanner" role="status" aria-live="polite"><div class="compatText"><strong>필기 앱 실행 환경을 확인하고 있습니다.</strong><div id="compatMessage">iPad는 Safari, Galaxy Tab은 Chrome에서 여는 것을 권장합니다.</div><div class="compatSteps"><span>iPad → Safari</span><span>Galaxy Tab → Chrome</span></div></div><span class="compatBadge" id="compatBadge">확인 중</span></div>
-<header class="top appHeader"><div class="brand"><b>입문한자</b><span>한 글자씩, 정확하게 써 보기</span></div><div style="display:flex;gap:8px;align-items:center"><div class="statusPill" id="topRange">교재 11~14쪽</div><button class="homeBtn" id="parentHeaderBtn">부모 관리</button></div></header>
-<nav class="tabs appNav" id="appNav"><button class="tab" data-view="home">홈</button><button class="tab" data-view="today">오늘 공부</button><button class="tab" data-view="fast">빠른 점검</button><button class="tab" data-view="exam">쪽지시험</button><button class="tab" data-view="records">기록</button></nav>
-<section id="view-home" class="view active"><div class="homeHero"><div class="heroBox"><div class="heroKicker">초등 4학년 한자 연습</div><h1 class="heroTitle">입문한자</h1><div class="heroLine" id="homeLine">오늘은 10글자만 또박또박</div><div class="heroSub">한 글자씩 5번 쓰고, 훈과 음까지 정확히 익힙니다.</div><div class="heroActions"><button class="heroAction primaryHero" data-go="today"><span class="heroNo">1</span><strong id="homeStudyLabel">오늘 공부</strong><span id="homeStudySub">10글자 · 각 5번 · 20분</span></button><button class="heroAction" data-go="fast"><span class="heroNo">2</span><strong>빠른 점검</strong><span id="homeFastSub">읽기 · 쓰기 · 획수</span></button><button class="heroAction" data-go="exam"><span class="heroNo">3</span><strong>쪽지시험</strong><span>읽기 10 + 쓰기 10</span></button></div><div class="heroMeta"><span class="chip" id="homeRange">교재 11~14쪽</span><span class="chip heroWrong" id="homeWrong">다시 볼 단어 0개</span></div><div class="heroBottom"><button class="quietBtn" data-go="records">내 기록</button><button class="quietBtn" id="parentQuickBtn">부모 관리</button></div></div></div></section>
-<section id="view-today" class="view"><div class="summaryStrip"><div class="stat"><div class="k">오늘 목표</div><div class="v" id="todayGoalWords">10글자</div><div class="subv" id="todayGoalChars">글자마다 5번</div></div><div class="stat"><div class="k">목표 수업시간</div><div class="v" id="todayGoalMin">20분</div><div class="subv">부모 설정 기준</div></div><div class="stat"><div class="k">실제 학습시간</div><div class="v" id="todayActual">0분</div><div class="subv" id="todayClock">아직 시작 전</div></div><div class="stat"><div class="k">완료 글자</div><div class="v" id="strokeProgress">0/10</div><div class="subv" id="strokeCheckSub">쓰기 0/50회</div></div></div><div class="grid"><div class="card"><h2>오늘 공부</h2><div class="timer" id="lessonTimer">00:00:00</div><div class="goalLine"><span class="chip" id="lessonRangeChip">교재 11~14쪽</span><span class="chip" id="lessonWordChip">10글자</span><span class="chip stroke" id="lessonStrokeChip">한 글자 5번 · 다음 칸 3초 뒤</span></div><div class="actions" style="margin-top:14px"><button class="btn primary" id="startLessonBtn">공부 시작</button><button class="btn danger" id="endLessonBtn" disabled>오늘 공부 끝</button><button class="btn secondary" id="refreshPlanBtn">오늘 한자 바꾸기</button></div><div class="notice" style="margin-top:12px">한 글자는 <b>정확한 획수로 5번</b> 쓰고, <b>훈과 음을 한글로 정확히 적어야</b> 완료됩니다. 다음 쓰기 칸은 3초 뒤에 열립니다.</div></div><div class="card"><h2>오늘 진행</h2><div class="autoProgressBox"><div class="autoRule"><b>1</b><span>한자를 보고 5번 쓰기</span></div><div class="autoRule"><b>2</b><span>각 번마다 정답 획수 맞추기</span></div><div class="autoRule"><b>3</b><span>훈 · 음을 한글로 정확히 적기</span></div></div><div style="margin-top:16px"><div class="rowBetween"><span class="small muted">완료율</span><b id="checkRate">0%</b></div><div class="progress" style="margin-top:7px"><i id="checkProgressBar"></i></div></div><div id="lessonProgressText" class="rangeSummary">공부 시작을 눌러 주세요.</div></div><div class="card full penSafeZone"><div class="rowBetween"><div><h2 style="margin-bottom:4px">오늘의 한자</h2><div class="small muted">한 번에 한 글자만 연습합니다. 1회는 선명하게, 2·3회는 옅게, 4·5회는 빈칸에 스스로 씁니다.</div></div><div class="chip stroke" id="sourceAuditChip">획수 187/187 확인</div></div><div class="characterCards" id="todayWords" style="margin-top:14px"></div></div></div></section>
-<section id="view-fast" class="view"><div class="card"><div class="rowBetween"><div><h2 style="margin-bottom:4px">빠른 점검</h2><div class="small muted">한 번에 한 문제씩. 오래 고민하지 말고 바로 떠올려 봅니다.</div></div><div class="chip" id="fastRangeChip">교재 범위</div></div><div class="fastModes" style="margin-top:16px"><button class="fastModeBtn" data-fast-mode="read">읽기</button><button class="fastModeBtn" data-fast-mode="write">쓰기</button><button class="fastModeBtn" data-fast-mode="stroke">획수</button><button class="fastModeBtn" data-fast-mode="wrong">틀린 것만</button></div><div id="fastArea" class="fastQuestion"><div class="empty">위에서 점검할 것을 하나 고르세요.</div></div></div></section>
-<section id="view-exam" class="view"><div class="card"><div class="examHead"><div><h2 style="margin-bottom:4px">실전 쪽지시험</h2><div class="small muted">학원 형식 고정: 한자 읽기 10문제 + 한글 단어를 한자로 쓰기 10문제</div></div><div class="actions"><button class="btn primary" id="makeExamBtn">20문제 만들기</button><button class="btn secondary" id="clearExamBtn">시험 지우기</button></div></div><div id="examStatus" class="rangeSummary"></div><div id="examArea" class="empty">시험을 만들면 여기에 20문제가 나타납니다.</div><div class="actions" id="examSubmitActions" style="margin-top:14px;display:none"><button class="btn primary" id="submitExamBtn">시험 제출 · 부모 채점대기로 보내기</button></div></div></section>
-<section id="view-records" class="view"><div class="summaryStrip"><div class="stat"><div class="k">최근 7일 학습일</div><div class="v" id="recDays">0일</div></div><div class="stat"><div class="k">최근 7일 총시간</div><div class="v" id="recMinutes">0분</div></div><div class="stat"><div class="k">완료 글자</div><div class="v" id="recWords">0자</div></div><div class="stat"><div class="k">채점된 시험</div><div class="v" id="recExams">0회</div></div></div><div class="grid"><div class="card full"><h2>매일 수업 이력</h2><div class="tableWrap"><table class="tbl"><thead><tr><th>날짜</th><th>시작~종료</th><th>실제시간</th><th>목표/완료 글자</th><th>5회 쓰기</th><th>훈·음</th><th>범위</th></tr></thead><tbody id="sessionRows"></tbody></table></div></div><div class="card full"><h2>시험 이력</h2><div class="tableWrap"><table class="tbl"><thead><tr><th>날짜</th><th>범위</th><th>유형</th><th>상태</th><th>점수</th></tr></thead><tbody id="examRows"></tbody></table></div></div></div></section>
-<section id="view-parent" class="view"><div class="grid"><div class="card"><h2>1. 시험·학습 범위</h2><div class="rangeBox"><div class="field"><label>교재 시작 페이지</label><input id="startPage" class="num" type="number" inputmode="numeric"></div><b style="font-size:25px">~</b><div class="field"><label>교재 끝 페이지</label><input id="endPage" class="num" type="number" inputmode="numeric"></div></div><div id="rangeSummary" class="rangeSummary"></div><div class="wordChips" id="rangeWords"></div></div><div class="card"><h2>2. 하루 학습량·시간</h2><div class="settingsGrid"><div class="field"><label>하루 한자(글자)</label><input id="dailyWords" class="num" type="number" min="1" max="20"></div><div class="field"><label>목표 수업시간(분)</label><input id="dailyMinutes" class="num" type="number" min="5" max="120"></div></div><div class="rangeSummary" id="dailyCalc"></div><div class="actions" style="margin-top:13px"><button class="btn primary" id="saveSettingsBtn">범위·학습량 저장</button></div></div><div class="card full"><h2>3. 획수 데이터 점검</h2><div class="audit"><span class="ok">고유 한자 187자</span><span class="ok">획수 확인 187자</span><span class="ok">훈·음 187자</span><span class="ok">누락 0자</span><span class="ok">충돌 0건</span></div><div class="small muted" style="margin-top:11px">획수는 교재 필·응편 인쇄 29~52쪽(PDF 21~44쪽)의 각 글자 옆 획수 표기를 기준으로 입력했습니다.</div></div>
-<div class="card full" id="penTestCard"><div class="rowBetween"><div><h2 style="margin-bottom:4px">4. Apple Pencil · S Pen 점검</h2><div class="small muted">펜(pointerType=pen) 입력을 기준으로 동작하며 손가락·손바닥은 필기에서 제외합니다.</div></div><span class="chip stroke" id="penReadyChip">펜 대기</span></div><div class="penTestWrap"><div><canvas id="penTestCanvas" class="penTestCanvas"></canvas><div class="padTools"><button class="miniBtn undoBtn" id="penTestUndo">한 획 되돌리기</button><button class="miniBtn" id="penTestClear">지우기</button></div></div><div><div class="penStatusGrid"><div class="penStat"><div class="k">입력 장치</div><div class="v" id="penInputType">아직 없음</div></div><div class="penStat"><div class="k">펜 획수</div><div class="v" id="penStrokeCount">0획</div></div><div class="penStat"><div class="k">압력 범위</div><div class="v" id="penPressureRange">-</div></div><div class="penStat"><div class="k">정밀 샘플링</div><div class="v" id="penCoalesced">확인 전</div></div><div class="penStat"><div class="k">손가락 차단</div><div class="v penOk" id="penPalmReject">사용</div></div><div class="penStat"><div class="k">환경</div><div class="v" id="penEnv">-</div></div></div><div class="penHelp" id="penDiagnosis">펜으로 테스트 칸에 써 보면 인식 상태가 표시됩니다.</div><div class="penProfileRow"><div class="field"><label>필기 튜닝</label><select id="penProfileSelect" class="select"><option value="auto">자동</option><option value="apple1">iPad · Apple Pencil 1세대</option><option value="spen">Galaxy Tab · S Pen</option></select></div></div></div></div></div>
-<div class="card full" id="deviceCheckCard"><div class="rowBetween"><div><h2>5. 실기기 필기 검수</h2></div><span class="chip stroke" id="deviceCheckChip">미점검</span></div><div class="deviceCheckGrid"><div class="deviceStep"><label><input type="checkbox" id="dcPen"><span>펜 기본 입력</span></label></div><div class="deviceStep"><label><input type="checkbox" id="dcPalm"><span>손바닥 차단</span></label></div><div class="deviceStep"><label><input type="checkbox" id="dcFast"><span>빠른 연속 필기</span></label></div><div class="deviceStep"><label><input type="checkbox" id="dcRotate"><span>화면 회전</span></label></div><div class="deviceStep"><label><input type="checkbox" id="dc20"><span>20칸 연속 필기</span></label></div></div><div class="deviceCheckBody"><div><canvas id="deviceCheckCanvas" class="penTestCanvas"></canvas><div class="padTools"><button class="miniBtn undoBtn" id="deviceCheckUndo">한 획 되돌리기</button><button class="miniBtn" id="deviceCheckClear">지우기</button></div></div><div><div class="deviceMetrics"><div class="deviceMetric"><div class="k">현재 프로필</div><div class="v" id="dcProfile">자동</div></div><div class="deviceMetric"><div class="k">펜 획수</div><div class="v" id="dcStrokes">0획</div></div><div class="deviceMetric"><div class="k">펜 샘플</div><div class="v" id="dcSamples">0</div></div><div class="deviceMetric"><div class="k">평균 샘플 간격</div><div class="v" id="dcGap">-</div></div><div class="deviceMetric"><div class="k">차단된 터치</div><div class="v" id="dcTouch">0회</div></div><div class="deviceMetric"><div class="k">화면 방향 변경</div><div class="v" id="dcRotateCount">0회</div></div></div><div class="deviceActions"><button class="btn secondary" id="startEnduranceBtn">20칸 연속 필기 시작</button><button class="btn primary" id="saveDeviceCheckBtn">검수 결과 저장</button></div><div class="deviceResult" id="deviceCheckResult">실제 펜으로 확인 후 위 5개 항목을 체크하세요.</div><div class="deviceHistory" id="deviceCheckHistory"></div></div></div><div class="enduranceArea" id="enduranceArea"><div class="rowBetween"><h3>20칸 연속 필기</h3><span class="chip" id="enduranceStatus">0 / 20</span></div><div class="enduranceGrid" id="enduranceGrid"></div></div></div>
-<div class="card full"><div class="rowBetween"><div><h2>6. 제출 시험 채점</h2></div><select id="pendingExamSelect"></select></div><div id="gradingArea" class="empty">채점할 제출 시험이 없습니다.</div><div class="actions" id="gradingActions" style="display:none;margin-top:12px"><button class="btn primary" id="finishGradeBtn">채점 완료 저장</button></div></div></div></section>
-</div>
-<script src="data/meta.js?v=0.10.0"></script><script src="data/words-1.js"></script><script src="data/words-2.js"></script><script src="data/words-3.js"></script><script src="data/words-4.js"></script><script src="data/chars.js?v=0.10.0"></script><script src="data/ref-29-34.js?v=0.10.0"></script><script src="data/ref-35-40.js?v=0.10.0"></script><script src="data/ref-41-46.js?v=0.10.0"></script><script src="data/ref-47-52.js?v=0.10.0"></script><script src="data/phase1-lock.js?v=0.10.0"></script><script src="assets/v07-core-a.js?v=0.10.0"></script><script src="assets/v07-core-b.js?v=0.10.0"></script><script src="assets/v07-lesson-a.js?v=0.10.0"></script><script src="assets/v07-lesson-b.js?v=0.10.0"></script><script src="assets/v07-lesson-c.js?v=0.10.0"></script><script src="assets/v07-fast.js?v=0.10.0"></script><script src="assets/v07-exam.js?v=0.10.0"></script><script src="assets/v07-records-parent.js?v=0.10.0"></script><script src="assets/v07-grading.js?v=0.10.0"></script><script src="assets/app-3.js?v=0.10.0"></script>
-</body></html>
+<header>
+  <h1><span class="seal">漢</span>태이를 위해 아빠가 만든 한자앱</h1>
+    <button class="ghost" id="homeBtn">처음으로</button>
+  <button class="ghost" id="parentBtn">부모 모드</button>
+</header>
+<main id="app"></main>
+
+<script>
+/* ===== 교재 데이터: 장원급제Ⅲ(준4급) 본문편 11~26쪽 + 활용편 훈음·부수·획수 ===== */
+// [쪽, 단어, 읽기, 뜻(낱말풀이), 교재 예문(낱말활용), 동물·자연 예시, 무대·스타 예시, [한자, 훈, 음, 부수, 획수, 비교]x2]
+const LEGACY_WORDS=[
+[11,'加工','가공','일정한 제품을 만들기 위해 소재나 원료에 인공을 더함','加工식품은 먹기 편하고 저장성이 좋은 특성이 있다.','꿀벌은 꽃꿀을 加工해서 꿀을 만들어요.','팬들이 스타 사진을 加工해서 응원 포스터를 만들었어요.',
+ [['加','더할','가','力',5,'力(힘)이 들어 있어 "힘을 더한다"는 뜻이에요.'],['工','장인','공','工',3,'工 옆에 力(힘)을 붙이면 功(공 공)!']]],
+[11,'可能','가능','할 수 있음','모든 일에 可能한 최대의 노력을 기울여야 한다.','문어는 몸 색깔을 바꾸는 것이 可能해요.','아이돌은 노래와 춤을 함께 하는 것이 可能하도록 연습해요.',
+ [['可','옳을','가','口',5,''],['能','능할','능','肉',10,'부수 肉(고기 육)이 月 모양으로 들어가 있어요.']]],
+[11,'角度','각도','각의 크기. 관점(觀點)','90° 角度가 커지면 둔각, 작아지면 예각이 된다.','어린 해바라기는 해를 따라 角度를 바꿔요.','사진작가가 가장 멋진 角度를 찾아 촬영해요.',
+ [['角','뿔','각','角',7,'소·사슴의 뿔 모양에서 나온 글자예요.'],['度','법도','도','广',9,'"헤아릴 탁"으로도 읽어요.']]],
+[11,'感性','감성','느낌을 받아들이는 성질','시인은 풍부한 感性의 소유자이다.','빗소리 가득한 숲은 感性을 촉촉하게 해요.','발라드 가수는 感性 가득한 목소리로 노래해요.',
+ [['感','느낄','감','心',13,'아래에 心(마음)이 있어요 → 마음으로 느낌.'],['性','성품','성','忄',8,'忄(마음) + 生(날 생)']]],
+[11,'結實','결실','열매가 여묾. 일의 결과가 잘 맺어짐','가을은 풍성한 結實의 계절이다.','가을이 되면 사과나무가 結實해요.','오랜 연습이 데뷔 무대로 結實했어요.',
+ [['結','맺을','결','糸',12,'糸(실)로 매듭을 맺는 모양이에요.'],['實','열매','실','宀',14,'']]],
+[11,'決定','결정','행동이나 태도를 분명하게 정함','이번 수학여행 장소 決定은 고적 답사 위주로 선정되었다.','철새는 날씨를 살펴 떠날 때를 決定해요.','오디션 심사위원이 합격자를 決定해요.',
+ [['決','결단할','결','氵',7,'快(쾌할 쾌)와 오른쪽 모양이 같아요. 왼쪽이 氵(물)이면 決!'],['定','정할','정','宀',8,'']]],
+[12,'敬愛','경애','공경하고 사랑함','敬愛하는 신사 숙녀 여러분께 감사의 말씀을 올립니다.','코끼리 무리는 나이 많은 할머니 코끼리를 敬愛하며 따라다녀요.','후배 가수가 선배를 敬愛한다고 인사했어요.',
+ [['敬','공경할','경','攵',13,'아래에 言(말씀 언)을 붙이면 警(깨우칠 경)!'],['愛','사랑','애','心',13,'가운데에 心(마음)이 들어 있어요.']]],
+[12,'輕重','경중','가벼움과 무거움','위엄은 학식과 지위보다는 행실의 輕重에 따라 평가된다.','깃털과 돌멩이는 輕重이 크게 달라요.','무대 소품은 輕重을 따져서 옮겨요.',
+ [['輕','가벼울','경','車',14,'반대말: 重(무거울 중)'],['重','무거울','중','里',9,'반대말: 輕(가벼울 경)']]],
+[12,'苦待','고대','몹시 기다림','가뭄이 극심하자 농부는 비가 내리기를 苦待하였다.','가뭄 속 개구리들이 봄비를 苦待해요.','팬들이 컴백 날을 苦待해요.',
+ [['苦','괴로울','고','艹',9,'若(같을 약)과 모양이 비슷해요. 苦는 艹 아래 古!'],['待','기다릴','대','彳',9,'侍(모실 시)와 헷갈리지 않기: 待는 왼쪽이 彳']]],
+[12,'告知','고지','게시나 글을 통해 알림','국세청으로부터 세금 납입서를 告知받았다.','국립공원은 곰 출몰 주의를 告知해요.','소속사가 콘서트 날짜를 告知했어요.',
+ [['告','알릴','고','口',7,''],['知','알','지','矢',8,'矢(화살 시) + 口(입 구)']]],
+[12,'曲直','곡직','굽음과 곧음','선생님께서 전후 상황을 불문(不問)曲直하고 대뜸 화부터 내기 시작했다.','나뭇가지는 저마다 曲直이 달라요.','경연 심사위원이 옳고 그름, 즉 曲直을 가렸어요.',
+ [['曲','굽을','곡','曰',6,'반대말: 直(곧을 직)'],['直','곧을','직','目',8,'반대말: 曲(굽을 곡)']]],
+[12,'功勞','공로','어떤 일에 이바지한 공적과 노력','교장선생님께서는 한평생 교육에 헌신한 功勞로 훈장을 받으셨다.','조난자를 구한 구조견이 功勞를 인정받아 상을 받았어요.','연말 시상식에서 스태프들의 功勞에 감사 인사를 했어요.',
+ [['功','공','공','力',5,'攻(칠 공)과 비슷해요. 功은 오른쪽이 力(힘)!'],['勞','수고로울','로','力',12,'功勞에서는 "공로"로 읽어요.']]],
+[13,'公園','공원','공중의 보건, 휴양, 놀이 따위를 위해 마련한 정원, 유원지','유명한 公園 주변에는 위락시설이 많아 경관을 해치고 있다.','公園 연못에 청둥오리가 살아요.','公園에서 팬 사인회가 열렸어요.',
+ [['公','공변될','공','八',4,'반대말: 私(사사 사)'],['園','동산','원','囗',13,'圓(둥글 원)과 비슷해요. 園은 안쪽에 袁!']]],
+[13,'過失','과실','잘못. 허물','교통사고의 주 원인은 대부분 운전자의 부주의한 過失로 발생된다.','캠핑객의 작은 過失로 산불이 날 수 있어요.','방송 사고는 제작진의 過失이었어요.',
+ [['過','지날','과','辶',13,''],['失','잃을','실','大',5,'矢(화살 시)와 비슷해요. 失은 위로 삐죽 나와요.']]],
+[13,'敎材','교재','교수 및 학습에 쓰이는 재료','시청각 교육을 위한 여러 가지 敎材가 많이 개발되었다.','곤충 도감은 자연 관찰 敎材예요.','댄스 영상이 춤 연습 敎材로 쓰여요.',
+ [['敎','가르칠','교','攵',11,'짝꿍 글자: 學(배울 학) → 敎學'],['材','재목','재','木',7,'村(마을 촌)과 비슷해요. 材는 오른쪽이 才!']]],
+[13,'郡界','군계','郡과 郡 사이의 경계','하동군과 구례군의 郡界가 되는 섬진강에 영호남 대교가 건립된다.','강물이 두 고을의 郡界가 되기도 해요.','촬영 팀이 郡界를 넘어 다음 마을로 이동했어요.',
+ [['郡','고을','군','邑',10,'群(무리 군)과 소리가 같아요. 郡은 오른쪽이 阝(고을)!'],['界','지경','계','田',9,'']]],
+[13,'貴族','귀족','사회적으로 특권을 지닌 상류 계급','화랑은 신라 貴族의 자제로서 세속오계를 신조로 호연지기(浩然之氣)를 길렀다.','화려한 공작새는 새들의 貴族처럼 보여요.','사극 배우가 貴族 옷을 입고 연기했어요.',
+ [['貴','귀할','귀','貝',12,'責(꾸짖을 책)과 아랫부분이 같아요(貝).'],['族','겨레','족','方',11,'旅(나그네 려)와 모양이 비슷해요.']]],
+[13,'根本','근본','초목의 뿌리. 사물의 본질','모든 행실의 根本은 孝에 있다.','나무의 根本은 땅속 뿌리예요.','노래 실력의 根本은 꾸준한 연습이에요.',
+ [['根','뿌리','근','木',10,''],['本','근본','본','木',5,'木(나무) 아래에 一을 그어 "뿌리"를 표시했어요.']]],
+[14,'吉凶','길흉','운이 좋고 나쁨','매사에 공경함과 게으름의 사이에 그 사람의 吉凶이 판가름난다.','옛사람들은 까치 소리를 좋은 소식, 곧 吉한 징조로 여겼어요.','사극에서 점쟁이가 주인공의 吉凶을 점쳤어요.',
+ [['吉','길할','길','口',6,'반대말: 凶(흉할 흉)'],['凶','흉할','흉','凵',4,'반대말: 吉(길할 길)']]],
+[14,'道路','도로','사람, 차들이 다니는 비교적 큰 길','홍수로 강이 범람하여 주변 道路가 침수되었다.','道路를 건너는 동물을 위해 생태 통로를 만들어요.','퍼레이드 날에는 道路를 막고 행진해요.',
+ [['道','길','도','辶',13,'路(길 로)와 뜻이 같아요.'],['路','길','로','足',13,'道(길 도)와 뜻이 같아요.']]],
+[14,'圖畫','도화','도면과 그림. 그림 그리는 일','圖畫紙에 금강산의 아름다운 풍경을 그려보자.','圖畫 시간에 나비 날개 무늬를 그렸어요.','뮤직비디오 장면을 미리 圖畫로 그려 둬요.',
+ [['圖','그림','도','囗',14,'畫(그림 화)와 뜻이 같아요.'],['畫','그림','화','田',12,'晝(낮 주)와 모양이 비슷해요.']]],
+[14,'同窓','동창','같은 학교나 같은 스승 밑에서 공부한 관계','同窓들과 함께 모교를 방문하여 후배들과 즐거운 시간을 보냈다.','숲 체험 학교 同窓들과 새를 관찰했어요.','두 배우는 같은 예술고등학교 同窓이에요.',
+ [['同','한가지','동','口',6,''],['窓','창','창','穴',11,'위에 穴(구멍 혈)이 있어요.']]],
+[14,'落第','낙제','시험에 떨어짐','대학 입시에서 落第되었다고 해서 포기해서는 안 된다.','어린 사자는 사냥 연습에서 落第해도 다시 도전해요.','첫 오디션에서 落第했던 가수가 결국 데뷔했어요.',
+ [['落','떨어질','락','艹',13,'落第에서는 "낙제"로 읽어요(두음법칙).'],['第','차례','제','竹',11,'弟(아우 제)와 비슷해요. 第는 위에 竹!']]],
+[14,'良藥','양약','좋은 약','良藥은 입에 쓴 법이다.','산에서 캔 약초는 옛날의 良藥이었어요.','팬들의 응원은 스타에게 良藥이에요.',
+ [['良','어질','량','艮',7,'良藥에서는 "양약"으로 읽어요(두음법칙).'],['藥','약','약','艹',19,'樂(즐길 락)에 艹를 얹으면 藥!']]],
+[15,'歷史','역사','인류사회의 변천과 흥망의 과정, 또는 그 기록','대한민국은 유구한 반만년 歷史를 지닌 국가이다.','공룡의 歷史는 화석으로 알 수 있어요.','그 그룹은 데뷔 10주년 歷史를 자랑해요.',
+ [['歷','지낼','력','止',16,'曆(책력 력)과 비슷해요. 歷은 아래가 止!'],['史','역사','사','口',5,'吏(벼슬아치 리)와 모양이 비슷해요.']]],
+[15,'例問','예문','예로 보인 문제','설명을 듣고 例問을 풀어보면 쉽게 이해할 수 있다.','과학 문제집 例問에 개구리 한살이가 나왔어요.','예능 퀴즈에서 例問을 먼저 풀어 봤어요.',
+ [['例','법식','례','亻',8,'例問에서는 "예문"으로 읽어요(두음법칙).'],['問','물을','문','口',11,'門(문) 안에 口(입) → 문 앞에서 묻다.']]],
+[15,'禮式','예식','예법에 따라 치르는 의식','신랑 신부가 차례로 들어서자 禮式이 거행되었다.','전통 禮式에는 사이좋은 부부를 뜻하는 나무 원앙을 올려요.','드라마 속 두 주인공의 결혼 禮式 장면이 방송됐어요.',
+ [['禮','예도','례','示',18,'禮式에서는 "예식"으로 읽어요(두음법칙).'],['式','법','식','弋',6,'']]],
+[15,'流速','유속','물이 흐르는 속도','장마가 계속되는 가운데 강물의 流速이 매우 빨라졌다.','연어는 流速이 빠른 강을 거슬러 올라가요.','래프팅 예능에서 流速이 빨라 모두 소리쳤어요.',
+ [['流','흐를','류','氵',10,'流速에서는 "유속"으로 읽어요(두음법칙).'],['速','빠를','속','辶',11,'辶(쉬엄쉬엄 갈 착)이 들어가 "움직임"과 관련!']]],
+[15,'李花','이화','자두나무의 꽃','李花는 4월경에 잎보다 먼저 핀다.','봄에 하얀 李花가 피면 벌들이 모여들어요.','한복 화보 속 옷감에 李花 무늬가 새겨져 있었어요.',
+ [['李','오얏','리','木',7,'木 + 子 · 李花에서는 "이화"로 읽어요(두음법칙).'],['花','꽃','화','艹',8,'艹(풀) + 化(될 화)']]],
+[15,'亡者','망자','죽은 사람','亡者의 명복을 비는 예배가 치러지고 있다.','옛 이집트 사람들은 亡者와 함께 고양이 미라를 묻기도 했어요.','사극에서 亡者의 넋을 달래는 장면이 나왔어요.',
+ [['亡','망할','망','亠',3,''],['者','놈','자','耂',9,'']]],
+[16,'賣買','매매','물건을 팔고 사는 일','시장에서 농산물의 賣買가 활발히 이뤄지고 있다.','옛날 장터에서는 소를 賣買했어요.','콘서트 표를 비싸게 되파는 賣買는 금지예요.',
+ [['賣','팔','매','貝',15,'반대말: 買(살 매). 買 위에 士가 있으면 "팔 매"!'],['買','살','매','貝',12,'반대말: 賣(팔 매)']]],
+[16,'文章','문장','어떤 생각이나 느낌을 줄거리를 세워 글자로써 적어 나타낸 것','文章은 보기 쉽고, 알기 쉽고, 읽기 쉬워야 한다.','관찰 일기에 나비에 대한 文章을 썼어요.','가수가 팬에게 쓴 편지 文章이 감동적이었어요.',
+ [['文','글월','문','文',4,''],['章','글','장','立',11,'立(설 립) + 早(이를 조)']]],
+[16,'美德','미덕','아름다운 덕성','상부상조는 우리 민족의 美德이다.','황제펭귄은 추위 속에서 몸을 맞대고 자리를 바꿔 주는 美德을 보여줘요.','스태프를 먼저 챙기는 겸손은 스타의 美德이에요.',
+ [['美','아름다울','미','羊',9,'羊(양) + 大(큰 대)'],['德','덕','덕','彳',15,'']]],
+[16,'朴直','박직','순박하고 정직함','영화에서 주연할 朴直한 남자 배우를 선발하고 있다.','시골 들판처럼 꾸밈없고 朴直한 마음을 가져요.','朴直한 성격의 배우가 시골 청년 역에 뽑혔어요.',
+ [['朴','순박할','박','木',6,'木(나무) + 卜(점 복)'],['直','곧을','직','目',8,'반대말: 曲(굽을 곡)']]],
+[16,'反省','반성','스스로를 돌이켜 살핌','하루에 세 번 정도 자신의 삶을 反省해 봅시다.','신발을 물어뜯은 강아지가 反省하는 표정을 지었어요.','실수한 무대 영상을 보며 가수가 反省했어요.',
+ [['反','돌이킬','반','又',4,''],['省','살필','성','目',9,'"덜 생"으로도 읽어요.']]],
+[16,'法典','법전','국가가 제정한 체계적 성문 법규집','法典에 국민의 권리와 의무가 수록되어 있다.','야생동물을 보호하는 법도 法典에 실려 있어요.','드라마 속 변호사가 두꺼운 法典을 펼쳤어요.',
+ [['法','법','법','氵',8,'氵(물) + 去(갈 거)'],['典','법','전','八',8,'法(법 법)과 뜻이 비슷해요.']]],
+[17,'病院','병원','병자나 부상자를 진찰, 치료하는 곳','환자는 病院에서 치료받을 때 의사의 지시에 잘 따라야 한다.','다친 야생동물은 야생동물 病院에서 치료받아요.','촬영 중 다친 배우가 病院에 갔어요.',
+ [['病','병','병','疒',10,'疒(병질엄)이 들어가면 병과 관련된 글자!'],['院','집','원','阝',10,'']]],
+[17,'兵卒','병졸','군사','장군은 兵卒들을 거느리고 적진을 향해 돌진하였다.','개미 무리에는 집을 지키는 兵卒 개미가 있어요.','전쟁 영화에서 兵卒 역을 맡은 배우들이 함께 훈련했어요.',
+ [['兵','군사','병','八',7,'卒(군사 졸)과 뜻이 같아요.'],['卒','군사','졸','十',8,'兵(군사 병)과 뜻이 같아요.']]],
+[17,'奉仕','봉사','남을 위해 자신을 돌보지 않고 힘을 바쳐 애씀','적극적인 시민들의 자원 奉仕 활동으로 대회를 성공적으로 마칠 수 있었다.','바닷가 쓰레기 줍기 奉仕로 바다거북을 지켜요.','스타들이 연탄 나눔 奉仕에 참여했어요.',
+ [['奉','받들','봉','大',8,'春(봄 춘)과 윗부분이 비슷해요.'],['仕','벼슬할','사','人',5,'亻(사람) + 士(선비 사)']]],
+[17,'冰雪','빙설','얼음과 눈','대관령에 많은 冰雪이 내려 사흘째 통행제한을 받고 있다.','북극곰은 冰雪 위에서 물범을 사냥해요.','피겨 선수가 冰雪 축제 무대에서 공연했어요.',
+ [['冰','얼음','빙','水',6,'氷(얼음 빙)과 같은 글자예요.'],['雪','눈','설','雨',11,'위에 雨(비 우)가 있어 날씨와 관련!']]],
+[17,'思考','사고','생각하고 궁리함','수능시험에서 논리적인 思考를 요하는 문제가 많이 출제되었다.','까마귀는 도구를 쓸 만큼 思考력이 뛰어나요.','작곡가는 깊은 思考 끝에 노래를 완성했어요.',
+ [['思','생각','사','心',9,'田 + 心(마음)'],['考','상고할','고','耂',6,'老(늙을 로)와 윗부분이 같아요.']]],
+[17,'使臣','사신','임금의 명을 받아 외국에 가는 신하','전한(前漢)시대, 使臣인 장건은 서역과의 비단길 시대를 연 장본인이다.','조선 시대에 일본 使臣이 코끼리를 선물로 보낸 적이 있어요.','사극에서 외국 使臣 역을 맡은 배우가 화려한 옷을 입었어요.',
+ [['使','하여금','사','人',8,'便(편할 편)과 모양이 비슷해요.'],['臣','신하','신','臣',6,'']]],
+[18,'算數','산수','수량이나 도형의 기초적인 원리 법칙을 가르치는 학과목','算數시간에 加減乘除(가감승제)를 체계적으로 배운다.','꿀벌도 간단한 算數를 할 수 있다는 연구가 있어요.','춤 동선을 짤 때도 박자 算數가 필요해요.',
+ [['算','셈','산','竹',14,'數(셈 수)와 뜻이 같아요.'],['數','셈','수','攵',15,'算(셈 산)과 뜻이 같아요.']]],
+[18,'相對','상대','서로 마주대함','의사는 하루에도 수십명씩 환자를 相對한다.','두 수컷 사슴이 뿔을 맞대고 相對했어요.','결승에서 두 팀이 相對하게 되었어요.',
+ [['相','서로','상','目',9,'木(나무) + 目(눈)'],['對','대답할','대','寸',14,'']]],
+[18,'書堂','서당','글방','書堂 개 삼 년에 풍월을 읊는다.','옛 書堂 처마 밑에 제비가 둥지를 틀었어요.','사극 속 書堂에서 아이들이 천자문을 읽어요.',
+ [['書','글','서','曰',10,'晝(낮 주)·畫(그림 화)와 모양이 비슷해요!'],['堂','집','당','土',11,'아래에 土(흙 토)가 있어요.']]],
+[18,'洗禮','세례','기독교에서 신자가 될 때 베푸는 의식','교회에서 그리스도인으로 거듭나는 洗禮식이 거행되었다.','갑작스러운 소나기 洗禮에 참새들이 처마 밑으로 피했어요.','무대가 끝나자 박수 洗禮가 쏟아졌어요.',
+ [['洗','씻을','세','氵',9,'氵(물) + 先(먼저 선)'],['禮','예도','례','示',18,'洗禮에서는 "세례"로 읽어요.']]],
+[18,'消化','소화','먹은 음식을 삭임','과식을 하면 消化가 잘 안된다.','소는 위가 네 칸이라 풀을 천천히 消化해요.','가수는 공연 전에 消化가 잘 되는 음식을 먹어요.',
+ [['消','사라질','소','氵',10,''],['化','될','화','匕',4,'위에 艹를 얹으면 花(꽃 화)!']]],
+[18,'宿題','숙제','미리 내주는 과제. 앞으로 해결해야 할 문제','교통체증은 우리가 풀어야 할 커다란 宿題이다.','방학 宿題로 곤충 관찰 일기를 썼어요.','연습생에게 매주 춤 宿題가 주어져요.',
+ [['宿','잘','숙','宀',11,''],['題','제목','제','頁',18,'頁(머리 혈)이 들어가요.']]],
+[19,'順番','순번','차례로 돌아가는 번','야구에서 공격을 할 때 번호 順番대로 타석에 들어선다.','펭귄들이 順番대로 줄지어 바다에 뛰어들어요.','오디션 참가자들이 무대에 설 順番을 기다려요.',
+ [['順','순할','순','頁',12,'川(내 천) + 頁(머리 혈)'],['番','차례','번','田',12,'']]],
+[19,'勝戰','승전','싸움에서 이김','아군이 주요 전투에서 勝戰을 거듭하고 있다.','영역 다툼에서 勝戰한 수사자가 우렁차게 울었어요.','경기에서 勝戰한 선수들이 태극기를 흔들었어요.',
+ [['勝','이길','승','力',12,'반대말: 敗(패할 패)'],['戰','싸움','전','戈',16,'戈(창 과)가 들어 있어 싸움과 관련!']]],
+[19,'始初','시초','맨 처음','일본의 진주만 공격을 始初로 태평양전쟁이 발발하였다.','큰 강의 始初는 작은 샘물이에요.','그 노래의 始初는 작곡가의 짧은 흥얼거림이었어요.',
+ [['始','처음','시','女',8,'初(처음 초)와 뜻이 같아요.'],['初','처음','초','刀',7,'始(처음 시)와 뜻이 같아요. 衤(옷) + 刀(칼)']]],
+[19,'植樹','식수','나무를 심음','조림사업의 일환으로 산간지대에 나무를 대량으로 植樹하여 육성하였다.','식목일에 植樹한 나무에 새들이 둥지를 틀어요.','팬클럽이 스타 이름으로 숲에 植樹 기부를 했어요.',
+ [['植','심을','식','木',12,'値(값 치)와 오른쪽이 같아요. 植은 왼쪽이 木!'],['樹','나무','수','木',16,'木(나무 목)과 뜻이 비슷해요.']]],
+[19,'信號','신호','의사를 전달하는 일정한 부호나 표시, 또는 그 일','기장은 관제탑에 착륙하겠다는 信號를 보냈다.','반딧불이는 깜빡이는 빛으로 信號를 보내요.','무대 감독이 손짓 信號로 음악 시작을 알려요.',
+ [['信','믿을','신','人',9,'亻(사람) + 言(말씀) → 사람의 말은 믿음이 있어야!'],['號','이름','호','虍',13,'虍(범 호)가 들어 있어요.']]],
+[19,'兒童','아동','어린 아이','兒童 문학가 소파 방정환 선생이 어린이 날을 제정하였다.','兒童 생태 체험 교실에서 올챙이를 관찰했어요.','兒童 드라마에 나온 배우들이 함께 연기했어요.',
+ [['兒','아이','아','儿',8,'童(아이 동)과 뜻이 같아요.'],['童','아이','동','立',12,'兒(아이 아)와 뜻이 같아요.']]],
+[20,'野球','야구','각 9명씩 두 팀을 이뤄 승패를 겨루는 구기경기','박찬호는 野球 선수로 "아메리칸 드림"에 성공한 한국인이다.','비 온 뒤 野球장 잔디에서 참새들이 먹이를 찾아요.','가수가 野球장 시구 행사에 나왔어요.',
+ [['野','들','야','里',11,''],['球','공','구','玉',11,'王 모양은 玉(구슬) → 둥근 것과 관련!']]],
+[20,'藥品','약품','만들어 놓은 약','홍역예방 藥品이 품귀현상을 빚고 있다.','버드나무 껍질 성분에서 해열 藥品이 개발되었어요.','촬영장 구급함에 기본 藥品을 챙겨요.',
+ [['藥','약','약','艹',19,'樂(즐길 락)에 艹를 얹으면 藥!'],['品','물건','품','口',9,'口(입)가 세 개 모인 모양']]],
+[20,'洋服','양복','서양식 의복','洋服의 스타일이 시대에 따라 조금씩 변하고 있다.','洋服 옷감 중에는 양털로 만든 울도 있어요.','시상식에서 배우들이 멋진 洋服을 입었어요.',
+ [['洋','큰바다','양','氵',9,'氵(물) + 羊(양 양)'],['服','옷','복','月',8,'']]],
+[20,'漁業','어업','고기잡이, 양어하는 업','한반도는 삼면이 바다로 둘러싸여서 漁業 활동이 활발하다.','바다가 오염되면 물고기도 漁業도 피해를 입어요.','예능 출연자들이 섬마을 漁業 체험을 했어요.',
+ [['漁','고기잡을','어','氵',14,'魚(물고기 어)에 氵를 붙이면 "고기 잡을 어"!'],['業','일','업','木',13,'']]],
+[20,'億萬','억만','억. 아주 많은 수효','億萬금을 준다해도 형제간의 우애를 저버릴 수 없다.','밤하늘에는 億萬 개의 별이 반짝여요.','億萬 번 들어도 좋은 노래라는 댓글이 달렸어요.',
+ [['億','억','억','人',15,'亻(사람) + 意(뜻 의)'],['萬','일만','만','艹',13,'']]],
+[20,'如前','여전','전과 같음','시골 사람들의 인심은 예나 지금이나 如前하다.','겨울이 와도 소나무는 如前히 푸르러요.','데뷔 20년이 지나도 가수의 목소리는 如前해요.',
+ [['如','같을','여','女',6,'女(여자 녀) + 口(입 구)'],['前','앞','전','刀',9,'반대말: 後(뒤 후)']]],
+[21,'勇氣','용기','씩씩하고 굳센 기운','실의에 빠져있는 친구에게 勇氣를 북돋아 주었다.','어미 새는 勇氣를 내어 둥지를 지켜요.','무대 공포증을 이겨 낸 가수의 勇氣에 박수를 보냈어요.',
+ [['勇','날쌜','용','力',9,'아래에 力(힘)이 있어요.'],['氣','기운','기','气',10,'汽(물 끓는 김 기)와 모양이 비슷해요.']]],
+[21,'運動','운동','몸을 놀리어 움직임','적당한 運動은 건강에 좋으나, 지나치면 오히려 해가 된다.','치타는 달리기 運動의 챔피언이에요.','아이돌은 체력을 기르려고 매일 運動해요.',
+ [['運','움직일','운','辶',13,'動(움직일 동)과 뜻이 같아요.'],['動','움직일','동','力',11,'運(움직일 운)과 뜻이 같아요. 重 + 力']]],
+[21,'雲集','운집','구름처럼 많이 모임','군중이 雲集하여 인산인해를 이루었다.','먹이가 많은 갯벌에 철새들이 雲集했어요.','콘서트장에 팬들이 雲集했어요.',
+ [['雲','구름','운','雨',12,'雨(비) + 云(이를 운)'],['集','모일','집','隹',12,'隹(새) + 木(나무) → 나무 위에 새가 모임!']]],
+[21,'由來','유래','사물의 내력','방학을 맞아 지역문화의 由來를 찾아 탐방길에 올랐다.','호랑나비라는 이름은 호랑이 같은 줄무늬에서 由來했어요.','그룹 이름의 由來를 팬들에게 설명했어요.',
+ [['由','말미암을','유','田',5,'田(밭 전)·甲(갑옷 갑)과 모양이 비슷해요.'],['來','올','래','人',8,'첫 글자로 오면 "내"(來日 내일)로 읽어요.']]],
+[21,'飮食','음식','사람이 먹고 마시는 것','김치는 우리나라의 대표적 飮食으로 세계 각국에 수출되고 있다.','판다의 주된 飮食은 대나무예요.','먹방 예능에서 전국 飮食을 소개해요.',
+ [['飮','마실','음','食',13,'짝꿍: 食(밥 식) → 마시고 먹기'],['食','밥','식','食',9,'짝꿍: 飮(마실 음)']]],
+[21,'醫術','의술','병이나 상처를 고치는 기술','醫術이 뛰어난 허준은 동의보감 25권을 완성했다.','동물을 치료하는 醫術을 수의학이라고 해요.','의학 드라마에서 배우가 뛰어난 醫術을 가진 의사를 연기했어요.',
+ [['醫','의원','의','酉',18,'아래에 酉(닭/술 유)가 있어요.'],['術','재주','술','行',11,'行(다닐 행) 사이에 朮이 들어간 모양']]],
+[22,'以北','이북','어떤 지점을 기준으로 하여 그 북쪽','알타회담에서 38선을 경계로 以北과 以南으로 나누어지게 되었다.','시베리아 以北의 추운 땅에는 순록이 살아요.','촬영 팀이 서울 以北 지역에서 촬영했어요.',
+ [['以','써','이','人',5,''],['北','북녘','북','匕',5,'반대말: 南(남녘 남) · 比(견줄 비)와 모양 비슷']]],
+[22,'因果','인과','원인과 결과','환경오염의 因果를 알아야 한다.','숲이 사라지면 동물도 줄어드는 因果 관계가 있어요.','드라마 속 사건의 因果가 딱 맞아떨어졌어요.',
+ [['因','인할','인','囗',6,'짝꿍: 果(결과) → 원인과 결과'],['果','과실','과','木',8,'짝꿍: 因(원인) · 나무(木) 위 열매 모양']]],
+[22,'自然','자연','저절로 그렇게 되어 있는 모양','우리가 보존한 自然은 후손의 생명 보존과 직결된다.','自然 속에서 다람쥐가 도토리를 모아요.','배우의 自然스러운 연기가 칭찬받았어요.',
+ [['自','스스로','자','自',6,''],['然','그럴','연','火',12,'아래 灬는 火(불)가 변한 모양']]],
+[22,'昨年','작년','지난해','昨年에 치료했던 병이 금년에 再發했다.','昨年 봄에 왔던 제비가 올해도 돌아왔어요.','昨年 연말 무대가 올해 다시 화제가 됐어요.',
+ [['昨','어제','작','日',9,'作(지을 작)과 오른쪽이 같아요. 昨은 왼쪽이 日!'],['年','해','년','干',6,'첫 글자로 오면 "연"(年金 연금)으로 읽어요.']]],
+[22,'再發','재발','다시 발생함','昨年에 치료했던 병이 금년에 再發했다.','산불이 꺼진 뒤에도 再發하지 않게 지켜봐요.','댄서는 부상이 再發하지 않도록 조심해요.',
+ [['再','두','재','冂',6,''],['發','필','발','癶',12,'']]],
+[22,'赤字','적자','지출이 수입보다 많아서 생기는 결손액','계속된 무역 赤字는 국가 경제에 악영향을 미친다.','먹이로 얻는 힘보다 더 많이 쓰면 동물도 "에너지 赤字"가 돼요.','관객이 적어서 공연이 赤字를 봤어요.',
+ [['赤','붉을','적','赤',7,''],['字','글자','자','子',6,'宀(집) + 子(아이) → 子(아들 자)와 소리가 같아요.']]],
+[23,'的中','적중','화살이 과녁에 맞음. 예측이 들어맞음','눈이 내리겠다던 일기예보가 的中했다.','물총고기는 물을 쏘아 곤충을 的中시켜요.','시상식 1위 예측이 的中했어요.',
+ [['的','과녁','적','白',8,'白(흰 백) + 勺(구기 작)'],['中','가운데','중','丨',4,'口 가운데를 세로줄이 뚫고 지나가는 모양']]],
+[23,'展示','전시','여러 가지를 벌여놓고 보임','고인돌 공원에 선사시대의 유물들이 展示되어 있다.','자연사 박물관에 공룡 뼈가 展示되어 있어요.','드라마 의상이 展示회에 나왔어요.',
+ [['展','펼','전','尸',10,''],['示','보일','시','示',5,'왼쪽에 붙으면 礻 모양으로 바뀌어요.']]],
+[23,'庭園','정원','집안에 있는 뜰이나 꽃밭','전남 담양의 소쇄원은 자연과 가장 잘 조화를 이룬 庭園이다.','庭園 연못에 잠자리가 날아와요.','야외 庭園에서 가수의 작은 콘서트가 열렸어요.',
+ [['庭','뜰','정','广',10,'廷(조정 정)에 广을 씌우면 庭!'],['園','동산','원','囗',13,'圓(둥글 원)과 비슷해요. 園은 안쪽에 袁!']]],
+[23,'祖孫','조손','할아버지와 손자','祖孫이 한지붕 밑에 함께 살고 있다.','코끼리 무리에서는 할머니와 손주, 곧 祖孫이 함께 다녀요.','祖孫이 함께 나오는 예능이 인기예요.',
+ [['祖','할아비','조','示',10,'助(도울 조)와 오른쪽(且)이 같아요.'],['孫','손자','손','子',10,'子(아들) + 系(이을 계)']]],
+[23,'主客','주객','주인과 손님. 주된 사물과 거기에 딸린 사물','主客의 위치가 서로 뒤바뀐다는 뜻으로 주객전도(主客顚倒)를 쓴다.','뻐꾸기 새끼를 키우는 뱁새 둥지는 主客이 뒤바뀐 셈이에요.','게스트가 사회자보다 말을 많이 해서 主客이 바뀐 것 같았어요.',
+ [['主','주인','주','丶',5,'王 위에 점(丶) 하나!'],['客','손님','객','宀',9,'宀(집) + 各(각각 각)']]],
+[23,'注油','주유','기름을 넣음','자동차로 여행할 때 안전점검과 충분히 注油를 해야한다.','새는 꼬리 쪽 기름을 부리로 깃털에 발라 注油하듯 손질해요.','투어 버스가 휴게소에서 注油했어요.',
+ [['注','물댈','주','氵',8,'住(살 주)·柱(기둥 주)와 오른쪽 主가 같아요.'],['油','기름','유','氵',8,'氵(물) + 由(말미암을 유)']]],
+[24,'止血','지혈','피가 나오다 그침','止血을 위해 상처부위를 붕대로 묶었다.','다친 야생동물에게 수의사가 止血 치료를 했어요.','촬영 중 베인 손가락을 반창고로 止血했어요.',
+ [['止','그칠','지','止',4,'위에 一을 얹으면 正(바를 정)!'],['血','피','혈','血',6,'皿(그릇 명)과 비슷해요. 血은 위에 점(丿)이 있어요.']]],
+[24,'參席','참석','모임이나 회의 따위의 자리에 참여함','엄마와 아이가 함께 參席할 수 있는 문화 체험 교실이 열렸다.','철새 관찰 행사에 가족이 함께 參席했어요.','팬미팅에 많은 팬이 參席했어요.',
+ [['參','참여할','참','厶',11,'"석 삼"으로도 읽어요.'],['席','자리','석','巾',10,'']]],
+[24,'責任','책임','맡아서 해야할 임무나 의무','자유에는 반드시 責任이 따른다.','황제펭귄 아빠는 알을 품는 責任을 맡아요.','리더는 팀을 이끄는 責任이 커요.',
+ [['責','꾸짖을','책','貝',11,'貴(귀할 귀)와 아랫부분이 같아요(貝).'],['任','맡길','임','人',6,'仕(벼슬할 사)와 비슷해요. 任은 오른쪽이 壬!']]],
+[24,'清州','청주','충청북도의 중앙에 있는 시','시민의 날을 기념해서 清州시에서는 벚꽃축제가 열린다.','清州 무심천 둑길에는 봄마다 벚꽃이 피어요.','清州에서 지역 음악 축제가 열렸어요.',
+ [['清','맑을','청','氵',11,'氵(물) + 靑(푸를 청)'],['州','고을','주','巛',6,'川(내 천) 사이에 점이 있는 모양']]],
+[24,'體溫','체온','동물체가 가지고 있는 온도','사람의 정상 體溫은 대략 36~37℃이다.','뱀 같은 파충류는 햇볕을 쬐어 體溫을 올려요.','가수가 컨디션 관리를 위해 體溫을 쟀어요.',
+ [['體','몸','체','骨',23,'骨(뼈 골)이 들어가 몸과 관련!'],['溫','따뜻할','온','氵',13,'']]],
+[24,'草綠','초록','초록빛. 풀과 녹색','草綠의 잎새들이 가을이 되자 단풍이 들었다.','봄 들판이 草綠빛으로 물들었어요.','草綠색 무대 의상이 눈에 띄었어요.',
+ [['草','풀','초','艹',10,'艹(풀) + 早(이를 조)'],['綠','푸를','록','糸',14,'緣(인연 연)과 모양이 비슷해요.']]],
+[25,'充電','충전','축전지나 축전기에 전기 에너지를 축적하는 일','充電용 건전지는 반영구적으로 사용할 수 있다.','겨울잠을 자며 힘을 充電하는 곰도 있어요.','공연 전에 무선 마이크를 充電해요.',
+ [['充','채울','충','儿',6,'교재에는 5획으로 표기되어 있어요.'],['電','번개','전','雨',13,'위에 雨(비 우)가 있어 날씨와 관련!']]],
+[25,'太陽','태양','태양계의 중심이 되는 별','太陽이 뜨거운 햇살을 내리비추고 있다.','식물은 太陽 빛으로 양분을 만들어요.','여름 야외 무대에 太陽이 뜨거웠어요.',
+ [['太','클','태','大',4,'大(큰 대) 아래 점 → 太 / 위 오른쪽 점 → 犬(개 견)'],['陽','볕','양','阝',12,'반대말: 陰(그늘 음) · 場(마당 장)과 오른쪽 같음']]],
+[25,'特級','특급','특별한 계급이나 등급','유명인사가 투숙하는 特級호텔 주변에 인파가 몰렸다.','特級 한우 선발 대회에 소들이 나왔어요.','월드 스타는 어디서나 特級 대우를 받아요.',
+ [['特','특별할','특','牛',10,'牛(소 우)가 왼쪽에 있어요.'],['級','등급','급','糸',10,'糸(실) + 及(미칠 급)']]],
+[25,'表紙','표지','책의 맨 앞뒤의 겉장','表紙가 바랜 낡은 책이지만 소중한 유물이다.','곤충 도감 表紙에 장수풍뎅이가 그려져 있어요.','잡지 表紙 모델로 배우가 나왔어요.',
+ [['表','겉','표','衣',8,'衣(옷 의)가 들어 있어요 → 옷의 겉'],['紙','종이','지','糸',10,'']]],
+[25,'品格','품격','사람된 바탕과 타고난 성품','많은 사람 틈에 섞이면 군계일학(群鷄一鶴) 격으로 선비의 品格은 더욱 두드러져 보인다.','학은 우아한 모습 때문에 선비의 品格에 비유돼요.','시상식에서 겸손한 소감으로 品格을 보여줬어요.',
+ [['品','물건','품','口',9,'口(입)가 세 개 모인 모양'],['格','격식','격','木',10,'木(나무) + 各(각각 각)']]],
+[25,'風習','풍습','풍속과 습관','문명이 발달할수록 우리 민족고유의 전통과 風習이 소중히 느껴진다.','감나무에 새 먹이로 까치밥을 남겨 두는 風習이 있어요.','사극에서 옛 風習을 재현했어요.',
+ [['風','바람','풍','風',9,''],['習','익힐','습','羽',11,'羽(깃 우) → 어린 새가 날갯짓을 익히는 모양']]],
+[26,'必要','필요','꼭 요구되는 바가 있음','봄이 되면 농촌에는 많은 일손이 必要하다.','식물이 자라려면 물과 햇빛이 必要해요.','좋은 무대에는 꾸준한 연습이 必要해요.',
+ [['必','반드시','필','心',5,'心(마음 심)과 비슷해요. 必은 삐침(丿)이 가로질러요.'],['要','구할','요','襾',9,'']]],
+[26,'幸福','행복','복된 좋은 운수','과거의 온갖 고생은 幸福이라는 現在의 열매를 맺게 해준다.','강아지는 꼬리를 흔들며 幸福을 표현해요.','가수가 팬들과 함께한 무대가 幸福했다고 말했어요.',
+ [['幸','다행','행','干',8,'辛(매울 신)과 모양이 비슷해요.'],['福','복','복','示',14,'富(부유할 부)와 오른쪽(畐)이 같아요.']]],
+[26,'現在','현재','지금의 시간','과거의 온갖 고생은 幸福이라는 現在의 열매를 맺게 해준다.','現在 지구에 사는 야생 호랑이는 많이 줄었어요.','現在 인기 1위 노래를 확인해요.',
+ [['現','나타날','현','玉',11,'王(玉) + 見(볼 견)'],['在','있을','재','土',6,'存(있을 존)과 뜻이 비슷해요.']]],
+[26,'黃河','황하','중국 서부에서 북부로 흐르는 강','"백년하청(百年河淸)"은 黃河의 물이 맑기를 무작정 기다린다는 뜻으로 "아무리 바라고 기다려도 실현될 가망이 없음"을 이르는 말이다.','黃河는 누런 흙이 섞여 물빛이 누렇게 보여요.','다큐멘터리 촬영 팀이 黃河를 찾아갔어요.',
+ [['黃','누를','황','黃',12,''],['河','물','하','氵',8,'氵(물) + 可(옳을 가)']]],
+[26,'訓長','훈장','글방의 스승','선생님께서는 말년에 시골 서당 訓長님이 되셨다.','書堂 訓長님이 제자들과 뒷산의 들꽃 이름을 공부했어요.','사극에서 배우가 엄한 訓長님 역을 맡았어요.',
+ [['訓','가르칠','훈','言',10,'言(말씀 언) + 川(내 천)'],['長','긴','장','長',8,'반대말: 短(짧을 단)']]],
+[26,'黑白','흑백','검은색과 흰색. 흑인과 백인','미국 사회는 黑白 인종이 조화를 이룬 국가이다.','판다와 얼룩말은 黑白 무늬를 가졌어요.','黑白 사진 화보가 멋스러워요.',
+ [['黑','검을','흑','黑',12,'반대말: 白(흰 백)'],['白','흰','백','白',5,'반대말: 黑 · 百(일백 백)과 모양 비슷']]],
+];
+// 11~52쪽 잠금 데이터가 정본입니다. 기존 앱 자료는 아동 친화 예시에만 사용합니다.
+const MASTER=DATA;
+const WORDS=MASTER.words.map((m,i)=>{
+  const old=LEGACY_WORDS[i]||[], oldChars=old[7]||[];
+  const chars=m.characterDetails.map((c,k)=>{const oc=oldChars[k]||[];return [c.char,c.hunRaw,c.eumRaw,c.radicalRaw,c.strokeCount,(oc[0]===c.char&&oc[5])?oc[5]:""]});
+  return [m.mainPage,m.hanja,m.reading,m.sourceDefinition,m.exampleRaw,old[5]||"",old[6]||"",chars,m.detailPage];
+});
+const ITEMS=[];let _id=1;
+WORDS.forEach(([page,word,read,mean,sent,nat,star,chars,detailPage])=>{
+  chars.forEach(([ch,hun,eum,bu,hoek,cmp],k)=>{
+    const o=chars[1-k];
+    ITEMS.push({id:_id++,page,detailPage,word,read,mean,sent,nat,star,ch,hun,eum,bu,hoek,
+      cmp:cmp||`짝 글자 ${o[0]}(${o[1]} ${o[2]})와 만나 ${word}(${read})`});
+  });
+});
+const uniqWords=list=>{const seen=new Set();return list.filter(d=>!seen.has(d.word)&&seen.add(d.word))};
+const DAILY = 10;
+
+/* ===== 저장소 (기기 저장 + 카톡 리포트) ===== */
+const KEY='hanja_app_v3';
+const KEEP_DAYS=7; // 이미지 기록 보관 일수 (태블릿 저장 공간 보호)
+const blank=()=>({wordNext:0,sess:null,learned:[],days:{},wrong:{},exam:null,subs:[],fast:[],notes:{},he:{},qz:{},focus:{},focusGoalMin:20,pendingReport:null,pw:'1234',penOnly:true});
+let db;
+try{db=Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){db=blank()}
+function prune(){for(const k of ['notes','qz','he']){const ks=Object.keys(db[k]).sort();while(ks.length>KEEP_DAYS)delete db[k][ks.shift()]}}
+function save(){prune();try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast('저장 공간이 부족합니다. 부모 모드 → 설정에서 기록을 정리하세요.')}}
+
+const today=()=>new Date().toLocaleDateString('sv-SE');
+function streakDays(){ // 오늘 아직 안 했으면 어제까지 연속일로 계산(학습 전에 스트릭이 끊긴 것처럼 보이지 않게)
+  const has=d=>!!db.days[d];
+  let n=0,d=new Date();
+  if(!has(today()))d.setDate(d.getDate()-1);
+  while(has(d.toLocaleDateString('sv-SE'))){n++;d.setDate(d.getDate()-1)}
+  return n;
+}
+
+/* ===== 집중 타이머: "오늘의 학습" 화면에서만 흐름, 90초 이상 손 안 대거나 화면을 벗어나면 멈춤 ===== */
+let lastActive=Date.now(),wasAway=false;
+const markActive=()=>{lastActive=Date.now()};
+['pointerdown','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,markActive,{passive:true}));
+const pauseOv=document.createElement('div');
+pauseOv.className='modal';pauseOv.hidden=true;
+pauseOv.innerHTML=`<div class="card" style="text-align:center;max-width:320px">
+  <div style="font-size:52px">⏸</div>
+  <h3 style="margin:10px 0">잠깐 멈췄어요</h3>
+  <p class="muted" style="margin:0 0 16px">자리를 비운 동안은 집중 시간에 들어가지 않아요.</p>
+  <button class="pri big" id="resumeBtn" style="margin:0">이어서 하기</button>
+</div>`;
+document.body.appendChild(pauseOv);
+pauseOv.querySelector('#resumeBtn').onclick=()=>{wasAway=false;lastActive=Date.now();pauseOv.hidden=true};
+function paintFocus(){
+  const s=db.sess,el=$('#focusTime');if(!s||!el)return;
+  const goal=(db.focusGoalMin||20)*60000,ms=s.activeMs||0;
+  const m=Math.floor(ms/60000),sc=Math.floor(ms%60000/1000);
+  el.textContent=`${wasAway?'⏸':'⏱'} ${m}:${String(sc).padStart(2,'0')} / ${db.focusGoalMin||20}분${wasAway?' · 잠깐 멈춤':''}`;
+  el.className='focusTime'+(wasAway?' away':ms>=goal?' over':ms>=goal*0.8?' warn':'');
+}
+setInterval(()=>{
+  const s=db.sess;
+  if(curView!=='daily'||!s){if(!pauseOv.hidden){wasAway=false;pauseOv.hidden=true}return}
+  const away=document.hidden||(Date.now()-lastActive>90000);
+  if(!wasAway){
+    if(away){wasAway=true;s.awayN=(s.awayN||0)+1;pauseOv.hidden=false}
+    else s.activeMs=(s.activeMs||0)+1000;
+  }
+  paintFocus();
+},1000);
+const byId=id=>ITEMS.find(d=>d.id===id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const $=s=>document.querySelector(s);
+const app=$('#app');
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2000)}
+const sourcePages=d=>[d.page,d.detailPage].filter(Boolean);\nconst pageIn=(d,p)=>sourcePages(d).includes(+p);\nconst inPageRange=(d,s,e)=>{const lo=Math.min(+s,+e),hi=Math.max(+s,+e);return sourcePages(d).some(p=>p>=lo&&p<=hi)};\nconst rangePage=(d,s,e)=>{const lo=Math.min(+s,+e),hi=Math.max(+s,+e);return sourcePages(d).find(p=>p>=lo&&p<=hi)||d.page};\nconst allPrintedPages=()=>[...new Set(ITEMS.flatMap(sourcePages))].sort((a,b)=>a-b);\nconst book=d=>`<span class="book">📖 ${d.page}쪽${d.detailPage?` · 쓰기 ${d.detailPage}쪽`:``} · <b>${d.word}</b></span>`;
+function addWrong(id,n=1){db.wrong[id]=Math.max(0,(db.wrong[id]||0)+n);if(!db.wrong[id])delete db.wrong[id]}
+const alive=el=>document.body.contains(el);
+const WL=uniqWords(ITEMS);          // 단어 48개 (각 단어의 첫 글자 항목)
+const WPD=5;                        // 하루 5단어 = 10자
+const charsOf=w=>[byId(w.id),byId(w.id+1)];
+
+/* ===== 펜 호환: 블록 선택·길게 누르기 메뉴 차단 ===== */
+const isField=t=>t&&t.closest&&t.closest('input,textarea');
+document.addEventListener('selectstart',e=>{if(!isField(e.target))e.preventDefault()});
+document.addEventListener('contextmenu',e=>{if(!isField(e.target))e.preventDefault()});
+document.addEventListener('dragstart',e=>{if(!isField(e.target))e.preventDefault()},{capture:true});
+document.addEventListener('pointerdown',e=>{if(e.pointerType==='pen'&&!isField(e.target)&&!e.target.closest('canvas,button,a'))e.preventDefault()},{capture:true});
+
+/* ===== 획순 (Hanzi Writer) ===== */
+function strokeLoader(ch,onLoad,onError){
+  fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/${ch}.json`).then(r=>{if(!r.ok)throw 0;return r.json()})
+  .catch(()=>fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/${ch}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}))
+  .then(onLoad).catch(onError);
+}
+function strokeBox(host,ch,size,opts={}){
+  if(!window.HanziWriter){host.innerHTML='<p class="muted">획순 기능을 불러오지 못했습니다.</p>';return null}
+  const el=document.createElement('div');el.className='stroke';el.style.width=size+'px';el.style.height=size+'px';el.style.position='relative';
+  el.innerHTML=`<svg width="${size}" height="${size}" style="position:absolute"><line x1="${size/2}" y1="0" x2="${size/2}" y2="${size}" stroke="#F0A5A0" stroke-dasharray="4"/><line x1="0" y1="${size/2}" x2="${size}" y2="${size/2}" stroke="#F0A5A0" stroke-dasharray="4"/></svg>`;
+  host.appendChild(el);
+  return HanziWriter.create(el,ch,Object.assign({width:size,height:size,padding:10,strokeColor:'#1B2A44',radicalColor:'#D8443A',
+    outlineColor:'#E3E8EF',strokeAnimationSpeed:1,delayBetweenStrokes:350,showCharacter:false,
+    charDataLoader:strokeLoader,onLoadCharDataError:()=>{host.innerHTML='<p class="muted">이 글자의 획순 자료가 없습니다.</p>'}},opts));
+}
+
+/* ===== 필기 패드 (바탕 글씨는 그림으로 그려 선택 불가) ===== */
+function makePad(host,{cells=2,size=150,grid=true,trace='',alpha=0.2,w=null,h=null,onChange=null,onDown=null,onUp=null}={}){
+  const W=w||cells*size,H=h||size,dpr=window.devicePixelRatio||1;
+  const pad=document.createElement('div');pad.className='pad';pad.style.width=W+'px';pad.style.height=H+'px';
+  const cw=document.createElement('div');cw.className='cells';
+  for(let i=0;i<cells;i++){const c=document.createElement('div');c.className='cell'+(grid?' grid':'');cw.appendChild(c)}
+  const mk=()=>{const c=document.createElement('canvas');c.width=W*dpr;c.height=H*dpr;c.style.width=W+'px';c.style.height=H+'px';const x=c.getContext('2d');x.scale(dpr,dpr);return[c,x]};
+  const [bg,bctx]=mk(),[cv,ctx]=mk();
+  const chars=[...(trace||'')];
+  const paintGuide=()=>{bctx.clearRect(0,0,W,H);chars.forEach((ch,i)=>{
+    const a=Array.isArray(alpha)?alpha[i]:alpha;if(!ch||!a)return;
+    bctx.globalAlpha=a;bctx.fillStyle='#1B2A44';bctx.textAlign='center';bctx.textBaseline='middle';
+    bctx.font=`900 ${Math.round(H*0.8)}px "Noto Serif KR","Songti SC",serif`;bctx.fillText(ch,(i+.5)*W/cells,H*0.53)});bctx.globalAlpha=1};
+  paintGuide();if(document.fonts&&chars.length)document.fonts.ready.then(paintGuide);
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#111A2E';
+  pad.append(cw,bg,cv);host.appendChild(pad);
+  const k=Math.max(.7,H/150);
+  let drawing=false,last=null,strokes=0,locked=false;
+  const pos=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top,p:(e.pressure>0?e.pressure:0.5)}};
+  const line=(a,b)=>{ctx.lineWidth=(4.5+b.p*7)*k;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()};
+  // iOS: 길게 누르기(텍스트 선택·확대경) 방지
+  pad.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
+  pad.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+  cv.addEventListener('pointerdown',e=>{
+    if(locked)return;
+    if(db.penOnly&&e.pointerType==='touch')return;          // 손바닥·손가락 무시
+    if(e.pointerType==='pen'&&(e.buttons&~1))return;          // S펜 버튼·지우개 입력 무시
+    e.preventDefault();drawing=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}
+    last=pos(e);line(last,{...last,x:last.x+.1});strokes++;onDown&&onDown();
+  });
+  cv.addEventListener('pointermove',e=>{
+    if(!drawing)return;e.preventDefault();
+    const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+    for(const ev of (evs.length?evs:[e])){const p=pos(ev);line(last,p);last=p}
+  });
+  const end=()=>{if(!drawing)return;drawing=false;onUp&&onUp();onChange&&onChange()};
+  cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('lostpointercapture',end);
+  return{
+    el:pad,canvas:cv,
+    clear(){ctx.clearRect(0,0,W,H);strokes=0;onChange&&onChange()},
+    empty:()=>strokes===0,
+    strokes:()=>strokes,
+    lock(v){locked=v;pad.classList.toggle('locked',v)},
+    load(src){if(!src)return;const im=new Image();im.onload=()=>{ctx.drawImage(im,0,0,W,H);strokes=Math.max(strokes,1)};im.src=src},
+    raw:()=>cv.toDataURL('image/png'),
+    image(scale=0.6){return joinImg([{canvas:cv}],H*scale,W/H,grid?cells:0)}
+  };
+}
+// 필기 캔버스들을 흰 바탕 한 장으로 합치기 (채점·리포트용)
+function joinImg(pads,S=80,ratio=1,gridCells=1,model=''){
+  const cw=S*ratio,n=pads.length+(model?1:0);
+  const o=document.createElement('canvas');o.width=cw*n;o.height=S;const x=o.getContext('2d');
+  x.fillStyle='#fff';x.fillRect(0,0,o.width,S);
+  if(model){x.fillStyle='#FFF4D6';x.fillRect(0,0,cw,S);x.fillStyle='#1B2A44';x.textAlign='center';x.textBaseline='middle';x.font=`900 ${S*.78}px "Noto Serif KR",serif`;x.fillText(model,cw/2,S*.53)}
+  for(let i=0;i<n;i++){x.strokeStyle='#999';x.lineWidth=1;x.strokeRect(i*cw+.5,.5,cw-1,S-1);
+    if(gridCells&&ratio===1){x.setLineDash([4,4]);x.strokeStyle='#F0A5A0';x.beginPath();x.moveTo(i*cw+cw/2,0);x.lineTo(i*cw+cw/2,S);x.moveTo(i*cw,S/2);x.lineTo(i*cw+cw,S/2);x.stroke();x.setLineDash([])}}
+  pads.forEach((p,i)=>x.drawImage(p.canvas,(i+(model?1:0))*cw,0,cw,S));
+  return o.toDataURL('image/jpeg',0.65);
+}
+const cellSize=n=>Math.min(170,Math.floor((Math.min(window.innerWidth,980)-80)/n));
+function gate(btn,sec,label){btn.disabled=true;let n=sec;const t=()=>{if(!alive(btn))return;if(n<=0){btn.disabled=false;btn.textContent=label;return}btn.textContent=`${label} (${n})`;n--;setTimeout(t,1000)};t()}
+const CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+const cho=s=>{const c=s.charCodeAt(0)-0xAC00;return c>=0&&c<11172?CHO[(c/588)|0]:s[0]};
+const FIELD='autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"';
+
+/* ===== 오늘의 학습: 한 컬럼 흐름 ===== */
+// 단어마다: [글자: 배우기 → 5번 쓰기 → 훈·음 쓰기] × 2 → 단어 익히기 → 누적 쪽지(1번 단어부터)
+function buildSteps(start){
+  const st=[];
+  WL.slice(start,start+WPD).forEach((w,k)=>{
+    charsOf(w).forEach(c=>{st.push({t:'learn',c,k});st.push({t:'write',c,k});st.push({t:'he',c,k})});
+    st.push({t:'word',w,k});st.push({t:'quiz',k,start});
+  });
+  return st;
+}
+const STEP_NAME={learn:'배우기',write:'5번 쓰기',he:'훈·음 쓰기',word:'단어 익히기',quiz:'누적 쪽지'};
+function startDay(){
+  if(db.wordNext>=WL.length)return toast('교재 끝까지 모두 배웠어요!');
+  db.sess={date:today(),start:db.wordNext,step:0,maxStep:0};save();daily();
+}
+function gotoStep(i){ // 뒤로 갔던 단계 범위(maxStep) 안에서만 이동: 안 풀어본 단계로 건너뛰기는 막음
+  const s=db.sess;if(!s)return;
+  s.step=Math.max(0,Math.min(i,s.maxStep||0));save();daily();
+}
+function daily(){
+  curView='daily'; // home()/startDay()에서 라우터(go) 없이 직접 호출되므로 여기서 명시적으로 표시
+  const s=db.sess;if(!s)return home();
+  const steps=buildSteps(s.start);
+  if(s.step>=steps.length)return finishDay();
+  const canForward=s.step<(s.maxStep||0); // 이전에 도달했던 지점까지만 "다음"으로 되돌아갈 수 있음
+  s.maxStep=Math.max(s.maxStep||0,s.step);save();
+  const cur=steps[s.step],words=WL.slice(s.start,s.start+WPD);
+  const pct=Math.round(s.step/steps.length*100);
+  const firstStepOfWord=k2=>steps.findIndex(st=>st.k===k2);
+  let flow='';
+  words.slice(0,cur.k).forEach((w,i)=>flow+=`<div class="fl">✓ ${i+1}단어 <b class="hz">${w.word}</b> 배우기·쪽지 완료</div>`);
+  steps.forEach((st,i)=>{if(i<s.step&&st.k===cur.k)flow+=`<div class="fl nav" onclick="gotoStep(${i})">✓ ${st.c?`<b class="hz">${st.c.ch}</b> `:st.w?`<b class="hz">${st.w.word}</b> `:''}${STEP_NAME[st.t]}</div>`});
+  flow+=`<div class="fl now">▶ ${cur.c?`<b class="hz">${cur.c.ch}</b> `:cur.w?`<b class="hz">${cur.w.word}</b> `:''}${STEP_NAME[cur.t]}${cur.t==='quiz'?` (1~${cur.k+1}단어)`:''}</div>`;
+  app.innerHTML=`
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><b class="jua" style="font-size:22px">오늘의 학습 · ${Math.floor(s.start/WPD)+1}일차</b><span class="muted">${pct}%</span></div>
+    <div id="focusTime" class="focusTime"></div>
+    <div class="prog" style="margin:8px 0"><div style="width:${pct}%"></div></div>
+    <div class="wchips">${words.map((w,k)=>{const canJump=k<cur.k&&firstStepOfWord(k)<=(s.maxStep||0);
+      return `<span class="wchip ${k<cur.k?'done':k===cur.k?'now':''}${canJump?' nav':''}"${canJump?` onclick="gotoStep(${firstStepOfWord(k)})"`:''}>${w.word}<small>${k<cur.k?'완료':w.read}</small></span>`}).join('')}</div>
+    <div class="row navRow" style="justify-content:space-between;margin-top:10px">
+      <button class="ghost" id="prevBtn" ${s.step<=0?'disabled':''}>◀ 이전</button>
+      <button class="ghost" id="nextBtn" ${canForward?'':'disabled'}>다음 ▶</button>
+    </div>
+  </div>
+  <div class="flow">${flow}</div>
+  <div class="card stepCard" id="stepCard"></div>`;
+  $('#prevBtn').onclick=()=>gotoStep(s.step-1);
+  $('#nextBtn').onclick=()=>gotoStep(s.step+1);
+  const card=$('#stepCard');
+  const next=()=>{if(!alive(card))return;s.step++;save();daily()};
+  ({learn:stepLearn,write:stepWrite,he:stepHE,word:stepWord,quiz:stepQuiz})[cur.t](card,cur,next);
+  paintFocus();
+  setTimeout(()=>{if(alive(card))card.scrollIntoView({behavior:'smooth',block:'start'})},60);
+}
+
+function stepLearn(card,{c},next){
+  card.innerHTML=`<div class="stepTag">한자 배우기</div>
+  <div class="learn1">
+    <div style="text-align:center"><div class="bigchar" id="cb"></div><div class="capHE">${c.hun} <b>${c.eum}</b></div></div>
+    <div>
+      <div class="hunEum">${c.hun} <span>${c.eum}</span></div>
+      <div class="meta">부수 <b>${c.bu}</b> · <b>${c.hoek}</b>획</div>
+      <div style="margin:12px 0">${book(c)}</div>
+      <p class="muted" style="margin:0 0 12px"><b class="hz">${c.word}</b>(${c.read})의 <b class="hz">${c.ch}</b> · ${c.cmp}</p>
+      <button class="sun" id="sb">획순 보기</button>
+    </div>
+  </div>
+  <p class="say">소리 내어 3번 읽어요: <b>"${c.hun} ${c.eum}"</b></p>
+  <button class="pri big" id="go"></button>`;
+  const cb=$('#cb');const vp=makePad(cb,{cells:1,size:220,trace:c.ch,alpha:1,grid:true});vp.lock(true);vp.el.classList.add('view');
+  $('#sb').onclick=()=>{cb.innerHTML='';const w=strokeBox(cb,c.ch,220);if(w){w.hideCharacter();w.animateCharacter()}};
+  const g=$('#go');gate(g,3,'다 봤어요 → 5번 쓰기');g.onclick=next;
+}
+
+const ALPHA=[0.26,0.13,0.05,0,0]; // 1칸 연하게 → 2칸 더 연하게 → 3칸 아주 희미 → 4·5칸 없음
+function calcCellSize(card){ // 아이패드 기준 큼직하게: 한 줄 최소 3칸(5칸이면 3+2로 줄바꿈) 기준으로 크기 계산
+  const w=card.clientWidth||700;
+  return Math.min(180,Math.max(125,Math.floor((w-24)/3)-14));
+}
+function stepWrite(card,{c},next){
+  const cs=calcCellSize(card);
+  card.innerHTML=`<div class="stepTag">5번 쓰기</div>
+  <div class="row" style="gap:18px;align-items:center;flex-wrap:wrap">
+    <div style="text-align:center"><div id="mdl"></div><div class="capHE">${c.hun} <b>${c.eum}</b></div></div>
+    <div><div class="hunEum" style="font-size:36px">${c.hun} <span>${c.eum}</span></div>
+    <div class="meta">정확히 <b>${c.hoek}획</b>을 써야 완료 · 획수가 맞으면 3초 뒤 다음 칸이 열려요</div></div>
+  </div>
+  <div class="note5" id="g"></div>
+  <div class="row" style="justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px">
+    <span class="cnt" id="cnt"></span>
+    <div class="row" style="gap:10px"><button class="ghost" id="clr">이 칸 지우기</button></div>
+  </div>
+  <div id="stamp" style="text-align:center"></div>`;
+  const m=makePad($('#mdl'),{cells:1,size:Math.round(cs*.85),trace:c.ch,alpha:1});m.lock(true);m.el.classList.add('model');
+  const pads=[];let cur=0,tick=null,counting=false;
+  const stat=()=>{const p=pads[cur];$('#cnt').textContent=cur>=5?'5 / 5칸 완료':`${cur} / 5칸 · 이번 칸 ${p?p.strokes():0}획 (목표 ${c.hoek}획)`};
+  const setCur=()=>{pads.forEach((p,i)=>{p.lock(i!==cur);p.el.classList.toggle('active',i===cur)});stat()};
+  const cancelT=()=>{clearInterval(tick);tick=null;counting=false;const p=pads[cur];const o=p&&p.el.querySelector('.cd');if(o)o.remove()};
+  const startT=()=>{
+    if(counting||cur>=5)return;counting=true;const p=pads[cur];let n=3;
+    const o=document.createElement('div');o.className='cd';o.textContent=n;p.el.appendChild(o);
+    tick=setInterval(()=>{
+      if(!alive(p.el))return cancelT();
+      if(--n>0){o.textContent=n;return}
+      clearInterval(tick);tick=null;counting=false;
+      p.el.classList.add('done');cur++;
+      if(cur<5)setCur();else finish();
+    },1000);
+  };
+  const finish=()=>{$('#cnt').textContent='5 / 5칸 완료';$('#clr').style.display='none';
+    const d=db.sess.date;db.notes[d]=db.notes[d]||{};db.notes[d][c.id]=joinImg(pads,64,1,1,c.ch);save();
+    $('#stamp').innerHTML='<span class="stampOk">참<br>잘했어요</span>';setTimeout(next,1400)};
+  for(let k=0;k<5;k++){
+    const p=makePad($('#g'),{cells:1,size:cs,trace:c.ch,alpha:ALPHA[k],
+      onDown:()=>{if(k===cur)cancelT()},
+      onChange:()=>{if(k!==cur)return;const n=pads[cur].strokes();stat();pads[cur].el.classList.toggle('over',n>c.hoek);if(n===c.hoek)startT();else cancelT()}
+    });
+    const b=document.createElement('div');b.className='num';b.textContent=k+1;p.el.appendChild(b);
+    pads.push(p);
+  }
+  setCur();
+  $('#clr').onclick=()=>{if(cur<5){cancelT();pads[cur].clear();stat()}};
+}
+
+function stepHE(card,{c},next){
+  let fails=0;
+  card.innerHTML=`<div class="stepTag">훈·음 쓰기</div>
+  <div class="row" style="gap:20px;align-items:center">
+    <div id="hc"></div>
+    <div class="grid" style="gap:12px;flex:1;min-width:230px">
+      <label class="jua">훈 (뜻)<input id="hun" class="heIn" ${FIELD}></label>
+      <label class="jua">음 (소리)<input id="eum" class="heIn" ${FIELD}></label>
+    </div>
+  </div>
+  <p class="muted">✏️ 칸 안에 펜으로 글씨를 쓰면 글자로 바뀌어요 (아이패드: 손글씨 · 갤럭시탭: S펜으로 입력)</p>
+  <div id="hint" class="hint"></div>
+  <button class="pri big" id="ck">확인</button>`;
+  const vp=makePad($('#hc'),{cells:1,size:130,trace:c.ch,alpha:1,grid:false});vp.lock(true);vp.el.classList.add('view');
+  const norm=s=>(s||'').replace(/[\s.,·]/g,'');
+  const ck=()=>{
+    const h=norm($('#hun').value),e=norm($('#eum').value);
+    if(!h||!e)return toast('훈과 음을 모두 써 주세요');
+    const okH=c.hun.split('/').some(x=>norm(x)===h),okE=norm(c.eum)===e;
+    $('#hun').classList.toggle('bad',!okH);$('#eum').classList.toggle('bad',!okE);
+    if(okH&&okE){
+      const d=db.sess.date;db.he[d]=db.he[d]||{};db.he[d][c.id]=fails;if(fails)addWrong(c.id);save();
+      $('#hint').innerHTML='<span class="okMsg">정답! 👏</span>';$('#ck').disabled=true;setTimeout(next,900);return;
+    }
+    fails++;
+    let msg=`${!okH&&!okE?'훈과 음':!okH?'훈':'음'}을 다시 써 보세요.`;
+    if(fails===2)msg+=` 힌트: 훈은 "${c.hun[0]}…", 음은 "${cho(c.eum)}"으로 시작해요.`;
+    if(fails>=3)msg=`정답: ${c.hun} ${c.eum} — 보고 똑같이 써 보세요.`;
+    $('#hint').textContent=msg;
+  };
+  $('#ck').onclick=ck;$('#eum').onkeydown=e=>{if(e.key==='Enter')ck()};
+}
+
+function stepWord(card,{w},next){
+  const [a,b]=charsOf(w);
+  card.innerHTML=`<div class="stepTag">단어 익히기</div>
+  <div class="wordBig">${w.word}</div><div class="wordRead">${w.read}</div>
+  <p style="text-align:center">${book(w)}</p>
+  <div class="row" style="justify-content:center;gap:18px;margin:4px 0 14px">
+    ${[a,b].map(c=>`<div style="text-align:center"><div class="hz" style="font-size:48px">${c.ch}</div><div class="jua" style="font-size:20px">${c.hun} ${c.eum}</div></div>`).join('<div class="jua" style="font-size:32px;align-self:center">+</div>')}
+  </div>
+  <div class="ex" style="border-color:var(--ink)"><small>뜻</small>${w.mean}</div>
+  <div class="ex" style="border-color:var(--ink)"><small>교재 예문</small>${w.sent}</div>
+  <div class="ex"><small>동물·자연</small>${w.nat}</div>
+  <div class="ex star"><small>무대·스타</small>${w.star}</div>
+  <button class="pri big" id="go"></button>`;
+  const g=$('#go');gate(g,3,'누적 쪽지 풀기');g.onclick=next;
+}
+
+function stepQuiz(card,{k,start},next){
+  const date=db.sess.date,tag=`${start}-${k}`;
+  db.qz[date]=(db.qz[date]||[]).filter(r=>r.tag!==tag); // 다시 풀면 이전 기록 교체
+  const items=[];WL.slice(start,start+k+1).forEach(w=>{items.push({type:'read',w});items.push({type:'write',w})});
+  let i=0,okN=0;
+  const show=()=>{
+    if(!alive(card))return;
+    if(i>=items.length){
+      const rn=items.length/2;save();
+      card.innerHTML=`<div class="stepTag">누적 쪽지 결과</div>
+      <div class="score" style="text-align:center">읽기 ${okN} / ${rn}</div>
+      <p style="text-align:center">한자 쓰기 ${rn}문제는 부모님이 채점해요.</p>
+      <button class="pri big" id="go">${k<WPD-1?'다음 단어 배우기':'오늘 학습 마치기'}</button>`;
+      $('#go').onclick=next;return;
+    }
+    const it=items[i],w=it.w;
+    const head=`<div class="row" style="justify-content:space-between"><div class="stepTag">누적 쪽지 · ${i+1} / ${items.length}</div><span class="jua">${it.type==='read'?'한자 → 한글':'한글 → 한자'}</span></div>
+      <div class="prog" style="margin:4px 0 14px"><div style="width:${i/items.length*100}%"></div></div>`;
+    if(it.type==='read'){
+      card.innerHTML=head+`<div class="wordBig">${w.word}</div><p class="q">읽는 소리를 쓰세요</p>
+      <input id="ans" class="heIn" style="max-width:340px;margin:0 auto;display:block;text-align:center" ${FIELD}>
+      <div id="fb" class="hint" style="text-align:center"></div>
+      <button class="pri big" id="ck">확인</button>`;
+      const ck=()=>{
+        const v=$('#ans').value.replace(/\s/g,'');if(!v)return toast('답을 써 주세요');
+        const ok=v===w.read;if(ok)okN++;else{addWrong(w.id);addWrong(w.id+1)}
+        db.qz[date].push({tag,type:'read',wid:w.id,ans:v,ok});save();
+        $('#fb').innerHTML=ok?'<span class="okMsg">정답! 👏</span>':`<span class="badMsg">정답은 "${w.read}"</span>`;
+        $('#ck').disabled=true;setTimeout(()=>{i++;show()},ok?800:1800);
+      };
+      $('#ck').onclick=ck;$('#ans').onkeydown=e=>{if(e.key==='Enter')ck()};
+    }else{
+      const cs=Math.max(110,Math.min(160,Math.floor(((card.clientWidth||600)-60)/2)));
+      card.innerHTML=head+`<div class="wordRead" style="font-size:52px">${w.read}</div><p class="q">(${w.mean})<br>한자로 쓰세요</p>
+      <div class="row" id="pp" style="justify-content:center;gap:10px"></div>
+      <div class="row" style="justify-content:center;margin-top:12px"><button class="ghost" id="clr">지우기</button><button class="pri" id="sub" disabled>제출</button></div>`;
+      let p1,p2;
+      const upd=()=>{if(p1&&p2)$('#sub').disabled=!(p1.strokes()&&p2.strokes())};
+      p1=makePad($('#pp'),{cells:1,size:cs,onChange:upd});p2=makePad($('#pp'),{cells:1,size:cs,onChange:upd});
+      $('#clr').onclick=()=>{p1.clear();p2.clear()};
+      $('#sub').onclick=()=>{db.qz[date].push({tag,type:'write',wid:w.id,img:joinImg([p1,p2],80),grade:null});save();i++;show()};
+    }
+  };
+  show();
+}
+
+function finishDay(){
+  const s=db.sess,words=WL.slice(s.start,s.start+WPD),ids=words.flatMap(w=>[w.id,w.id+1]);
+  ids.forEach(id=>{if(!db.learned.includes(id))db.learned.push(id)});
+  db.days[s.date]=[...new Set([...(db.days[s.date]||[]),...ids])];
+  db.wordNext=Math.max(db.wordNext,s.start+WPD);
+  const ms=s.activeMs||0,awayN=s.awayN||0,goal=(db.focusGoalMin||20)*60000;
+  db.focus[s.date]={ms,awayN};
+  db.pendingReport=s.date;
+  db.sess=null;save();
+  const mm=Math.floor(ms/60000),ss=Math.floor(ms%60000/1000);
+  const focusMsg=ms<=goal?`🏅 집중 시간 ${mm}분 ${ss}초 · ${db.focusGoalMin||20}분 목표 달성!`:`집중 시간 ${mm}분 ${ss}초 (목표 ${db.focusGoalMin||20}분)`;
+  app.innerHTML=`<div class="card" style="text-align:center">
+    <span class="stampOk" style="width:140px;height:140px;font-size:28px">오늘<br>학습 끝</span>
+    <h2>10자 × 5번 = 50번 썼어요!</h2>
+    <p class="hz" style="font-size:30px">${words.map(w=>w.word).join(' · ')}</p>
+    <p class="jua" style="font-size:20px;color:${ms<=goal?'var(--leaf)':'var(--seal)'}">${focusMsg}${awayN?` · 자리비움 ${awayN}회`:''}</p>
+    <p class="muted" style="margin:10px 0 0">📤 부모님께 보내야 다음으로 넘어가요</p>
+    <button class="sun big" id="rep">📤 부모님께 카톡 보내기</button></div>`;
+  $('#rep').onclick=()=>sendReport(s.date,()=>{db.pendingReport=null;save();go('home')});
+}
+function reportGate(){ // 카톡 리포트를 보내기 전까지는 어디로도 못 감(새로고침해도 유지)
+  const date=db.pendingReport;
+  app.innerHTML=`<div class="card" style="text-align:center">
+    <span class="stampOk" style="width:120px;height:120px;font-size:22px">보고<br>필요</span>
+    <h2 style="margin:14px 0 4px">${date} 학습을 아직<br>부모님께 못 보냈어요</h2>
+    <p class="muted">카톡으로 보내야 다음으로 넘어갈 수 있어요</p>
+    <button class="sun big" id="rep">📤 부모님께 카톡 보내기</button></div>`;
+  $('#rep').onclick=()=>sendReport(date,()=>{db.pendingReport=null;save();go('home')});
+}
+
+/* ===== 카톡 리포트 (이미지 + 글) ===== */
+const loadImg=src=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
+async function sendReport(date,onDone){
+  const ids=db.days[date]||Object.keys(db.notes[date]||{}).map(Number);
+  const qz=db.qz[date]||[],he=db.he[date]||{},notes=db.notes[date]||{},fc=db.focus[date];
+  const reads=qz.filter(r=>r.type==='read'),writes=qz.filter(r=>r.type==='write');
+  const okR=reads.filter(r=>r.ok).length;
+  const heRe=Object.entries(he).filter(([,v])=>v>0).map(([id])=>byId(+id).ch);
+  const focusLine=fc?`집중 시간: ${Math.floor(fc.ms/60000)}분 ${Math.floor(fc.ms%60000/1000)}초 (목표 ${db.focusGoalMin||20}분)${fc.awayN?` · 자리비움 ${fc.awayN}회`:''}`:'';
+  const text=`[태이 한자] ${date} 학습 리포트
+- 배운 한자(${ids.length}자): ${ids.map(id=>{const c=byId(id);return `${c.ch}(${c.hun} ${c.eum})`}).join(', ')}
+- 훈·음 다시 쓴 글자: ${heRe.join(', ')||'없음'}
+- 누적 쪽지 읽기: ${okR}/${reads.length}
+- 한자 쓰기 ${writes.length}문제: 부모 모드 → 채점에서 확인해 주세요${focusLine?`\n- ${focusLine}`:''}`;
+  // 이미지 만들기
+  const W=920,P=24,noteIds=Object.keys(notes),lastWrites=writes.filter(r=>r.tag===writes[writes.length-1]?.tag);
+  const lines=[`배운 한자 ${ids.length}자: ${ids.map(id=>byId(id).ch).join(' ')}`,`훈·음 다시 쓴 글자: ${heRe.join(' ')||'없음'}`,`누적 쪽지 읽기: ${okR} / ${reads.length}`,`한자 쓰기 ${writes.length}문제 → 부모 채점 필요`];
+  if(focusLine)lines.push(focusLine);
+  const H=P+60+30*lines.length+20+(noteIds.length?40+noteIds.length*84:0)+(lastWrites.length?50+100:0)+P;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  x.fillStyle='#F3F7FB';x.fillRect(0,0,W,H);x.fillStyle='#22304A';x.textBaseline='top';
+  x.font='bold 34px sans-serif';x.fillText(`태이 한자 학습 리포트 · ${date}`,P,P);
+  x.font='22px sans-serif';let y=P+60;
+  lines.forEach(t=>{x.fillText(t,P,y);y+=30});
+  y+=20;
+  if(noteIds.length){x.font='bold 24px sans-serif';x.fillText('5번 쓰기 노트',P,y);y+=40;x.font='22px sans-serif';
+    for(const id of noteIds){const c=byId(+id),im=await loadImg(notes[id]);x.fillText(`${c.ch} ${c.hun} ${c.eum}`,P,y+28);if(im)x.drawImage(im,P+180,y,im.width*1.2,im.height*1.2);y+=84}}
+  if(lastWrites.length){x.font='bold 24px sans-serif';x.fillText('마지막 누적 쪽지 · 한자 쓰기',P,y);y+=50;
+    let xx=P;for(const r of lastWrites){const im=await loadImg(r.img);if(im)x.drawImage(im,xx,y,160,80);x.font='16px sans-serif';x.fillText(byId(r.wid).read,xx+50,y+82);xx+=172}}
+  const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.85));
+  const file=new File([blob],`hanja-${date}.jpg`,{type:'image/jpeg'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],text,title:'태이 한자 리포트'});onDone&&onDone();return}
+    catch(e){if(e.name==='AbortError'){toast('취소됐어요. 카톡으로 보내야 다음으로 넘어가요');return}}
+  }
+  // 공유 기능이 없을 때: 이미지 저장 + 글 복사
+  const url=URL.createObjectURL(blob);
+  const m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<div class="card"><h3 style="margin-top:0">리포트</h3><img src="${url}" style="width:100%;border-radius:8px">
+    <textarea rows="6" style="margin-top:10px">${text}</textarea>
+    <div class="row" style="margin-top:10px"><a class="pri btnlink" href="${url}" download="hanja-${date}.jpg">이미지 저장</a><button class="pri" id="cp">글 복사</button><button class="ghost" id="cl">닫기</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('a.btnlink').addEventListener('click',()=>onDone&&onDone());
+  m.querySelector('#cp').onclick=()=>{navigator.clipboard.writeText(text).then(()=>toast('복사했어요. 카톡에 붙여넣기 하세요'),()=>toast('복사하지 못했어요'));onDone&&onDone()};
+  m.querySelector('#cl').onclick=()=>{m.remove();onDone&&onDone()};
+}
+
+/* ===== 홈 ===== */
+function home(){
+  const s=db.sess,base=s?s.start:db.wordNext,next=WL.slice(base,base+WPD);
+  const doneToday=(db.days[today()]||[]).length>0;
+  const pct=s?Math.round(s.step/buildSteps(s.start).length*100):0;
+  const st=streakDays();
+  const dayLabel=next.length?`${Math.floor(base/WPD)+1}일차 학습`:'교재를 모두 배웠어요! 🎉';
+  const ctaLabel=s?`이어서 하기 (${pct}%)`:doneToday?'하루 더 공부하기':'오늘 공부 시작하기';
+  app.innerHTML=`
+  <div class="card">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><div class="heroDay">${dayLabel}</div>${st>=1?`<span class="streak">🔥 ${st}일 연속 학습 중</span>`:''}</div>
+      <span class="muted" style="font-size:14px;white-space:nowrap">누적 ${db.learned.length}자</span>
+    </div>
+    ${doneToday&&!s?'<p class="okMsg" style="margin:10px 0 0">오늘 학습 완료! 참 잘했어요 🎉</p>':''}
+    ${next.length?`<button class="pri big" id="start">${ctaLabel}</button>`:''}
+    ${doneToday?'<button class="sun big" id="rep">📤 부모님께 카톡 보내기</button>':''}
+  </div>
+  <div class="path" style="margin-top:14px">
+    <button class="step" data-go="exam" ${db.exam?'':'disabled'}><span class="big">📝</span><span class="t">학원 쪽지시험</span><span class="muted">${db.exam?`${db.exam.start}~${db.exam.end}쪽 · 20문제`:'범위를 정하면 열려요'}</span></button>
+    <button class="step" data-go="fast"><span class="big">⚡</span><span class="t">시험 전 점검</span><span class="muted">오답 ${Object.keys(db.wrong).length}개 · 스피드 퀴즈</span></button>
+    <button class="step" data-go="bookIdx"><span class="big">📖</span><span class="t">책으로 찾기</span><span class="muted">쪽별 단어 다시 보기</span></button>
+    <button class="step" data-go="record"><span class="big">📊</span><span class="t">내 기록</span><span class="muted">공부한 날 ${Object.keys(db.days).length}일</span></button>
+  </div>`;
+  if($('#start'))$('#start').onclick=()=>s?daily():startDay();
+  if($('#rep'))$('#rep').onclick=()=>sendReport(today());
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+}
+
+/* ===== 부모: 누적 쪽지 쓰기 채점 ===== */
+function gradeQuiz(v){
+  const dates=Object.keys(db.qz).sort().reverse();
+  const pn=dates.reduce((a,d)=>a+db.qz[d].filter(r=>r.type==='write'&&r.grade===null).length,0);
+  v.innerHTML=`<div class="card"><h3 style="margin-top:0">누적 쪽지 · 한자 쓰기 채점 <span class="pill ${pn?'wait':''}">${pn?`대기 ${pn}`:'대기 없음'}</span></h3>
+  ${dates.map(d=>{
+    const all=db.qz[d],ws=all.map((r,i)=>[r,i]).filter(([r])=>r.type==='write');if(!ws.length)return'';
+    const rd=all.filter(r=>r.type==='read'),wo=ws.filter(([r])=>r.grade===true).length;
+    return`<details ${ws.some(([r])=>r.grade===null)?'open':''}><summary class="jua" style="font-size:18px;padding:6px 0;cursor:pointer">${d} · 읽기 ${rd.filter(r=>r.ok).length}/${rd.length} · 쓰기 ${wo}/${ws.length}</summary>
+    <div class="row"><button class="ghost" data-allo="${d}">남은 문항 모두 O</button><button class="sun" data-rep="${d}">📤 리포트</button></div>
+    ${ws.map(([r,i],n)=>{const w=byId(r.wid);return`<div class="gradeRow"><b class="jua">${n+1}</b>
+      <div class="gradeImgWrap"><img src="${r.img}" alt="${w.read} 답안"><span class="ansOverlay hz">${w.word}</span></div>
+      <div><div class="muted">${w.read} → 정답 · ${w.page}쪽</div><div class="ans">${w.word}</div></div>
+      <div class="gbtn"><button data-d="${d}" data-i="${i}" data-g="1" class="${r.grade===true?'selO':''}">O</button><button data-d="${d}" data-i="${i}" data-g="0" class="${r.grade===false?'selX':''}">X</button></div></div>`}).join('')}
+    </details>`}).join('')||'<p class="muted">아직 누적 쪽지 기록이 없습니다</p>'}</div>`;
+  const setG=(r,g)=>{
+    if(r.grade===g)return;
+    if(g===false){addWrong(r.wid);addWrong(r.wid+1)}
+    if(r.grade===false&&g===true){addWrong(r.wid,-1);addWrong(r.wid+1,-1)}
+    r.grade=g;
+  };
+  v.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{setG(db.qz[b.dataset.d][+b.dataset.i],b.dataset.g==='1');save();parent()});
+  v.querySelectorAll('[data-allo]').forEach(b=>b.onclick=()=>{db.qz[b.dataset.allo].forEach(r=>{if(r.type==='write'&&r.grade===null)setG(r,true)});save();parent()});
+  v.querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>sendReport(b.dataset.rep));
+}
+
+/* ===== 1단계: 배우기 ===== */
+function learn(list,i=0,onDone){
+  list=list||[];
+  if(!list.length){app.innerHTML=`<div class="card"><h2>배울 한자가 없어요</h2><p class="muted">패스트 점검으로 복습해 보세요.</p><button class="pri" onclick="go('fast')">패스트 점검</button></div>`;return}
+  const d=list[i];
+  app.innerHTML=`
+  <div class="row" style="justify-content:space-between;margin-bottom:10px"><span class="jua">${i+1} / ${list.length}</span>${book(d)}</div>
+  <div class="prog" style="margin-bottom:14px"><div style="width:${(i+1)/list.length*100}%"></div></div>
+  <div class="learn">
+    <div class="card"><div id="charBox"><div class="bigchar">${d.ch}</div></div><div class="hun">${d.hun} ${d.eum}</div><p class="muted" style="text-align:center;margin:2px 0 0">부수 ${d.bu} · ${d.hoek}획</p>
+      <div class="row" style="justify-content:center;margin-top:8px"><button class="sun" id="strokeBtn">획순 보기</button></div><p class="muted" id="strokeInfo" style="text-align:center;margin:4px 0 0"></p></div>
+    <div class="card">
+      <div class="row" style="align-items:baseline;gap:14px"><span class="word">${d.word}</span><span class="jua" style="font-size:28px">${d.read}</span></div>
+      <p class="muted" style="margin:0 0 10px">뜻: ${d.mean}</p>
+      <div class="ex" style="border-color:var(--ink)"><small>교재 예문</small>${d.sent}</div>
+      <div class="ex"><small>동물·자연</small>${d.nat}</div>
+      <div class="ex star"><small>무대·스타</small>${d.star}</div>
+      <div class="ex cmp"><small>비교해 보기</small>${d.cmp}</div>
+    </div>
+  </div>
+  <div class="row" style="justify-content:space-between;margin-top:16px">
+    <button class="ghost" id="prev" ${i?'':'disabled'}>이전</button>
+    <button class="pri" id="next">${i<list.length-1?'다음 한자':'다 배웠어요'}</button>
+  </div>`;
+  $('#strokeBtn').onclick=()=>{
+    const box=$('#charBox');box.innerHTML='';
+    const w=strokeBox(box,d.ch,220);if(!w)return;
+    w.hideCharacter();w.animateCharacter({onComplete:()=>{$('#strokeBtn').textContent='다시 보기'}});
+    $('#strokeInfo').textContent=`교재 기준 ${d.hoek}획`;
+  };
+  $('#prev').onclick=()=>learn(list,i-1,onDone);
+  $('#next').onclick=()=>{
+    if(i<list.length-1)return learn(list,i+1,onDone);
+    if(onDone)return onDone();
+    const t=today();db.days[t]=db.days[t]||[];
+    list.forEach(x=>{if(!db.learned.includes(x.id))db.learned.push(x.id);if(!db.days[t].includes(x.id))db.days[t].push(x.id)});
+    save();toast('오늘 배운 한자를 기록했어요');go('home');
+  };
+}
+
+
+/* ===== 3단계: 패스트 점검 ===== */
+function logFast(mode,correct,total){db.fast.push({date:today(),mode,correct,total});save()}
+function fast(){
+  const wrongN=Object.keys(db.wrong).length;
+  const ex=db.exam;
+  app.innerHTML=`
+  <h2 style="margin-top:0">패스트 점검</h2>
+  <div class="path">
+    <button class="step" id="f1"><span class="t">오답 다시 보기</span><span class="muted">틀린 한자만 모아서 · ${wrongN}개</span><span class="big" style="color:var(--seal)">誤</span></button>
+    <button class="step" id="f2"><span class="t">읽기 스피드</span><span class="muted">한자 단어 보고 5초 안에 읽기 고르기</span><span class="big" style="color:var(--sky)">讀</span></button>
+    <button class="step" id="f3"><span class="t">쓰기 스피드</span><span class="muted">한글 보고 바로 쓰고 스스로 채점</span><span class="big" style="color:var(--leaf)">書</span></button>
+    <button class="step" id="f4"><span class="t">시험 범위 몰아보기</span><span class="muted">${ex?`${ex.start}~${ex.end}쪽 카드 넘기기`:'시험 범위가 아직 없어요'}</span><span class="big" style="color:var(--sun)">覽</span></button>
+  </div>`;
+  const pool=()=>{const r=ex?DATA.filter(d=>d.page>=ex.start&&d.page<=ex.end):ITEMS.filter(d=>db.learned.includes(d.id));return uniqWords(r.length?r:ITEMS)};
+  $('#f1').onclick=()=>wrongReview();
+  $('#f2').onclick=()=>speedRead(shuffle(pool()).slice(0,10));
+  $('#f3').onclick=()=>speedWrite(shuffle(pool()).slice(0,10));
+  $('#f4').onclick=()=>ex?flipCards(pool()):toast('부모님이 시험 범위를 먼저 정해야 해요');
+}
+function wrongReview(){
+  const ids=Object.keys(db.wrong).map(Number).sort((a,b)=>db.wrong[b]-db.wrong[a]);
+  if(!ids.length){app.innerHTML=`<div class="card"><h2>오답이 없어요</h2><button class="pri" onclick="go('fast')">돌아가기</button></div>`;return}
+  app.innerHTML=`<h2 style="margin-top:0">오답 다시 보기</h2><div class="grid" id="wl"></div>
+  <button class="pri" style="margin-top:14px" id="wlearn">오답 한자 다시 배우기</button>`;
+  ids.forEach(id=>{const d=byId(id);const c=document.createElement('div');c.className='card row';c.style.justifyContent='space-between';
+    c.innerHTML=`<div class="row"><span class="word">${d.word}</span><span class="jua">${d.read}</span>${book(d)}<span class="muted">${d.ch} ${d.hun} ${d.eum} · 틀린 횟수 ${db.wrong[id]}</span></div><button class="ok">외웠어요</button>`;
+    c.querySelector('button').onclick=()=>{addWrong(id,-1);save();wrongReview()};$('#wl').appendChild(c)});
+  $('#wlearn').onclick=()=>learn(ids.map(byId),0,()=>go('fast'));
+}
+function speedRead(list){
+  let i=0,ok=0,timer=null;
+  const step=()=>{
+    clearInterval(timer);
+    if(i>=list.length){logFast('읽기 스피드',ok,list.length);app.innerHTML=`<div class="card" style="text-align:center"><h2>읽기 스피드 결과</h2><div class="score">${ok} / ${list.length}</div><button class="pri" onclick="go('fast')">점검 메뉴</button></div>`;return}
+    const d=list[i];
+    const opts=shuffle([d.read,...shuffle(uniqWords(ITEMS).filter(x=>x.read!==d.read)).slice(0,3).map(x=>x.read)]);
+    let left=5;
+    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="jua">${i+1} / ${list.length}</span><span class="timer" id="tm">5초</span></div>
+    <div class="prog" style="margin:10px 0"><div style="width:${i/list.length*100}%"></div></div>
+    <div class="card"><div style="text-align:center"><span class="book">📖 ${d.page}쪽</span></div><div class="qword">${d.word}</div><div class="choice" style="margin-top:16px">${opts.map(o=>`<button>${o}</button>`).join('')}</div></div>`;
+    const pick=v=>{clearInterval(timer);
+      if(v===d.read){ok++;toast('정답!')}else{addWrong(d.id);save();toast(`정답: ${d.read} · 📖 ${d.page}쪽`)}
+      i++;setTimeout(step,v===d.read?400:1200)};
+    app.querySelectorAll('.choice button').forEach(b=>b.onclick=()=>pick(b.textContent));
+    timer=setInterval(()=>{left--;const t=$('#tm');if(t)t.textContent=left+'초';if(left<=0)pick(null)},1000);
+  };
+  step();
+}
+function speedWrite(list){
+  let i=0,ok=0;
+  const step=()=>{
+    if(i>=list.length){logFast('쓰기 스피드',ok,list.length);app.innerHTML=`<div class="card" style="text-align:center"><h2>쓰기 스피드 결과</h2><div class="score">${ok} / ${list.length}</div><button class="pri" onclick="go('fast')">점검 메뉴</button></div>`;return}
+    const d=list[i];
+    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="jua">${i+1} / ${list.length}</span></div>
+    <div class="prog" style="margin:10px 0"><div style="width:${i/list.length*100}%"></div></div>
+    <div class="card"><div style="text-align:center"><span class="book">📖 ${d.page}쪽</span></div><div class="q">${d.read} <span class="muted">(${d.mean})</span></div><div id="ph"></div>
+    <div class="row" style="justify-content:center;margin-top:12px"><button class="ghost" id="c">지우기</button><button class="sun" id="s">정답 보기</button></div>
+    <div id="a" class="qword"></div></div>`;
+    const pad=makePad($('#ph'),{cells:2,size:cellSize(2)});
+    $('#c').onclick=pad.clear;
+    $('#s').onclick=()=>{$('#a').innerHTML=`${d.word}<div class="row" style="justify-content:center"><button class="ok" id="o">맞았어요</button><button class="no" id="x">틀렸어요</button></div>`;
+      $('#o').onclick=()=>{ok++;i++;step()};
+      $('#x').onclick=()=>{addWrong(d.id);save();i++;step()}};
+  };
+  step();
+}
+function flipCards(list){
+  let i=0,back=false;
+  const draw=()=>{const d=list[i];
+    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="jua">${i+1} / ${list.length}</span><span class="muted">카드를 누르면 뒤집혀요</span></div>
+    <div class="card flip" id="fc" style="margin-top:10px">${back?`<div><div class="jua" style="font-size:40px">${d.read}</div><p>${d.mean}</p><p class="muted">${d.ch} = ${d.hun} ${d.eum}</p>${book(d)}</div>`:`<div><div class="qword">${d.word}</div><span class="book">📖 ${d.page}쪽</span></div>`}</div>
+    <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="p" ${i?'':'disabled'}>이전</button><button class="pri" id="n">${i<list.length-1?'다음':'끝'}</button></div>`;
+    $('#fc').onclick=()=>{back=!back;draw()};
+    $('#p').onclick=()=>{i--;back=false;draw()};
+    $('#n').onclick=()=>{if(i<list.length-1){i++;back=false;draw()}else{logFast('범위 몰아보기',list.length,list.length);go('fast')}};
+  };
+  draw();
+}
+
+/* ===== 4단계: 쪽지시험 ===== */
+function exam(){
+  const ex=db.exam;
+  if(!ex){app.innerHTML=`<div class="card"><h2>시험 범위가 없어요</h2><p class="muted">부모님께 범위를 정해 달라고 말씀드리세요.</p></div>`;return}
+  const items=ex.items; const ans=ex.draft||items.map(()=>null); let i=0; let pad;
+  const keep=()=>{if(pad&&!pad.empty())ans[i]={raw:pad.raw(),img:pad.image()};else if(pad)ans[i]=null;ex.draft=ans;save()};
+  const draw=()=>{
+    const it=items[i],d=byId(it.id);
+    const isRead=it.type==='read';
+    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="jua">${isRead?'한자 읽기':'한자 쓰기'} · ${i+1} / ${items.length}</span><span class="muted">${ex.start}~${ex.end}쪽</span></div>
+    <div class="prog" style="margin:10px 0"><div style="width:${(i+1)/items.length*100}%"></div></div>
+    <div class="card">
+      ${isRead?`<div class="q">다음 한자어의 읽는 소리를 쓰세요</div><div class="qword">${d.word}</div>`
+              :`<div class="q">다음 낱말을 한자로 쓰세요</div><div class="jua" style="text-align:center;font-size:44px">${d.read}</div><p class="muted" style="text-align:center;margin:0 0 10px">(${d.mean})</p>`}
+      <div id="ph" style="margin-top:10px"></div>
+      <div class="row" style="justify-content:center;margin-top:12px"><button class="ghost" id="c">지우기</button></div>
+    </div>
+    <div class="row" style="justify-content:space-between;margin-top:14px">
+      <button class="ghost" id="p" ${i?'':'disabled'}>이전</button>
+      <span class="muted">${ans.filter(Boolean).length}/${items.length} 작성</span>
+      <button class="${i<items.length-1?'pri':'sun'}" id="n">${i<items.length-1?'다음':'답안 제출'}</button>
+    </div>`;
+    const cs=cellSize(2);
+    pad=isRead?makePad($('#ph'),{cells:1,grid:false,w:cs*2,h:Math.round(cs*0.8)}):makePad($('#ph'),{cells:2,size:cs});
+    if(ans[i])pad.load(ans[i].raw);
+    $('#c').onclick=pad.clear;
+    $('#p').onclick=()=>{keep();i--;draw()};
+    $('#n').onclick=()=>{keep();if(i<items.length-1){i++;draw()}else submit()};
+  };
+  const submit=()=>{
+    const blankN=ans.filter(a=>!a).length;
+    if(blankN&&!confirm(`빈 답안이 ${blankN}개 있어요. 그래도 제출할까요?`))return;
+    db.subs.push({id:Date.now(),date:today(),range:`${ex.start}~${ex.end}쪽`,
+      items:items.map((it,k)=>({...it,img:ans[k]?ans[k].img:null})),grades:items.map(()=>null),status:'pending',score:null});
+    ex.draft=null;save();
+    app.innerHTML=`<div class="card" style="text-align:center"><h2>제출 완료!</h2><p>부모님이 채점하면 결과를 볼 수 있어요.</p><button class="pri" onclick="go('home')">처음으로</button></div>`;
+  };
+  draw();
+}
+
+/* ===== 아이 기록 ===== */
+function record(){
+  const days=Object.keys(db.days).sort().reverse();
+  app.innerHTML=`<h2 style="margin-top:0">내 기록</h2>
+  <div class="card"><h3 style="margin-top:0">쪽지시험</h3>${examTable(false)}</div>
+  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">공부한 날</h3>
+  ${days.length?`<table>${days.slice(0,14).map(d=>`<tr><td>${d}</td><td>${[...new Set(db.days[d].map(id=>byId(id).page))].map(p=>`📖 ${p}쪽`).join(', ')}</td><td style="font-family:var(--hanja);font-size:22px">${uniqWords(db.days[d].map(byId)).map(x=>x.word).join(' ')}</td></tr>`).join('')}</table>`:'<p class="muted">아직 기록이 없어요</p>'}</div>`;
+}
+function examTable(parent){
+  if(!db.subs.length)return'<p class="muted">시험 기록이 없어요</p>';
+  return`<table><tr><th>날짜</th><th>범위</th><th>읽기</th><th>쓰기</th><th>합계</th>${parent?'<th></th>':''}</tr>${
+    db.subs.slice().reverse().map(s=>{
+      const r=s.grades.filter((g,k)=>g===true&&s.items[k].type==='read').length;
+      const w=s.grades.filter((g,k)=>g===true&&s.items[k].type==='write').length;
+      return`<tr><td>${s.date}</td><td>${s.range}</td>${s.status==='graded'?`<td>${r}/10</td><td>${w}/10</td><td><b>${s.score}/20</b></td>`:`<td colspan="3"><span class="pill wait">채점 대기</span></td>`}${parent?`<td><button class="ghost" data-open="${s.id}">${s.status==='graded'?'다시 보기':'채점하기'}</button></td>`:''}</tr>`}).join('')}</table>`;
+}
+
+/* ===== 부모 모드 ===== */
+let parentOK=false,ptab='range';
+function parentLogin(){
+  if(parentOK)return parent();
+  app.innerHTML=`<div class="card" style="max-width:420px;margin:40px auto;text-align:center">
+    <h2>부모 모드</h2><p class="muted">비밀번호 (처음: 1234)</p>
+    <input type="password" id="pw" inputmode="numeric" style="width:180px;text-align:center"><br><br>
+    <button class="pri" id="in">들어가기</button></div>`;
+  const tryIn=()=>{if($('#pw').value===db.pw){parentOK=true;parent()}else toast('비밀번호가 다릅니다')};
+  $('#in').onclick=tryIn;$('#pw').onkeydown=e=>{if(e.key==='Enter')tryIn()};$('#pw').focus();
+}
+function parent(){
+  const pend=db.subs.filter(s=>s.status==='pending').length+Object.values(db.qz).flat().filter(r=>r.type==='write'&&r.grade===null).length;
+  app.innerHTML=`<div class="tabs">
+    <button data-t="range">시험 범위</button><button data-t="grade">채점${pend?` (${pend})`:''}</button>
+    <button data-t="status">학습 현황</button><button data-t="set">설정</button>
+    <button class="ghost" id="out" style="margin-left:auto">나가기</button></div><div id="pv"></div>`;
+  app.querySelectorAll('[data-t]').forEach(b=>{b.classList.toggle('on',b.dataset.t===ptab);b.onclick=()=>{ptab=b.dataset.t;parent()}});
+  $('#out').onclick=()=>{parentOK=false;go('home')};
+  ({range:pRange,grade:pGrade,status:pStatus,set:pSet})[ptab]($('#pv'));
+}
+function pRange(v){
+  const pages=[...new Set(DATA.map(d=>d.page))];
+  const ex=db.exam;
+  v.innerHTML=`<div class="card">
+    <h3 style="margin-top:0">교재 페이지로 시험 범위 정하기</h3>
+    <div class="row"><input type="number" id="s" value="${ex?.start||pages[0]}"> 쪽부터 <input type="number" id="e" value="${ex?.end||pages[pages.length-1]}"> 쪽까지</div>
+    <p id="cnt" class="muted"></p>
+    <p class="muted">읽기 10문제 + 쓰기 10문제를 범위 안에서 무작위로 뽑습니다. 단어가 10개보다 적으면 같은 단어가 읽기·쓰기에 겹칠 수 있습니다.</p>
+    <button class="pri" id="mk">시험 만들기</button>
+    ${ex?`<button class="ghost" id="del">현재 시험 닫기</button>`:''}
+  </div>
+  ${ex?`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">현재 시험: ${ex.start}~${ex.end}쪽</h3>
+    <table><tr><th>#</th><th>쪽</th><th>유형</th><th>문제</th><th>정답</th></tr>${ex.items.map((it,k)=>{const d=byId(it.id);return`<tr><td>${k+1}</td><td>${d.page}</td><td>${it.type==='read'?'읽기':'쓰기'}</td><td>${it.type==='read'?`<span style="font-family:var(--hanja)">${d.word}</span>`:d.read}</td><td>${it.type==='read'?d.read:`<span style="font-family:var(--hanja)">${d.word}</span>`}</td></tr>`}).join('')}</table></div>`:''}
+  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">교재 쪽별 단어 (장원급제Ⅲ 준4급)</h3>
+  <table>${pages.map(p=>`<tr><td>${p}쪽</td><td style="font-family:var(--hanja);font-size:22px">${uniqWords(DATA.filter(d=>d.page===p)).map(d=>`${d.word}<span class="muted" style="font-family:Gowun Dodum;font-size:14px">(${d.read})</span>`).join('  ')}</td></tr>`).join('')}</table></div>`;
+  const inR=()=>{const s=+$('#s').value,e=+$('#e').value;return uniqWords(DATA.filter(d=>d.page>=Math.min(s,e)&&d.page<=Math.max(s,e)))};
+  const upd=()=>{const n=inR().length;$('#cnt').textContent=`범위 안 단어 ${n}개 (한자 ${n*2}자)`};
+  $('#s').oninput=upd;$('#e').oninput=upd;upd();
+  $('#mk').onclick=()=>{
+    const r=inR();if(!r.length)return toast('범위 안에 단어가 없습니다');
+    const pick=()=>{let out=[];while(out.length<10)out=out.concat(shuffle(r));return out.slice(0,10)};
+    const s=+$('#s').value,e=+$('#e').value;
+    db.exam={start:Math.min(s,e),end:Math.max(s,e),items:[...pick().map(d=>({type:'read',id:d.id})),...pick().map(d=>({type:'write',id:d.id}))],draft:null};
+    save();toast('시험을 만들었습니다');parent();
+  };
+  if($('#del'))$('#del').onclick=()=>{if(confirm('현재 시험을 닫을까요? (제출된 답안은 남습니다)')){db.exam=null;save();parent()}};
+}
+let openSub=null;
+function pGrade(v){
+  v.innerHTML='<div id="gq"></div><div id="gs" style="margin-top:14px"></div>';
+  gradeQuiz($('#gq'));gradeSubs($('#gs'));
+}
+function gradeSubs(v){
+  const s=db.subs.find(x=>x.id===openSub)||db.subs.find(x=>x.status==='pending');
+  if(!s){v.innerHTML=`<div class="card"><h3 style="margin-top:0">채점할 시험이 없습니다</h3>${examTable(true)}</div>`;bindOpen(v);return}
+  openSub=s.id;
+  const tally=()=>s.grades.filter(g=>g===true).length;
+  v.innerHTML=`<div class="card">
+    <div class="row" style="justify-content:space-between"><h3 style="margin:0">${s.date} · ${s.range}</h3>
+      <div class="row"><button class="ghost" id="allO">남은 문항 모두 O</button><span class="score" id="sc">${tally()}/20</span></div></div>
+    <div id="rows"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="ok" id="fin">채점 완료</button></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">시험 목록</h3>${examTable(true)}</div>`;
+  s.items.forEach((it,k)=>{
+    const d=byId(it.id);const r=document.createElement('div');r.className='gradeRow';
+    const head=k===0?'<h3 style="grid-column:1/-1;margin:14px 0 0">한자 읽기</h3>':k===10?'<h3 style="grid-column:1/-1;margin:14px 0 0">한자 쓰기</h3>':'';
+    r.innerHTML=`${head}<b class="jua">${k+1}</b>
+      <div>${it.img?`<div class="gradeImgWrap"><img src="${it.img}" alt="${k+1}번 답안"><span class="ansOverlay ${it.type==='read'?'jua':'hz'}">${it.type==='read'?d.read:d.word}</span></div>`:'<span class="muted">빈 답안</span>'}</div>
+      <div><span class="book">📖 ${d.page}쪽</span><div class="muted">${it.type==='read'?d.word:d.read} → 정답</div><div class="${it.type==='read'?'jua':'ans'}" style="font-size:32px">${it.type==='read'?d.read:d.word}</div></div>
+      <div class="gbtn"><button data-g="1">O</button><button data-g="0">X</button></div>`;
+    const paint=()=>{const [o,x]=r.querySelectorAll('.gbtn button');o.className=s.grades[k]===true?'selO':'';x.className=s.grades[k]===false?'selX':''};
+    r.querySelectorAll('.gbtn button').forEach(b=>b.onclick=()=>{s.grades[k]=b.dataset.g==='1';paint();$('#sc').textContent=tally()+'/20';save()});
+    paint();$('#rows').appendChild(r);
+  });
+  $('#allO').onclick=()=>{s.grades=s.grades.map(g=>g===null?true:g);save();pGrade(v)};
+  $('#fin').onclick=()=>{
+    const left=s.grades.filter(g=>g===null).length;
+    if(left)return toast(`아직 ${left}문항을 채점하지 않았습니다`);
+    if(s.status!=='graded')s.items.forEach((it,k)=>{if(s.grades[k]===false)addWrong(it.id)});
+    s.status='graded';s.score=tally();openSub=null;save();toast('채점 완료 · 틀린 문항은 오답 노트에 담았습니다');parent();
+  };
+  bindOpen(v);
+}
+function bindOpen(v){v.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{openSub=+b.dataset.open;ptab='grade';parent()})}
+function pStatus(v){
+  const g=db.subs.filter(s=>s.status==='graded');
+  const avg=g.length?(g.reduce((a,s)=>a+s.score,0)/g.length).toFixed(1):'-';
+  const weak=Object.entries(db.wrong).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const fastRecent=db.fast.slice(-10).reverse();
+  const unlearned=ITEMS.length-db.learned.length;
+  v.innerHTML=`<div class="path">
+    <div class="card"><div class="muted">공부한 날</div><div class="score">${Object.keys(db.days).length}일</div></div>
+    <div class="card"><div class="muted">배운 한자</div><div class="score">${db.learned.length}<span class="muted">/${ITEMS.length}</span></div><div class="muted">남은 한자 ${unlearned}자</div></div>
+    <div class="card"><div class="muted">시험 평균</div><div class="score">${avg}</div><div class="muted">채점 ${g.length}회</div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">시험 전 점검: 자주 틀리는 한자</h3>
+    ${weak.length?`<table><tr><th>한자어</th><th>읽기</th><th>쪽</th><th>틀린 횟수</th></tr>${weak.map(([id,n])=>{const d=byId(+id);return`<tr><td style="font-family:var(--hanja);font-size:22px">${d.word}</td><td>${d.read}</td><td>${d.page}</td><td>${n}</td></tr>`}).join('')}</table>`:'<p class="muted">오답 기록이 없습니다</p>'}</div>
+  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">5번 쓰기 노트 · 훈·음 (최근 7일)</h3>
+    ${Object.keys(db.notes).length?Object.keys(db.notes).sort().reverse().map((dt,k)=>`<details ${k?'':'open'}><summary class="jua" style="font-size:18px;cursor:pointer;padding:6px 0">${dt} · ${Object.keys(db.notes[dt]).length}자</summary>
+      ${Object.entries(db.notes[dt]).map(([id,img])=>{const d=byId(+id);return`<div style="margin:6px 0"><span class="book">📖 ${d.page}쪽 · <b>${d.ch}</b> ${d.hun} ${d.eum}</span> <span class="muted">${(db.he[dt]||{})[id]?`훈·음 ${db.he[dt][id]}번 틀림`:(db.he[dt]||{})[id]===0?"훈·음 한 번에 통과":""}</span><div style="overflow-x:auto"><img src="${img}" style="max-width:none;height:56px;display:block;margin-top:4px" alt="${d.ch} 쓰기"></div></div>`}).join('')}</details>`).join(''):'<p class="muted">아직 쓰기 노트 기록이 없습니다</p>'}</div>
+  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">패스트 점검 기록</h3>
+    ${fastRecent.length?`<table><tr><th>날짜</th><th>모드</th><th>결과</th></tr>${fastRecent.map(f=>`<tr><td>${f.date}</td><td>${f.mode}</td><td>${f.correct}/${f.total}</td></tr>`).join('')}</table>`:'<p class="muted">점검 기록이 없습니다</p>'}</div>
+  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">시험 이력</h3>${examTable(true)}</div>`;
+  bindOpen(v);
+}
+function pSet(v){
+  const pages=[...new Set(WL.map(w=>w.page))];
+  v.innerHTML=`<div class="card grid">
+    <div><h3 style="margin:0 0 6px">진도 맞추기</h3><p class="muted" style="margin:0 0 8px">학원 진도에 맞춰 "오늘의 학습" 시작 쪽을 정합니다. (현재: ${WL[db.wordNext]?WL[db.wordNext].page+'쪽 '+WL[db.wordNext].word:'교재 끝'})</p>
+      <select id="pg" style="font-size:20px;padding:8px;border-radius:10px">${pages.map(p=>`<option value="${p}">${p}쪽부터</option>`).join('')}</select>
+      <button class="pri" id="setpg">적용</button></div>
+    <div><h3 style="margin:0 0 6px">집중 시간 목표</h3><p class="muted" style="margin:0 0 8px">이 시간 안에 마치면 완료 화면에 표시돼요. 90초 이상 손을 안 대거나 화면을 벗어나면 시간이 멈추고, 돌아오면 "이어서 하기"를 눌러야 계속돼요.</p>
+      <input type="number" id="fg" value="${db.focusGoalMin||20}" style="width:90px"> 분 <button class="pri" id="setfg">적용</button></div>
+    <div><h3 style="margin:0 0 6px">펜 전용 입력</h3><p class="muted" style="margin:0 0 8px">켜면 손바닥·손가락 터치를 무시하고 애플펜슬·S펜만 씁니다. (S펜 버튼을 누른 채 쓰면 무시됩니다)</p>
+      <button id="pen" class="${db.penOnly?'ok':'ghost'}">${db.penOnly?'켜짐':'꺼짐'}</button></div>
+    <div><h3 style="margin:0 0 6px">부모 비밀번호 바꾸기</h3><input type="password" id="np" style="width:180px"> <button class="pri" id="sp">저장</button></div>
+    <div><h3 style="margin:0 0 6px">기록 초기화</h3><button class="no" id="rs">모든 기록 지우기</button></div>
+  </div>`;
+  $('#setpg').onclick=()=>{const p=+$('#pg').value;if(!confirm(`${p}쪽부터 다시 시작할까요? (진행 중인 오늘 학습은 취소됩니다)`))return;
+    db.wordNext=WL.findIndex(w=>w.page===p);db.sess=null;save();toast(`${p}쪽부터 시작합니다`);pSet(v)};
+  $('#pen').onclick=()=>{db.penOnly=!db.penOnly;save();pSet(v)};
+  $('#setfg').onclick=()=>{const m=+$('#fg').value;if(!m||m<5)return toast('5분 이상으로 정해 주세요');db.focusGoalMin=m;save();toast(`목표를 ${m}분으로 정했습니다`)};
+  $('#sp').onclick=()=>{const p=$('#np').value.trim();if(p.length<4)return toast('4자리 이상 입력하세요');db.pw=p;save();toast('비밀번호를 바꿨습니다')};
+  $('#rs').onclick=()=>{if(confirm('학습·시험 기록을 모두 지울까요?')){const pw=db.pw;db=blank();db.pw=pw;save();toast('초기화했습니다')}};
+}
+
+/* ===== 책으로 찾기 ===== */
+function bookIdx(){
+  const pages=[...new Set(DATA.map(d=>d.page))];
+  app.innerHTML=`<h2 style="margin-top:0">📖 책으로 찾기</h2><p class="muted">쪽을 누르면 그 쪽 한자를 다시 볼 수 있어요.</p><div id="pl"></div>`;
+  pages.forEach(p=>{const list=DATA.filter(d=>d.page===p);const b=document.createElement('button');b.className='pagebtn';
+    const done=list.filter(d=>db.learned.includes(d.id)).length;
+    b.innerHTML=`<span class="book">📖 ${p}쪽</span><span class="hz">${uniqWords(list).map(d=>d.word).join('  ')}</span><span class="muted">${done}/${list.length} 배움</span>`;
+    b.onclick=()=>learn(list,0,()=>go('bookIdx'));$('#pl').appendChild(b)});
+}
+
+/* ===== 라우터 ===== */
+let curView='home';
+function go(v){
+  window.scrollTo(0,0);
+  if(db.pendingReport){curView='gate';return reportGate()}
+  curView=v;({home,daily,bookIdx,fast,exam,record,parent:parentLogin})[v]()
+}
+$('#homeBtn').onclick=()=>go('home');
+$('#parentBtn').onclick=()=>go('parent');
+go('home');
+</script>
+</body>
+</html>
