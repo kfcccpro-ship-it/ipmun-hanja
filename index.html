@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>태이를 위해 아빠가 만든 한자앱 · v0.19</title>
+<title>태이를 위해 아빠가 만든 한자앱 · v0.20</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="data/meta.js?v=0.11.0"></script>
@@ -203,6 +203,7 @@ a.btnlink{display:inline-block;border-radius:14px;padding:12px 20px;font-family:
 .miniStrokeLesson .stroke{box-shadow:none;border:0;background:transparent}
 .simpleSingleHanja span{color:inherit}
 .rangeSet{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.rangeSet label{display:grid;gap:5px;font-family:'Jua';font-size:17px}.rangeSet input,.rangeSet select{font-size:18px;padding:9px 10px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}.scopePreview{margin:12px 0;padding:12px;border-radius:14px;background:var(--paper);border:1px solid var(--line)}.scopeWords{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.scopeWords span{display:grid;justify-items:center;padding:7px 9px;background:var(--card);border:1px solid var(--line);border-radius:10px}.scopeWords small{font-size:12px;color:var(--sub)}
+.writeClues{display:flex;justify-content:center;align-items:center;gap:9px;flex-wrap:wrap;margin:8px 0 10px}.writeClues span{font-family:'Jua';font-size:22px;padding:7px 11px;background:var(--paper);border:1px solid var(--line);border-radius:10px}.writeClues>b{font-family:'Jua';color:var(--sub)}.hintButtons{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:8px 0}.strokeHintPair{display:flex;justify-content:center;gap:12px;min-height:0;margin:8px 0}.strokeHintCell{width:150px;height:150px;border:1px dashed var(--line);border-radius:12px;background:#fff;display:grid;place-items:center}.strokePrefix svg{width:100%;height:100%;display:block}.preStudyCard{text-align:center}.preAnswer{min-height:74px;margin-top:10px}.rangeSet{margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -513,6 +514,26 @@ function dailyScopeLabel(scope=db.dailyScope){
   if(!scope)return '기본 5단어';
   const words=wordsInAssignedScope(scope),last=words[words.length-1];
   return `${scope.start}~${scope.end}쪽${last?` · ${last.word}까지`:''}`;
+}
+function makeStudy20(pool){
+  const base=shuffle(uniqWords(pool));
+  if(!base.length)return [];
+  const out=base.slice(0,20);
+  while(out.length<20)out.push(...shuffle(base).slice(0,Math.min(base.length,20-out.length)));
+  return out.slice(0,20);
+}
+function renderStrokePrefix(host,ch,count,size=150){
+  host.innerHTML='';
+  const wrap=document.createElement('div');wrap.className='strokePrefix';wrap.style.width=size+'px';wrap.style.height=size+'px';host.appendChild(wrap);
+  getStrokeData(ch).then(data=>{
+    if(!alive(wrap))return;
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 1024 1024');svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+    const g=document.createElementNS(svg.namespaceURI,'g');g.setAttribute('transform','translate(0 1024) scale(1 -1)');
+    (data.strokes||[]).slice(0,count).forEach((d,i)=>{
+      const p=document.createElementNS(svg.namespaceURI,'path');p.setAttribute('d',d);p.setAttribute('fill',i<2?'#D8443A':'#4A7FD4');p.setAttribute('opacity',.92);g.appendChild(p);
+    });
+    svg.appendChild(g);wrap.appendChild(svg);
+  }).catch(()=>{wrap.innerHTML='<span class="muted">획순 자료 없음</span>'});
 }
 
 /* ===== 펜 호환: 블록 선택·길게 누르기 메뉴 차단 ===== */
@@ -1001,30 +1022,31 @@ async function sendReport(date,onDone){
 
 /* ===== 홈 ===== */
 function home(){
-  const s=db.sess,base=s?s.start:db.wordNext,next=WL.slice(base,base+WPD);
+  const ss=db.sess,assigned=wordsInAssignedScope(),next=ss?sessionWords(ss):(assigned.length?assigned:WL.slice(db.wordNext,db.wordNext+WPD));
   const doneToday=(db.days[today()]||[]).length>0;
-  const pct=s?Math.round(s.step/buildSteps(s.start).length*100):0;
+  const pct=ss?Math.round(ss.step/buildSteps(ss.start,ss.wordIds).length*100):0;
   const st=streakDays();
-  const dayLabel=next.length?`${Math.floor(base/WPD)+1}일차 학습`:'교재를 모두 배웠어요! 🎉';
-  const ctaLabel=s?`이어서 하기 (${pct}%)`:doneToday?'하루 더 공부하기':'오늘 공부 시작하기';
+  const dayLabel=next.length?`오늘 학습 · ${next.length}단어`:'학습 범위를 지정해 주세요';
+  const ctaLabel=ss?`이어서 하기 (${pct}%)`:doneToday?'하루 더 공부하기':'하루 학습 시작';
   app.innerHTML=`
   <div class="card">
     <div class="row" style="justify-content:space-between;align-items:flex-start">
-      <div><div class="heroDay">${dayLabel}</div>${st>=1?`<span class="streak">🔥 ${st}일 연속 학습 중</span>`:''}</div>
+      <div><div class="heroDay">${dayLabel}</div>${st>=1?`<span class="streak">🔥 ${st}일 연속 학습 중</span>`:''}<div class="muted" style="margin-top:6px">부모 지정 · ${dailyScopeLabel()}</div></div>
       <span class="muted" style="font-size:14px;white-space:nowrap">누적 ${db.learned.length}자</span>
     </div>
-    ${doneToday&&!s?'<p class="okMsg" style="margin:10px 0 0">오늘 학습 완료! 참 잘했어요 🎉</p>':''}
+    ${doneToday&&!ss?'<p class="okMsg" style="margin:10px 0 0">오늘 학습 완료! 참 잘했어요 🎉</p>':''}
     ${next.length?`<button class="pri big" id="start">${ctaLabel}</button>`:''}
     ${doneToday?'<button class="sun big" id="rep">📤 부모님께 카톡 보내기</button>':''}
   </div>
   <div class="path" style="margin-top:14px">
-    <button class="step strokeHome" data-go="strokeHub"><span class="big hz">一二三</span><span class="t">큰글씨 획순</span><span class="muted">숫자 1→2→3 · 획순 애니메이션 · 따라쓰기</span></button>
+    <button class="step strokeHome" data-go="strokeHub"><span class="big hz">一二三</span><span class="t">큰글씨 획순</span><span class="muted">숫자 획순 자동재생</span></button>
+    <button class="step" data-go="preStudy" ${db.exam?'':'disabled'}><span class="big hz">韓→漢</span><span class="t">시험 전 20쓰기 학습</span><span class="muted">${db.exam?'쪽지시험 쓰기 10문제의 2배 · 20문제':'시험 범위를 먼저 정해 주세요'}</span></button>
     <button class="step" data-go="exam" ${db.exam?'':'disabled'}><span class="big">📝</span><span class="t">학원 쪽지시험</span><span class="muted">${db.exam?`${db.exam.start}~${db.exam.end}쪽 · 20문제`:'범위를 정하면 열려요'}</span></button>
     <button class="step" data-go="fast"><span class="big">⚡</span><span class="t">시험 전 점검</span><span class="muted">오답 ${Object.keys(db.wrong).length}개 · 스피드 퀴즈</span></button>
     <button class="step" data-go="bookIdx"><span class="big">📖</span><span class="t">책으로 찾기</span><span class="muted">쪽별 단어 다시 보기</span></button>
     <button class="step" data-go="record"><span class="big">📊</span><span class="t">내 기록</span><span class="muted">공부한 날 ${Object.keys(db.days).length}일</span></button>
   </div>`;
-  if($('#start'))$('#start').onclick=()=>s?daily():startDay();
+  if($('#start'))$('#start').onclick=()=>ss?daily():startDay();
   if($('#rep'))$('#rep').onclick=()=>sendReport(today());
   app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 }
@@ -1183,6 +1205,33 @@ function flipCards(list){
 }
 
 /* ===== 4단계: 쪽지시험 ===== */
+function preStudy(){
+  const ex=db.exam;if(!ex){toast('시험 범위를 먼저 정해 주세요');return go('home')}
+  const scope=uniqWords(ITEMS.filter(d=>inPageRange(d,ex.start,ex.end)));
+  const list=(ex.studyIds?.length?ex.studyIds.map(byId).filter(Boolean):makeStudy20(scope));
+  if(!list.length){toast('사전 학습 단어가 없습니다');return go('home')}
+  let i=0,pad;
+  const draw=()=>{
+    const w=list[i],cs=charsOf(w),size=cellSize(2);
+    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">시험 전 20쓰기 학습</span><span class="jua">${i+1} / 20</span></div>
+      <div class="prog" style="margin:10px 0 14px"><div style="width:${(i+1)/20*100}%"></div></div>
+      <div class="card preStudyCard">
+        <div class="wordRead" style="font-size:54px">${w.read}</div>
+        <div class="writeClues">${cs.map(c=>`<span>[${c.hun} ${c.eum}]</span>`).join('<b>+</b>')}</div>
+        <p class="muted" style="text-align:center">${w.mean}</p>
+        <div id="prePad" class="row" style="justify-content:center;gap:10px"></div>
+        <div class="row" style="justify-content:center;margin-top:12px"><button class="ghost" id="preUndo">한 획 되돌리기</button><button class="ghost" id="preClear">지우기</button><button class="sun" id="preAns">정답 보기</button></div>
+        <div id="preAnswer" class="preAnswer"></div>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="prePrev" ${i?'':'disabled'}>이전</button><button class="pri" id="preNext">${i<19?'다음':'20문제 학습 완료'}</button></div>`;
+    const host=$('#prePad'),p1=makePad(host,{cells:1,size}),p2=makePad(host,{cells:1,size});pad={undo(){p2.strokes()?p2.undo():p1.undo()},clear(){p1.clear();p2.clear()}};
+    $('#preUndo').onclick=pad.undo;$('#preClear').onclick=pad.clear;
+    $('#preAns').onclick=()=>{$('#preAnswer').innerHTML=`<div class="qword">${w.word}</div><div class="writeClues">${cs.map(c=>`<span>[${c.hun} ${c.eum}]</span>`).join('<b>+</b>')}</div>`};
+    $('#prePrev').onclick=()=>{i--;draw()};
+    $('#preNext').onclick=()=>{if(i<19){i++;draw()}else{logFast('시험 전 20쓰기 학습',20,20);go('home')}};
+  };draw();
+}
+
 function exam(){
   const ex=db.exam;
   if(!ex){app.innerHTML=`<div class="card"><h2>시험 범위가 없어요</h2><p class="muted">부모님께 범위를 정해 달라고 말씀드리세요.</p></div>`;return}
@@ -1191,13 +1240,17 @@ function exam(){
   const dots=()=>`<div class="examDots">${items.map((_,k)=>`<button data-q="${k}" class="${k===i?'on':''} ${ans[k]?'done':''}">${k+1}</button>`).join('')}</div>`;
   const bindDots=()=>app.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{keep();i=+b.dataset.q;draw()});
   const draw=()=>{
-    const it=items[i],d=byId(it.id),isRead=it.type==='read',section=isRead?'한자 읽기 10문제':'한자 쓰기 10문제';
+    const it=items[i],d=byId(it.id),isRead=it.type==='read',section=isRead?'한자 읽기 10문제':'한자 쓰기 10문제',csWord=charsOf(d);
     app.innerHTML=`<div class="examHead"><div><span class="stepTag" style="margin:0">${section}</span><span class="jua examNo">${i+1} / ${items.length}</span></div><span class="muted">${ex.start}~${ex.end}쪽</span></div>
     ${dots()}
     <div class="prog" style="margin:10px 0 14px"><div style="width:${(i+1)/items.length*100}%"></div></div>
     <div class="card examCard">
       ${isRead?`<div class="q">다음 한자어의 읽는 소리를 <b>한글로</b> 쓰세요</div><div class="qword">${d.word}</div>`
-              :`<div class="q">다음 낱말을 <b>한자로</b> 쓰세요</div><div class="jua examPrompt">${d.read}</div><p class="muted" style="text-align:center;margin:0 0 10px">(${d.mean})</p>`}
+              :`<div class="q">다음 낱말을 <b>한자로</b> 쓰세요</div><div class="jua examPrompt">${d.read}</div>
+                <div class="writeClues">${csWord.map(c=>`<span>[${c.hun} ${c.eum}]</span>`).join('<b>+</b>')}</div>
+                <p class="muted" style="text-align:center;margin:5px 0 10px">${d.mean}</p>
+                <div class="hintButtons"><button class="ghost" id="h1">힌트 1 · 2획</button><button class="ghost" id="h2">힌트 2 · 4획</button></div>
+                <div id="strokeHint" class="strokeHintPair"></div>`}
       <div id="ph" class="examPad"></div>
       <div class="row" style="justify-content:center;margin-top:12px"><button class="ghost" id="u">한 획 되돌리기</button><button class="ghost" id="c">지우기</button></div>
     </div>
@@ -1206,9 +1259,13 @@ function exam(){
       <span class="examAnswered">${ans.filter(Boolean).length}/${items.length} 작성</span>
       <button class="${i<items.length-1?'pri':'sun'}" id="n">${i<items.length-1?'다음 ▶':'답안 확인'}</button>
     </div>`;
-    const cs=cellSize(2);
-    pad=isRead?makePad($('#ph'),{cells:1,grid:false,w:Math.min(cs*2,420),h:Math.round(cs*.9)}):makePad($('#ph'),{cells:2,size:cs});
+    const sz=cellSize(2);
+    pad=isRead?makePad($('#ph'),{cells:1,grid:false,w:Math.min(sz*2,420),h:Math.round(sz*.9)}):makePad($('#ph'),{cells:2,size:sz});
     if(ans[i])pad.load(ans[i].raw);
+    if(!isRead){
+      const showHint=n=>{const h=$('#strokeHint');h.innerHTML=csWord.map(c=>`<div class="strokeHintCell" data-hchar="${c.ch}"></div>`).join('');h.querySelectorAll('[data-hchar]').forEach((el,k)=>renderStrokePrefix(el,csWord[k].ch,n,Math.min(150,sz)))};
+      $('#h1').onclick=()=>showHint(2);$('#h2').onclick=()=>showHint(4);
+    }
     $('#u').onclick=pad.undo;$('#c').onclick=pad.clear;
     $('#p').onclick=()=>{keep();i--;draw()};
     $('#n').onclick=()=>{keep();if(i<items.length-1){i++;draw()}else review()};
@@ -1332,8 +1389,9 @@ function pRange(v){
     const r=inR();if(r.length<10)return toast('정식 20문제 시험은 범위 안 단어가 10개 이상이어야 해요');
     const s=+$('#s').value,e=+$('#e').value,sh=shuffle(r),read=sh.slice(0,10);
     let write;if(r.length>=20)write=sh.slice(10,20);else{const readSet=new Set(read.map(x=>x.word));write=[...shuffle(r.filter(x=>!readSet.has(x.word))),...shuffle(r.filter(x=>readSet.has(x.word)))].slice(0,10)}
-    db.exam={start:Math.min(s,e),end:Math.max(s,e),items:[...read.map(d=>({type:'read',id:d.id})),...write.map(d=>({type:'write',id:d.id}))],draft:null};
-    save();toast('시험을 만들었습니다');parent();
+    const study20=makeStudy20(r);
+    db.exam={start:Math.min(s,e),end:Math.max(s,e),items:[...read.map(d=>({type:'read',id:d.id})),...write.map(d=>({type:'write',id:d.id}))],studyIds:study20.map(w=>w.id),draft:null};
+    save();toast('시험 + 사전학습 20문제를 만들었습니다');parent();
   };
   if($('#del'))$('#del').onclick=()=>{if(confirm('현재 시험을 닫을까요? (제출된 답안은 남습니다)')){db.exam=null;save();parent()}};
 }
@@ -1517,7 +1575,7 @@ let curView='home';
 function go(v){
   window.scrollTo(0,0);
   if(db.pendingReport){curView='gate';return reportGate()}
-  curView=v;({home,daily,strokeHub,bookIdx,fast,exam,record,parent:parentLogin})[v]()
+  curView=v;({home,daily,strokeHub,preStudy,bookIdx,fast,exam,record,parent:parentLogin})[v]()
 }
 $('#homeBtn').onclick=()=>go('home');
 $('#parentBtn').onclick=()=>go('parent');
