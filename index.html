@@ -497,6 +497,7 @@ const charsOf=w=>[byId(w.id),byId(w.id+1)];
 const wordsOnPage=p=>uniqWords(ITEMS.filter(d=>pageIn(d,+p)));
 function wordsInAssignedScope(scope=db.dailyScope){
   if(!scope)return [];
+  if(scope.wordIds?.length)return scope.wordIds.map(byId).filter(Boolean);
   let list=uniqWords(ITEMS.filter(d=>inPageRange(d,scope.start,scope.end)));
   if(scope.endWordId){
     const ix=list.findIndex(w=>w.id===scope.endWordId);
@@ -511,8 +512,13 @@ function sessionWords(sess=db.sess){
   return assigned.length?assigned:WL.slice(db.wordNext,db.wordNext+WPD);
 }
 function dailyScopeLabel(scope=db.dailyScope){
-  if(!scope)return '기본 5단어';
-  const words=wordsInAssignedScope(scope),last=words[words.length-1];
+  if(!scope)return '부모 범위 미지정';
+  const words=wordsInAssignedScope(scope);
+  if(scope.wordIds?.length){
+    const pages=[...new Set(words.map(w=>w.detailPage).filter(p=>p>=29&&p<=52))];
+    return `${words.length}단어 · ${words.length*2}자 · ${pages.length?pages.map(p=>p+'쪽').join('·'):'29~52쪽'}`;
+  }
+  const last=words[words.length-1];
   return `${scope.start}~${scope.end}쪽${last?` · ${last.word}까지`:''}`;
 }
 function makeStudy20(pool){
