@@ -188,7 +188,7 @@ a.btnlink{display:inline-block;border-radius:14px;padding:12px 20px;font-family:
 .cnt{font-size:19px;font-weight:700}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:12px 22px;border-radius:14px;font-family:'Jua';z-index:20}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-\n.pad.over{box-shadow:0 0 0 4px var(--seal)!important}.pad.over::before{content:"획수가 많아요 · 이 칸 지우기";position:absolute;left:8px;right:8px;bottom:8px;z-index:8;background:var(--seal);color:#fff;border-radius:9px;padding:5px 7px;text-align:center;font-family:"Jua";font-size:14px;pointer-events:none}\n.srcMore{margin:8px 0 12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 10px}.srcMore summary{font-family:'Jua';cursor:pointer;color:var(--sky)}.srcTags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.srcTags span{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 7px;font-family:var(--hanja);font-size:17px}
+.pad.over{box-shadow:0 0 0 4px var(--seal)!important}.pad.over::before{content:"획수가 많아요 · 이 칸 지우기";position:absolute;left:8px;right:8px;bottom:8px;z-index:8;background:var(--seal);color:#fff;border-radius:9px;padding:5px 7px;text-align:center;font-family:"Jua";font-size:14px;pointer-events:none}.srcMore{margin:8px 0 12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 10px}.srcMore summary{font-family:'Jua';cursor:pointer;color:var(--sky)}.srcTags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.srcTags span{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 7px;font-family:var(--hanja);font-size:17px}
 </style>
 </head>
 <body>
@@ -468,7 +468,12 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random(
 const $=s=>document.querySelector(s);
 const app=$('#app');
 function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2000)}
-const sourcePages=d=>[d.page,d.detailPage].filter(Boolean);\nconst pageIn=(d,p)=>sourcePages(d).includes(+p);\nconst inPageRange=(d,s,e)=>{const lo=Math.min(+s,+e),hi=Math.max(+s,+e);return sourcePages(d).some(p=>p>=lo&&p<=hi)};\nconst rangePage=(d,s,e)=>{const lo=Math.min(+s,+e),hi=Math.max(+s,+e);return sourcePages(d).find(p=>p>=lo&&p<=hi)||d.page};\nconst allPrintedPages=()=>[...new Set(ITEMS.flatMap(sourcePages))].sort((a,b)=>a-b);\nconst book=d=>`<span class="book">📖 ${d.page}쪽${d.detailPage?` · 쓰기 ${d.detailPage}쪽`:``} · <b>${d.word}</b></span>`;
+const sourcePages=d=>[d.page,d.detailPage].filter(Boolean);
+const pageIn=(d,p)=>sourcePages(d).includes(+p);
+const inPageRange=(d,s,e)=>{const lo=Math.min(+s,+e),hi=Math.max(+s,+e);return sourcePages(d).some(p=>p>=lo&&p<=hi)};
+const rangePage=(d,s,e)=>{const lo=Math.min(+s,+e),hi=Math.max(+s,+e);return sourcePages(d).find(p=>p>=lo&&p<=hi)||d.page};
+const allPrintedPages=()=>[...new Set(ITEMS.flatMap(sourcePages))].sort((a,b)=>a-b);
+const book=d=>`<span class="book">📖 ${d.page}쪽${d.detailPage?` · 쓰기 ${d.detailPage}쪽`:``} · <b>${d.word}</b></span>`;
 function addWrong(id,n=1){db.wrong[id]=Math.max(0,(db.wrong[id]||0)+n);if(!db.wrong[id])delete db.wrong[id]}
 const alive=el=>document.body.contains(el);
 const WL=uniqWords(ITEMS);          // 단어 48개 (각 단어의 첫 글자 항목)
@@ -1155,7 +1160,7 @@ function pRange(v){
   };
   if($('#del'))$('#del').onclick=()=>{if(confirm('현재 시험을 닫을까요? (제출된 답안은 남습니다)')){db.exam=null;save();parent()}};
 }
-let openSub=null;let openSub=null;
+let openSub=null;
 function pGrade(v){
   v.innerHTML='<div id="gq"></div><div id="gs" style="margin-top:14px"></div>';
   gradeQuiz($('#gq'));gradeSubs($('#gs'));
