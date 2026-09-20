@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>태이를 위해 아빠가 만든 한자앱 · v0.14</title>
+<title>태이를 위해 아빠가 만든 한자앱 · v0.15</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="data/meta.js?v=0.11.0"></script>
@@ -190,6 +190,9 @@ a.btnlink{display:inline-block;border-radius:14px;padding:12px 20px;font-family:
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .pad.over{box-shadow:0 0 0 4px var(--seal)!important}.pad.over::before{content:"획수가 많아요 · 이 칸 지우기";position:absolute;left:8px;right:8px;bottom:8px;z-index:8;background:var(--seal);color:#fff;border-radius:9px;padding:5px 7px;text-align:center;font-family:"Jua";font-size:14px;pointer-events:none}.srcMore{margin:8px 0 12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 10px}.srcMore summary{font-family:'Jua';cursor:pointer;color:var(--sky)}.srcTags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.srcTags span{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 7px;font-family:var(--hanja);font-size:17px}
 .penCheckGrid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(260px,.8fr);gap:16px;align-items:start}.penCheckGrid .pad{margin:0 auto}.penMetric{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--line);font-size:16px}.penMetric:last-child{border-bottom:0}.penMetric b{font-family:'Jua';font-size:18px}@media(max-width:700px){.penCheckGrid{grid-template-columns:1fr}}
+.writeHero{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}.writeHeroText{min-width:220px}.writeHE{font-family:'Jua';font-size:46px;line-height:1.05}.writeHE b{color:var(--seal)}.writeStroke{font-family:'Jua';font-size:28px;color:var(--sky);margin:8px 0}.note5{display:grid;grid-template-columns:repeat(5,max-content);justify-content:center;gap:12px;margin-top:18px}.heLayout{display:grid;grid-template-columns:180px 1fr;gap:24px;align-items:center}.heCharSide{display:grid;justify-items:center;gap:10px}.heRule{font-family:'Jua';font-size:18px;text-align:center;line-height:1.35}.heFields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.heField>span{display:block;font-family:'Jua';font-size:28px;margin-bottom:5px}.heField small{font-size:16px;color:var(--sub)}.heField .heIn{font-size:46px;text-align:center;min-height:82px}.heHelp{text-align:center;font-size:16px}.examHead{display:flex;justify-content:space-between;gap:12px;align-items:center}.examNo{font-size:22px;margin-left:10px}.examDots{display:grid;grid-template-columns:repeat(20,1fr);gap:4px;margin:12px 0}.examDots button{padding:7px 2px;min-width:0;border-radius:8px;font-size:13px;background:var(--card);border:1px solid var(--line)}.examDots button.on{background:var(--sky);color:#fff;border-color:var(--sky)}.examDots button.done{box-shadow:inset 0 -4px 0 var(--leaf)}.examDots button.blank{background:#FFF0EE;border-color:#F2B7B2;color:var(--seal)}.examCard{min-height:410px}.examPrompt{font-size:54px;text-align:center}.examPad{display:grid;justify-content:center}.examNav{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-top:14px}.examNav #n{justify-self:end}.examAnswered{font-family:'Jua';color:var(--sub);font-size:18px}.examReview{text-align:center}.reviewDots{max-width:760px;margin:16px auto}.gradeTop{position:sticky;top:70px;z-index:4;background:var(--card);padding:10px 0;border-bottom:2px solid var(--line)}.gbtn button{min-width:58px;min-height:52px;font-size:24px}
+@media(max-width:719px){.note5{grid-template-columns:repeat(3,max-content)}.writeHero{grid-template-columns:1fr;justify-items:center;text-align:center}.heLayout{grid-template-columns:1fr}.heFields{grid-template-columns:1fr 1fr}.examDots{grid-template-columns:repeat(10,1fr)}}
+@media(max-width:479px){main{padding-left:12px;padding-right:12px}.card{padding:18px}.note5{grid-template-columns:repeat(2,max-content);gap:10px}.heFields{grid-template-columns:1fr}.examDots{grid-template-columns:repeat(5,1fr)}.examNav{grid-template-columns:1fr 1fr}.examAnswered{grid-column:1/-1;grid-row:1;text-align:center}.examNav #p{grid-column:1}.examNav #n{grid-column:2}.gradeTop{top:64px}.writeHE{font-size:40px}}
 </style>
 </head>
 <body>
@@ -652,17 +655,20 @@ function stepLearn(card,{c},next){
 }
 
 const ALPHA=[0.26,0.13,0.05,0,0]; // 1칸 연하게 → 2칸 더 연하게 → 3칸 아주 희미 → 4·5칸 없음
-function calcCellSize(card){ // 아이패드 기준 큼직하게: 한 줄 최소 3칸(5칸이면 3+2로 줄바꿈) 기준으로 크기 계산
-  const w=card.clientWidth||700;
-  return Math.min(180,Math.max(125,Math.floor((w-24)/3)-14));
+function calcCellSize(card){
+  const cs=getComputedStyle(card),w=card.clientWidth||700;
+  const inner=Math.max(280,w-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0));
+  const cols=inner>=620?5:inner>=420?3:2,gap=12;
+  return Math.min(154,Math.max(108,Math.floor((inner-gap*(cols-1))/cols)));
 }
 function stepWrite(card,{c},next){
   const cs=calcCellSize(card);
   card.innerHTML=`<div class="stepTag">5번 쓰기</div>
-  <div class="row" style="gap:18px;align-items:center;flex-wrap:wrap">
-    <div style="text-align:center"><div id="mdl"></div><div class="capHE">${c.hun} <b>${c.eum}</b></div></div>
-    <div><div class="hunEum" style="font-size:36px">${c.hun} <span>${c.eum}</span></div>
-    <div class="meta">정확히 <b>${c.hoek}획</b>을 써야 완료 · 획수가 맞으면 3초 뒤 다음 칸이 열려요</div></div>
+  <div class="writeHero">
+    <div style="text-align:center"><div id="mdl"></div></div>
+    <div class="writeHeroText"><div class="writeHE">${c.hun} <b>${c.eum}</b></div>
+    <div class="writeStroke"><b>${c.hoek}획</b></div>
+    <div class="meta">5칸을 모두 써야 완료돼요. 정확히 ${c.hoek}획을 쓰면 <b>3초 뒤</b> 다음 칸이 열립니다.</div></div>
   </div>
   <div class="note5" id="g"></div>
   <div class="row" style="justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px">
@@ -686,7 +692,7 @@ function stepWrite(card,{c},next){
       if(cur<5)setCur();else finish();
     },1000);
   };
-  const finish=()=>{$('#cnt').textContent='5 / 5칸 완료';$('#clr').style.display='none';
+  const finish=()=>{$('#cnt').textContent='5 / 5칸 완료';$('#clr').style.display='none';$('#undoStroke').style.display='none';
     const d=db.sess.date;db.notes[d]=db.notes[d]||{};db.notes[d][c.id]=joinImg(pads,64,1,1,c.ch);save();
     $('#stamp').innerHTML='<span class="stampOk">참<br>잘했어요</span>';setTimeout(next,1400)};
   for(let k=0;k<5;k++){
@@ -705,17 +711,17 @@ function stepWrite(card,{c},next){
 function stepHE(card,{c},next){
   let fails=0;
   card.innerHTML=`<div class="stepTag">훈·음 쓰기</div>
-  <div class="row" style="gap:20px;align-items:center">
-    <div id="hc"></div>
-    <div class="grid" style="gap:12px;flex:1;min-width:230px">
-      <label class="jua">훈 (뜻)<input id="hun" class="heIn" ${FIELD}></label>
-      <label class="jua">음 (소리)<input id="eum" class="heIn" ${FIELD}></label>
+  <div class="heLayout">
+    <div class="heCharSide"><div id="hc"></div><div class="heRule">훈과 음을 <b>둘 다 정확히</b> 써야 이 글자가 완료돼요.</div></div>
+    <div class="heFields">
+      <label class="heField"><span>훈 <small>뜻</small></span><input id="hun" class="heIn" ${FIELD}></label>
+      <label class="heField"><span>음 <small>소리</small></span><input id="eum" class="heIn" ${FIELD}></label>
     </div>
   </div>
-  <p class="muted">✏️ 칸 안에 펜으로 글씨를 쓰면 글자로 바뀌어요 (아이패드: 손글씨 · 갤럭시탭: S펜으로 입력)</p>
-  <div id="hint" class="hint"></div>
-  <button class="pri big" id="ck">확인</button>`;
-  const vp=makePad($('#hc'),{cells:1,size:130,trace:c.ch,alpha:1,grid:false});vp.lock(true);vp.el.classList.add('view');
+  <p class="muted heHelp">✏️ iPad는 Apple Pencil 손글씨 입력, Galaxy Tab은 S Pen 한글 입력을 사용할 수 있어요. 키보드 입력도 가능합니다.</p>
+  <div id="hint" class="hint" style="text-align:center"></div>
+  <button class="pri big" id="ck">훈·음 확인</button>`;
+  const vp=makePad($('#hc'),{cells:1,size:150,trace:c.ch,alpha:1,grid:false});vp.lock(true);vp.el.classList.add('view');
   const norm=s=>(s||'').replace(/[\s.,·]/g,'');
   const ck=()=>{
     const h=norm($('#hun').value),e=norm($('#eum').value);
@@ -724,7 +730,7 @@ function stepHE(card,{c},next){
     $('#hun').classList.toggle('bad',!okH);$('#eum').classList.toggle('bad',!okE);
     if(okH&&okE){
       const d=db.sess.date;db.he[d]=db.he[d]||{};db.he[d][c.id]=fails;if(fails)addWrong(c.id);save();
-      $('#hint').innerHTML='<span class="okMsg">정답! 👏</span>';$('#ck').disabled=true;setTimeout(next,900);return;
+      $('#hint').innerHTML='<span class="okMsg">훈과 음 모두 정답! 👏</span>';$('#ck').disabled=true;setTimeout(next,900);return;
     }
     fails++;
     let msg=`${!okH&&!okE?'훈과 음':!okH?'훈':'음'}을 다시 써 보세요.`;
@@ -1066,38 +1072,53 @@ function flipCards(list){
 function exam(){
   const ex=db.exam;
   if(!ex){app.innerHTML=`<div class="card"><h2>시험 범위가 없어요</h2><p class="muted">부모님께 범위를 정해 달라고 말씀드리세요.</p></div>`;return}
-  const items=ex.items; const ans=ex.draft||items.map(()=>null); let i=0; let pad;
-  const keep=()=>{if(pad&&!pad.empty())ans[i]={raw:pad.raw(),img:pad.image()};else if(pad)ans[i]=null;ex.draft=ans;save()};
+  const items=ex.items,ans=ex.draft||items.map(()=>null);let i=Math.max(0,Math.min(ex.draftIndex||0,items.length-1)),pad;
+  const keep=()=>{if(pad&&!pad.empty())ans[i]={raw:pad.raw(),img:pad.image()};else if(pad)ans[i]=null;ex.draft=ans;ex.draftIndex=i;save()};
+  const dots=()=>`<div class="examDots">${items.map((_,k)=>`<button data-q="${k}" class="${k===i?'on':''} ${ans[k]?'done':''}">${k+1}</button>`).join('')}</div>`;
+  const bindDots=()=>app.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{keep();i=+b.dataset.q;draw()});
   const draw=()=>{
-    const it=items[i],d=byId(it.id);
-    const isRead=it.type==='read';
-    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="jua">${isRead?'한자 읽기':'한자 쓰기'} · ${i+1} / ${items.length}</span><span class="muted">${ex.start}~${ex.end}쪽</span></div>
-    <div class="prog" style="margin:10px 0"><div style="width:${(i+1)/items.length*100}%"></div></div>
-    <div class="card">
-      ${isRead?`<div class="q">다음 한자어의 읽는 소리를 쓰세요</div><div class="qword">${d.word}</div>`
-              :`<div class="q">다음 낱말을 한자로 쓰세요</div><div class="jua" style="text-align:center;font-size:44px">${d.read}</div><p class="muted" style="text-align:center;margin:0 0 10px">(${d.mean})</p>`}
-      <div id="ph" style="margin-top:10px"></div>
-      <div class="row" style="justify-content:center;margin-top:12px"><button class="ghost" id="c">지우기</button></div>
+    const it=items[i],d=byId(it.id),isRead=it.type==='read',section=isRead?'한자 읽기 10문제':'한자 쓰기 10문제';
+    app.innerHTML=`<div class="examHead"><div><span class="stepTag" style="margin:0">${section}</span><span class="jua examNo">${i+1} / ${items.length}</span></div><span class="muted">${ex.start}~${ex.end}쪽</span></div>
+    ${dots()}
+    <div class="prog" style="margin:10px 0 14px"><div style="width:${(i+1)/items.length*100}%"></div></div>
+    <div class="card examCard">
+      ${isRead?`<div class="q">다음 한자어의 읽는 소리를 <b>한글로</b> 쓰세요</div><div class="qword">${d.word}</div>`
+              :`<div class="q">다음 낱말을 <b>한자로</b> 쓰세요</div><div class="jua examPrompt">${d.read}</div><p class="muted" style="text-align:center;margin:0 0 10px">(${d.mean})</p>`}
+      <div id="ph" class="examPad"></div>
+      <div class="row" style="justify-content:center;margin-top:12px"><button class="ghost" id="u">한 획 되돌리기</button><button class="ghost" id="c">지우기</button></div>
     </div>
-    <div class="row" style="justify-content:space-between;margin-top:14px">
-      <button class="ghost" id="p" ${i?'':'disabled'}>이전</button>
-      <span class="muted">${ans.filter(Boolean).length}/${items.length} 작성</span>
-      <button class="${i<items.length-1?'pri':'sun'}" id="n">${i<items.length-1?'다음':'답안 제출'}</button>
+    <div class="examNav">
+      <button class="ghost" id="p" ${i?'':'disabled'}>◀ 이전</button>
+      <span class="examAnswered">${ans.filter(Boolean).length}/${items.length} 작성</span>
+      <button class="${i<items.length-1?'pri':'sun'}" id="n">${i<items.length-1?'다음 ▶':'답안 확인'}</button>
     </div>`;
     const cs=cellSize(2);
-    pad=isRead?makePad($('#ph'),{cells:1,grid:false,w:cs*2,h:Math.round(cs*0.8)}):makePad($('#ph'),{cells:2,size:cs});
+    pad=isRead?makePad($('#ph'),{cells:1,grid:false,w:Math.min(cs*2,420),h:Math.round(cs*.9)}):makePad($('#ph'),{cells:2,size:cs});
     if(ans[i])pad.load(ans[i].raw);
-    $('#c').onclick=pad.clear;
+    $('#u').onclick=pad.undo;$('#c').onclick=pad.clear;
     $('#p').onclick=()=>{keep();i--;draw()};
-    $('#n').onclick=()=>{keep();if(i<items.length-1){i++;draw()}else submit()};
+    $('#n').onclick=()=>{keep();if(i<items.length-1){i++;draw()}else review()};
+    bindDots();
+  };
+  const review=()=>{
+    keep();const blankN=ans.filter(a=>!a).length;
+    app.innerHTML=`<div class="card examReview">
+      <h2 style="margin-top:0">20문제 답안 확인</h2>
+      <div class="score">${items.length-blankN} / ${items.length} 작성</div>
+      <p class="${blankN?'badMsg':'okMsg'}">${blankN?`빈 답안이 ${blankN}개 있습니다. 모든 문제를 작성한 뒤 제출하세요.`:'20문제를 모두 작성했습니다. 제출하면 부모님이 채점합니다.'}</p>
+      <div class="examDots reviewDots">${items.map((_,k)=>`<button data-q="${k}" class="${ans[k]?'done':'blank'}">${k+1}</button>`).join('')}</div>
+      <div class="row" style="justify-content:center;margin-top:16px"><button class="ghost" id="backQ">마지막 문제로</button><button class="ok" id="submitExam" ${blankN?'disabled':''}>답안 제출</button></div>
+    </div>`;
+    app.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{i=+b.dataset.q;draw()});
+    $('#backQ').onclick=()=>{i=items.length-1;draw()};
+    $('#submitExam').onclick=submit;
   };
   const submit=()=>{
-    const blankN=ans.filter(a=>!a).length;
-    if(blankN&&!confirm(`빈 답안이 ${blankN}개 있어요. 그래도 제출할까요?`))return;
+    const blankN=ans.filter(a=>!a).length;if(blankN)return review();
     db.subs.push({id:Date.now(),date:today(),range:`${ex.start}~${ex.end}쪽`,
-      items:items.map((it,k)=>({...it,img:ans[k]?ans[k].img:null})),grades:items.map(()=>null),status:'pending',score:null});
-    ex.draft=null;save();
-    app.innerHTML=`<div class="card" style="text-align:center"><h2>제출 완료!</h2><p>부모님이 채점하면 결과를 볼 수 있어요.</p><button class="pri" onclick="go('home')">처음으로</button></div>`;
+      items:items.map((it,k)=>({...it,img:ans[k].img})),grades:items.map(()=>null),status:'pending',score:null});
+    ex.draft=null;ex.draftIndex=0;save();
+    app.innerHTML=`<div class="card" style="text-align:center"><h2>20문제 제출 완료!</h2><p>읽기 10문제와 쓰기 10문제를 모두 제출했습니다.<br>부모님이 채점하면 결과를 볼 수 있어요.</p><button class="pri" onclick="go('home')">처음으로</button></div>`;
   };
   draw();
 }
@@ -1179,7 +1200,7 @@ function gradeSubs(v){
   openSub=s.id;
   const tally=()=>s.grades.filter(g=>g===true).length;
   v.innerHTML=`<div class="card">
-    <div class="row" style="justify-content:space-between"><h3 style="margin:0">${s.date} · ${s.range}</h3>
+    <div class="row gradeTop" style="justify-content:space-between"><h3 style="margin:0">${s.date} · ${s.range}</h3>
       <div class="row"><button class="ghost" id="allO">남은 문항 모두 O</button><span class="score" id="sc">${tally()}/20</span></div></div>
     <div id="rows"></div>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="ok" id="fin">채점 완료</button></div>
