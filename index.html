@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>태이를 위해 아빠가 만든 한자앱 · v0.15</title>
+<title>태이를 위해 아빠가 만든 한자앱 · v0.16</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="data/meta.js?v=0.11.0"></script>
@@ -193,6 +193,9 @@ a.btnlink{display:inline-block;border-radius:14px;padding:12px 20px;font-family:
 .writeHero{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}.writeHeroText{min-width:220px}.writeHE{font-family:'Jua';font-size:46px;line-height:1.05}.writeHE b{color:var(--seal)}.writeStroke{font-family:'Jua';font-size:28px;color:var(--sky);margin:8px 0}.note5{display:grid;grid-template-columns:repeat(5,max-content);justify-content:center;gap:12px;margin-top:18px}.heLayout{display:grid;grid-template-columns:180px 1fr;gap:24px;align-items:center}.heCharSide{display:grid;justify-items:center;gap:10px}.heRule{font-family:'Jua';font-size:18px;text-align:center;line-height:1.35}.heFields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.heField>span{display:block;font-family:'Jua';font-size:28px;margin-bottom:5px}.heField small{font-size:16px;color:var(--sub)}.heField .heIn{font-size:46px;text-align:center;min-height:82px}.heHelp{text-align:center;font-size:16px}.examHead{display:flex;justify-content:space-between;gap:12px;align-items:center}.examNo{font-size:22px;margin-left:10px}.examDots{display:grid;grid-template-columns:repeat(20,1fr);gap:4px;margin:12px 0}.examDots button{padding:7px 2px;min-width:0;border-radius:8px;font-size:13px;background:var(--card);border:1px solid var(--line)}.examDots button.on{background:var(--sky);color:#fff;border-color:var(--sky)}.examDots button.done{box-shadow:inset 0 -4px 0 var(--leaf)}.examDots button.blank{background:#FFF0EE;border-color:#F2B7B2;color:var(--seal)}.examCard{min-height:410px}.examPrompt{font-size:54px;text-align:center}.examPad{display:grid;justify-content:center}.examNav{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-top:14px}.examNav #n{justify-self:end}.examAnswered{font-family:'Jua';color:var(--sub);font-size:18px}.examReview{text-align:center}.reviewDots{max-width:760px;margin:16px auto}.gradeTop{position:sticky;top:70px;z-index:4;background:var(--card);padding:10px 0;border-bottom:2px solid var(--line)}.gbtn button{min-width:58px;min-height:52px;font-size:24px}
 @media(max-width:719px){.note5{grid-template-columns:repeat(3,max-content)}.writeHero{grid-template-columns:1fr;justify-items:center;text-align:center}.heLayout{grid-template-columns:1fr}.heFields{grid-template-columns:1fr 1fr}.examDots{grid-template-columns:repeat(10,1fr)}}
 @media(max-width:479px){main{padding-left:12px;padding-right:12px}.card{padding:18px}.note5{grid-template-columns:repeat(2,max-content);gap:10px}.heFields{grid-template-columns:1fr}.examDots{grid-template-columns:repeat(5,1fr)}.examNav{grid-template-columns:1fr 1fr}.examAnswered{grid-column:1/-1;grid-row:1;text-align:center}.examNav #p{grid-column:1}.examNav #n{grid-column:2}.gradeTop{top:64px}.writeHE{font-size:40px}}
+.strokeLessonStage{position:relative;display:grid;place-items:center;margin:0 auto}.strokeLessonStage .stroke{box-shadow:0 8px 24px rgba(34,48,74,.08);border:2px solid var(--line);border-radius:20px;background:#fff}.strokeNums{position:absolute;inset:0;pointer-events:none;z-index:7}.strokeNum{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--sun);color:#22304A;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.22);font-family:'Jua';font-size:15px}.strokeNum.current{background:var(--seal);color:#fff;transform:translate(-50%,-50%) scale(1.2)}.strokeLessonBar{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}.strokeCountBadge{font-family:'Jua';font-size:20px;background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:12px}.strokeStepText{text-align:center;font-family:'Jua';font-size:18px;color:var(--sub);margin-top:8px}.strokeLearnLayout{display:grid;grid-template-columns:minmax(330px,1.1fr) minmax(260px,.9fr);gap:22px;align-items:center}.strokeMain{display:grid;justify-items:center}.strokeInfoPanel{padding:8px}.strokeRule{background:var(--paper);border-left:6px solid var(--sun);padding:12px 14px;border-radius:0 12px 12px 0;font-size:17px;line-height:1.5}.traceStrokeGuide{position:absolute;inset:0;pointer-events:none;z-index:2}.traceStrokeGuide>svg{position:absolute!important;inset:0}.traceStrokeGuide .strokeNums{z-index:5}.pad>canvas:last-of-type{z-index:4}.traceModeTag,.freeModeTag{position:absolute;left:6px;bottom:5px;z-index:6;font-family:'Jua';font-size:11px;padding:3px 6px;border-radius:7px;pointer-events:none}.traceModeTag{background:rgba(242,182,50,.9);color:#22304A}.freeModeTag{background:rgba(74,127,212,.9);color:#fff}.wordCombine{display:grid;grid-template-columns:auto auto auto auto minmax(180px,1fr);gap:12px;align-items:center;justify-content:center;margin:10px 0 18px;padding:16px;background:var(--paper);border-radius:16px}.combineChar,.combineWord{display:grid;justify-items:center;gap:3px}.combineChar b{font-size:58px}.combineChar span,.combineWord span{font-family:'Jua';font-size:17px;text-align:center}.combineWord b{font-size:48px;color:var(--seal)}.combinePlus,.combineArrow{font-family:'Jua';font-size:34px;color:var(--sub)}.entertainmentEx{font-size:19px}.wordUseTip{margin:10px 0;background:#FFF8E4;border:1px solid #EED89B;border-radius:12px;padding:12px 14px;font-size:16px}.strokeHubGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}.strokeHubChar{background:var(--card);border:2px solid var(--line);padding:14px 8px;min-height:135px;display:grid;justify-items:center;gap:4px}.strokeHubChar b{font-size:55px;line-height:1}.strokeHubChar span{font-family:'Jua';font-size:17px}.strokeHubChar small{font-size:13px;color:var(--sub)}.strokeFocusCard{text-align:center}.strokeFocusHost{display:grid;justify-items:center;margin-top:16px}.strokeHome .big{font-size:34px;color:var(--seal)}
+@media(max-width:820px){.strokeLearnLayout{grid-template-columns:1fr}.strokeInfoPanel{text-align:center}.strokeHubGrid{grid-template-columns:repeat(5,1fr)}.wordCombine{grid-template-columns:auto auto auto}.combineArrow{display:none}.combineWord{grid-column:1/-1;border-top:1px dashed var(--line);padding-top:10px}}
+@media(max-width:560px){.strokeHubGrid{grid-template-columns:repeat(2,1fr)}.wordCombine{grid-template-columns:1fr auto 1fr}.strokeNum{width:24px;height:24px;font-size:13px}.strokeLessonBar button{padding:11px 14px;font-size:17px}}
 </style>
 </head>
 <body>
@@ -492,19 +495,66 @@ document.addEventListener('dragstart',e=>{if(!isField(e.target))e.preventDefault
 document.addEventListener('pointerdown',e=>{if(e.pointerType==='pen'&&!isField(e.target)&&!e.target.closest('canvas,button,a'))e.preventDefault()},{capture:true});
 
 /* ===== 획순 (Hanzi Writer) ===== */
+const STROKE_DATA=new Map();
 function strokeLoader(ch,onLoad,onError){
+  if(STROKE_DATA.has(ch)){onLoad(STROKE_DATA.get(ch));return}
   fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/${ch}.json`).then(r=>{if(!r.ok)throw 0;return r.json()})
   .catch(()=>fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/${ch}.json`).then(r=>{if(!r.ok)throw 0;return r.json()}))
-  .then(onLoad).catch(onError);
+  .then(data=>{STROKE_DATA.set(ch,data);onLoad(data)}).catch(onError);
 }
+const getStrokeData=ch=>new Promise((resolve,reject)=>strokeLoader(ch,resolve,reject));
 function strokeBox(host,ch,size,opts={}){
   if(!window.HanziWriter){host.innerHTML='<p class="muted">획순 기능을 불러오지 못했습니다.</p>';return null}
   const el=document.createElement('div');el.className='stroke';el.style.width=size+'px';el.style.height=size+'px';el.style.position='relative';
   el.innerHTML=`<svg width="${size}" height="${size}" style="position:absolute"><line x1="${size/2}" y1="0" x2="${size/2}" y2="${size}" stroke="#F0A5A0" stroke-dasharray="4"/><line x1="0" y1="${size/2}" x2="${size}" y2="${size/2}" stroke="#F0A5A0" stroke-dasharray="4"/></svg>`;
   host.appendChild(el);
-  return HanziWriter.create(el,ch,Object.assign({width:size,height:size,padding:10,strokeColor:'#1B2A44',radicalColor:'#D8443A',
-    outlineColor:'#E3E8EF',strokeAnimationSpeed:1,delayBetweenStrokes:350,showCharacter:false,
+  return HanziWriter.create(el,ch,Object.assign({width:size,height:size,padding:14,strokeColor:'#1B2A44',radicalColor:'#D8443A',
+    outlineColor:'#D9E0EA',strokeAnimationSpeed:1.15,delayBetweenStrokes:420,showCharacter:false,showOutline:true,
     charDataLoader:strokeLoader,onLoadCharDataError:()=>{host.innerHTML='<p class="muted">이 글자의 획순 자료가 없습니다.</p>'}},opts));
+}
+function addStrokeNumbers(host,ch,size,padding=14,opacity=1){
+  const layer=document.createElement('div');layer.className='strokeNums';layer.style.opacity=opacity;host.appendChild(layer);
+  getStrokeData(ch).then(data=>{
+    if(!alive(layer))return;
+    const scale=(size-padding*2)/1024;
+    (data.medians||[]).forEach((m,i)=>{
+      if(!m||!m.length)return;
+      const p=m[0],n=document.createElement('span');n.className='strokeNum';n.dataset.stroke=String(i+1);n.textContent=i+1;
+      n.style.left=(padding+p[0]*scale)+'px';n.style.top=(padding+(1024-p[1])*scale)+'px';layer.appendChild(n);
+    });
+  }).catch(()=>{});
+  return layer;
+}
+function mountStrokeLesson(host,ch,hoek,{size=420,auto=true}={}){
+  host.innerHTML=`<div class="strokeLessonStage" id="strokeStage"></div>
+    <div class="strokeLessonBar">
+      <span class="strokeCountBadge">${hoek}획</span>
+      <button class="sun" data-act="all">▶ 처음부터</button>
+      <button class="ghost" data-act="one">한 획씩</button>
+      <button class="ghost" data-act="num">숫자 숨기기</button>
+    </div>
+    <div class="strokeStepText">숫자 1부터 차례대로 따라가세요.</div>`;
+  const stage=host.querySelector('#strokeStage');
+  const writer=strokeBox(stage,ch,size,{showCharacter:false,showOutline:true});
+  if(!writer)return null;
+  const nums=addStrokeNumbers(stage,ch,size,14,1);
+  let one=0,numOn=true;
+  const mark=n=>nums.querySelectorAll('.strokeNum').forEach(x=>x.classList.toggle('current',+x.dataset.stroke===n));
+  host.querySelector('[data-act="all"]').onclick=()=>{one=0;mark(0);writer.hideCharacter();writer.animateCharacter()};
+  host.querySelector('[data-act="one"]').onclick=()=>{const n=(one%hoek)+1;one=n;mark(n);if(writer.animateStroke)writer.animateStroke(n-1);else writer.animateCharacter();host.querySelector('.strokeStepText').textContent=`${n}획째를 보세요. 숫자 ${n}에서 시작합니다.`};
+  host.querySelector('[data-act="num"]').onclick=e=>{numOn=!numOn;nums.hidden=!numOn;e.currentTarget.textContent=numOn?'숫자 숨기기':'숫자 보기'};
+  if(auto)setTimeout(()=>{if(alive(stage))writer.animateCharacter()},250);
+  return writer;
+}
+function attachTraceGuide(pad,ch,size,index){
+  if(!window.HanziWriter||index>2)return;
+  const layer=document.createElement('div');layer.className='traceStrokeGuide';layer.style.opacity=[.58,.40,.26][index]||.25;
+  pad.el.insertBefore(layer,pad.canvas);
+  const writer=HanziWriter.create(layer,ch,{width:size,height:size,padding:8,showOutline:true,showCharacter:true,
+    strokeColor:'#9AA8BC',outlineColor:'#C9D2DE',charDataLoader:strokeLoader});
+  addStrokeNumbers(layer,ch,size,8,[1,.82,.65][index]||.6);
+  const tag=document.createElement('span');tag.className='traceModeTag';tag.textContent=`${index+1}칸 · 획순 덮어쓰기`;pad.el.appendChild(tag);
+  return writer;
 }
 
 /* ===== 필기 패드 (바탕 글씨는 그림으로 그려 선택 불가) ===== */
@@ -635,26 +685,26 @@ function daily(){
 }
 
 function stepLearn(card,{c},next){
-  card.innerHTML=`<div class="stepTag">한자 배우기</div>
-  <div class="learn1">
-    <div style="text-align:center"><div class="bigchar" id="cb"></div><div class="capHE">${c.hun} <b>${c.eum}</b></div></div>
-    <div>
+  const size=Math.min(500,Math.max(320,Math.min(window.innerWidth-90,window.innerHeight*.56)));
+  card.innerHTML=`<div class="stepTag">큰글씨 획순 배우기</div>
+  <div class="strokeLearnLayout">
+    <div class="strokeMain" id="strokeMain"></div>
+    <div class="strokeInfoPanel">
       <div class="hunEum">${c.hun} <span>${c.eum}</span></div>
-      <div class="meta">부수 <b>${c.bu}</b> · <b>${c.hoek}</b>획</div>
+      <div class="meta">부수 <b>${c.bu}</b> · 교재 기준 <b>${c.hoek}획</b></div>
       <div style="margin:12px 0">${book(c)}</div>
       <p class="muted" style="margin:0 0 12px"><b class="hz">${c.word}</b>(${c.read})의 <b class="hz">${c.ch}</b>${c.cmp?` · ${c.cmp}`:''}</p>
+      <div class="strokeRule"><b>① 숫자를 본다 → ② 획이 움직이는 순서를 본다 → ③ 1번부터 소리 내어 세며 따라 쓴다.</b></div>
       ${CHAR_INFO[c.ch]?.referenceTerms?.length?`<details class="srcMore"><summary>교재 참고 보기</summary><div class="srcTags">${CHAR_INFO[c.ch].referenceTerms.map(x=>`<span>${x}</span>`).join('')}</div><p class="muted">${(CHAR_INFO[c.ch].semanticSenses||[]).join(' · ')}</p></details>`:''}
-      <button class="sun" id="sb">획순 보기</button>
     </div>
   </div>
-  <p class="say">소리 내어 3번 읽어요: <b>"${c.hun} ${c.eum}"</b></p>
+  <p class="say">획순을 보며 소리 내어 3번 읽어요: <b>"${c.hun} ${c.eum}"</b></p>
   <button class="pri big" id="go"></button>`;
-  const cb=$('#cb');const vp=makePad(cb,{cells:1,size:220,trace:c.ch,alpha:1,grid:true});vp.lock(true);vp.el.classList.add('view');
-  $('#sb').onclick=()=>{cb.innerHTML='';const w=strokeBox(cb,c.ch,220);if(w){w.hideCharacter();w.animateCharacter()}};
-  const g=$('#go');gate(g,3,'다 봤어요 → 5번 쓰기');g.onclick=next;
+  mountStrokeLesson($('#strokeMain'),c.ch,c.hoek,{size,auto:true});
+  const g=$('#go');gate(g,4,'획순 봤어요 → 5번 쓰기');g.onclick=next;
 }
 
-const ALPHA=[0.26,0.13,0.05,0,0]; // 1칸 연하게 → 2칸 더 연하게 → 3칸 아주 희미 → 4·5칸 없음
+const ALPHA=[0,0,0,0,0]; // 1~3칸은 실제 획순·숫자 덮어쓰기, 4·5칸은 빈칸 독립쓰기
 function calcCellSize(card){
   const cs=getComputedStyle(card),w=card.clientWidth||700;
   const inner=Math.max(280,w-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0));
@@ -668,7 +718,7 @@ function stepWrite(card,{c},next){
     <div style="text-align:center"><div id="mdl"></div></div>
     <div class="writeHeroText"><div class="writeHE">${c.hun} <b>${c.eum}</b></div>
     <div class="writeStroke"><b>${c.hoek}획</b></div>
-    <div class="meta">5칸을 모두 써야 완료돼요. 정확히 ${c.hoek}획을 쓰면 <b>3초 뒤</b> 다음 칸이 열립니다.</div></div>
+    <div class="meta">1~3칸은 <b>숫자 획순 위에 덮어쓰기</b>, 4~5칸은 바탕 없이 혼자 씁니다.<br>정확히 ${c.hoek}획을 쓰면 <b>3초 뒤</b> 다음 칸이 열립니다.</div></div>
   </div>
   <div class="note5" id="g"></div>
   <div class="row" style="justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px">
@@ -696,11 +746,12 @@ function stepWrite(card,{c},next){
     const d=db.sess.date;db.notes[d]=db.notes[d]||{};db.notes[d][c.id]=joinImg(pads,64,1,1,c.ch);save();
     $('#stamp').innerHTML='<span class="stampOk">참<br>잘했어요</span>';setTimeout(next,1400)};
   for(let k=0;k<5;k++){
-    const p=makePad($('#g'),{cells:1,size:cs,trace:c.ch,alpha:ALPHA[k],
+    const p=makePad($('#g'),{cells:1,size:cs,trace:'',alpha:0,
       onDown:()=>{if(k===cur)cancelT()},
       onChange:()=>{if(k!==cur)return;const n=pads[cur].strokes();stat();pads[cur].el.classList.toggle('over',n>c.hoek);if(n===c.hoek)startT();else cancelT()}
     });
     const b=document.createElement('div');b.className='num';b.textContent=k+1;p.el.appendChild(b);
+    if(k<3)attachTraceGuide(p,c.ch,cs,k);else{const t=document.createElement('span');t.className='freeModeTag';t.textContent=`${k+1}칸 · 혼자 쓰기`;p.el.appendChild(t)}
     pads.push(p);
   }
   setCur();
@@ -743,18 +794,23 @@ function stepHE(card,{c},next){
 
 function stepWord(card,{w},next){
   const [a,b]=charsOf(w);
-  card.innerHTML=`<div class="stepTag">단어 익히기</div>
+  const star=w.star||'가수·배우·아이돌의 무대나 방송 소식에서 이 낱말을 찾아보세요.';
+  card.innerHTML=`<div class="stepTag">두 글자 조합으로 외우기</div>
   <div class="wordBig">${w.word}</div><div class="wordRead">${w.read}</div>
   <p style="text-align:center">${book(w)}</p>
-  <div class="row" style="justify-content:center;gap:18px;margin:4px 0 14px">
-    ${[a,b].map(c=>`<div style="text-align:center"><div class="hz" style="font-size:48px">${c.ch}</div><div class="jua" style="font-size:20px">${c.hun} ${c.eum}</div></div>`).join('<div class="jua" style="font-size:32px;align-self:center">+</div>')}
+  <div class="wordCombine">
+    <div class="combineChar"><b class="hz">${a.ch}</b><span>${a.hun} ${a.eum}</span></div>
+    <div class="combinePlus">+</div>
+    <div class="combineChar"><b class="hz">${b.ch}</b><span>${b.hun} ${b.eum}</span></div>
+    <div class="combineArrow">→</div>
+    <div class="combineWord"><b class="hz">${w.word}</b><span>${w.mean}</span></div>
   </div>
-  <div class="ex" style="border-color:var(--ink)"><small>뜻</small>${w.mean}</div>
   <div class="ex" style="border-color:var(--ink)"><small>교재 예문</small>${w.sent}</div>
-  <div class="ex"><small>동물·자연</small>${w.nat}</div>
-  <div class="ex star"><small>무대·스타</small>${w.star}</div>
+  <div class="ex"><small>초4·5 생활·자연 예문</small>${w.nat}</div>
+  <div class="ex star entertainmentEx"><small>연예·무대·방송 예문</small>${star}</div>
+  <div class="wordUseTip">💡 <b>${w.word}</b>를 기사 제목, 방송 자막, 공연 소개에서 발견하면 소리 내어 읽어 보세요.</div>
   <button class="pri big" id="go"></button>`;
-  const g=$('#go');gate(g,3,'누적 쪽지 풀기');g.onclick=next;
+  const g=$('#go');gate(g,4,'예문 읽었어요 → 누적 쪽지');g.onclick=next;
 }
 
 function stepQuiz(card,{k,start},next){
@@ -899,6 +955,7 @@ function home(){
     ${doneToday?'<button class="sun big" id="rep">📤 부모님께 카톡 보내기</button>':''}
   </div>
   <div class="path" style="margin-top:14px">
+    <button class="step strokeHome" data-go="strokeHub"><span class="big hz">一二三</span><span class="t">큰글씨 획순</span><span class="muted">숫자 1→2→3 · 획순 애니메이션 · 따라쓰기</span></button>
     <button class="step" data-go="exam" ${db.exam?'':'disabled'}><span class="big">📝</span><span class="t">학원 쪽지시험</span><span class="muted">${db.exam?`${db.exam.start}~${db.exam.end}쪽 · 20문제`:'범위를 정하면 열려요'}</span></button>
     <button class="step" data-go="fast"><span class="big">⚡</span><span class="t">시험 전 점검</span><span class="muted">오답 ${Object.keys(db.wrong).length}개 · 스피드 퀴즈</span></button>
     <button class="step" data-go="bookIdx"><span class="big">📖</span><span class="t">책으로 찾기</span><span class="muted">쪽별 단어 다시 보기</span></button>
@@ -944,8 +1001,7 @@ function learn(list,i=0,onDone){
   <div class="row" style="justify-content:space-between;margin-bottom:10px"><span class="jua">${i+1} / ${list.length}</span>${book(d)}</div>
   <div class="prog" style="margin-bottom:14px"><div style="width:${(i+1)/list.length*100}%"></div></div>
   <div class="learn">
-    <div class="card"><div id="charBox"><div class="bigchar">${d.ch}</div></div><div class="hun">${d.hun} ${d.eum}</div><p class="muted" style="text-align:center;margin:2px 0 0">부수 ${d.bu} · ${d.hoek}획</p>
-      <div class="row" style="justify-content:center;margin-top:8px"><button class="sun" id="strokeBtn">획순 보기</button></div><p class="muted" id="strokeInfo" style="text-align:center;margin:4px 0 0"></p></div>
+    <div class="card"><div id="charBox"></div><div class="hun">${d.hun} ${d.eum}</div><p class="muted" style="text-align:center;margin:2px 0 0">부수 ${d.bu} · ${d.hoek}획</p></div>
     <div class="card">
       <div class="row" style="align-items:baseline;gap:14px"><span class="word">${d.word}</span><span class="jua" style="font-size:28px">${d.read}</span></div>
       <p class="muted" style="margin:0 0 10px">뜻: ${d.mean}</p>
@@ -959,12 +1015,7 @@ function learn(list,i=0,onDone){
     <button class="ghost" id="prev" ${i?'':'disabled'}>이전</button>
     <button class="pri" id="next">${i<list.length-1?'다음 한자':'다 배웠어요'}</button>
   </div>`;
-  $('#strokeBtn').onclick=()=>{
-    const box=$('#charBox');box.innerHTML='';
-    const w=strokeBox(box,d.ch,220);if(!w)return;
-    w.hideCharacter();w.animateCharacter({onComplete:()=>{$('#strokeBtn').textContent='다시 보기'}});
-    $('#strokeInfo').textContent=`교재 기준 ${d.hoek}획`;
-  };
+  mountStrokeLesson($('#charBox'),d.ch,d.hoek,{size:Math.min(330,Math.max(250,window.innerWidth<700?280:320)),auto:true});
   $('#prev').onclick=()=>learn(list,i-1,onDone);
   $('#next').onclick=()=>{
     if(i<list.length-1)return learn(list,i+1,onDone);
@@ -1335,6 +1386,25 @@ function penCheck(v){
   paint();
 }
 
+function strokeHub(){
+  const s0=db.sess,base=s0?s0.start:db.wordNext,words=WL.slice(base,base+WPD),chars=words.flatMap(charsOf);
+  app.innerHTML=`<div class="card">
+    <div class="row" style="justify-content:space-between"><div><h2 style="margin:0">큰글씨 획순</h2><p class="muted" style="margin:4px 0 0">오늘 배울 10자를 숫자 획순으로 크게 봅니다.</p></div><button class="ghost" onclick="go('home')">홈으로</button></div>
+    <div class="strokeHubGrid">${chars.map(c=>`<button class="strokeHubChar" data-char="${c.ch}" data-id="${c.id}"><b class="hz">${c.ch}</b><span>${c.hun} ${c.eum}</span><small>${c.hoek}획</small></button>`).join('')}</div>
+  </div>`;
+  app.querySelectorAll('.strokeHubChar').forEach(b=>b.onclick=()=>strokeFocus(byId(+b.dataset.id)));
+}
+function strokeFocus(c){
+  const size=Math.min(540,Math.max(330,Math.min(window.innerWidth-70,window.innerHeight*.62)));
+  app.innerHTML=`<div class="card strokeFocusCard">
+    <div class="row" style="justify-content:space-between"><div><span class="stepTag" style="margin:0">큰글씨 획순</span><span class="jua" style="font-size:28px;margin-left:10px">${c.hun} ${c.eum} · ${c.hoek}획</span></div><button class="ghost" id="strokeBack">목록</button></div>
+    <div id="strokeFocusHost" class="strokeFocusHost"></div>
+    <p class="say">숫자 1부터 차례대로 눈으로 따라가고, 손가락이나 펜으로 공중에 한 번 써 보세요.</p>
+  </div>`;
+  mountStrokeLesson($('#strokeFocusHost'),c.ch,c.hoek,{size,auto:true});
+  $('#strokeBack').onclick=strokeHub;
+}
+
 /* ===== 책으로 찾기 ===== */
 function bookIdx(){
   const pages=allPrintedPages();
@@ -1350,7 +1420,7 @@ let curView='home';
 function go(v){
   window.scrollTo(0,0);
   if(db.pendingReport){curView='gate';return reportGate()}
-  curView=v;({home,daily,bookIdx,fast,exam,record,parent:parentLogin})[v]()
+  curView=v;({home,daily,strokeHub,bookIdx,fast,exam,record,parent:parentLogin})[v]()
 }
 $('#homeBtn').onclick=()=>go('home');
 $('#parentBtn').onclick=()=>go('parent');
