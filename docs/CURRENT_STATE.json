@@ -1,0 +1,64 @@
+{
+  "project": "입문한자",
+  "repo": "kfcccpro-ship-it/ipmun-hanja",
+  "branch": "main",
+  "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
+  "version": "0.23.0",
+  "source": {
+    "textbook": "장원한자.pdf",
+    "primary_printed_pages": [
+      29,
+      52
+    ],
+    "primary_pdf_pages": [
+      21,
+      44
+    ],
+    "words": 96,
+    "character_occurrences": 192,
+    "unique_characters": 187,
+    "status": "PHASE1_LOCKED"
+  },
+  "design_policy": "기존 학생용 웹앱 UI/색상/히어로/카드 구조를 본체로 유지. 새 기능 충돌 시 기존 UX 우선.",
+  "weekly_learning": {
+    "cadence": "주 1회 부모 지정, 매일 같은 10단어 반복",
+    "words_per_week": 10,
+    "state_key": "weeklyPlan",
+    "reward": "정규학습 + 별도 완전통과 확인시험 후 하루 최대 500P"
+  },
+  "daily_quiz_review": {
+    "start_page": 29,
+    "end_rule": "부모 지정 현재 진도의 마지막 페이지+마지막 단어",
+    "current_expected_progress": "약 49쪽, 3~4주 내 52쪽 완료 예정",
+    "daily_items": 20,
+    "selection_priority": [
+      "오답",
+      "최근 진도",
+      "기존 누적범위"
+    ],
+    "state_key": "quizProgress"
+  },
+  "key_files": [
+    "index.html",
+    "data/meta.js",
+    "data/chars.js",
+    "data/ref-29-34.js",
+    "data/ref-35-40.js",
+    "data/ref-41-46.js",
+    "data/ref-47-52.js",
+    "data/phase1-lock.js",
+    "assets/v21-parent-picker.js",
+    "assets/v22-points.js",
+    "assets/v23-daily-routine.js",
+    "docs/PHASE1_DATA_LOCK.md",
+    ".github/workflows/validate.yml"
+  ],
+  "next_default_tasks": [
+    "주간 10단어가 7일 동안 동일하게 반복되는지 통합검수",
+    "29쪽부터 부모 지정 마지막 단어까지 누적범위 계산 검증",
+    "매일 20문제 선정 로직 검증",
+    "500P 상태와 매일 2트랙 루틴 충돌 검증",
+    "부모 설정 UI 간소화"
+  ],
+  "resume_phrase": "다음 작업 진행"
+}
