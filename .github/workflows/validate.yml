@@ -22,6 +22,10 @@ jobs:
           PY
       - name: JavaScript syntax check
         run: node --check inline-check.js
+      - name: External JavaScript syntax check
+        run: |
+          node --check assets/v21-parent-picker.js
+          node --check assets/v22-points.js
       - name: Structural checks
         run: |
           python3 - <<'PY'
@@ -53,6 +57,9 @@ jobs:
             'prestudy_20':'function preStudy' in s and '시험 전 20쓰기 학습' in s,
             'write_clues':'writeClues' in s and '[${c.hun} ${c.eum}]' in s,
             'hint_2_4':'힌트 1 · 2획' in s and '힌트 2 · 4획' in s and 'renderStrokePrefix' in s,
+            'daily_500_points':'assets/v22-points.js' in s,
+            'points_state':'points:{total:0,days:{}}' in s and 'dailyChecks:[]' in s,
+            'ten_word_daily':'10단어' in Path('assets/v21-parent-picker.js').read_text(encoding='utf-8'),
           }
           for k,v in checks.items(): print(k, 'PASS' if v else 'FAIL')
           if not all(checks.values()): sys.exit(1)
