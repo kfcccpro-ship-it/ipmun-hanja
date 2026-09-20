@@ -311,6 +311,15 @@
     basePGrade(document.querySelector('#legacyGradeWrap'));
   };
 
+  const baseParent = parent;
+  parent = function(){
+    baseParent();
+    ensureRewardState();
+    const pending = db.dailyChecks.some(function(x){return x.status==='pending';});
+    const gradeBtn = app.querySelector('[data-t="grade"]');
+    if(pending && gradeBtn && gradeBtn.textContent.indexOf('500P')<0) gradeBtn.textContent += ' · 500P';
+  };
+
   const baseRecord = record;
   record = function(){
     ensureRewardState();
