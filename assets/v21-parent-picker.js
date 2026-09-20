@@ -40,7 +40,7 @@
         '<div class="card">'+
           '<div class="row" style="justify-content:space-between;align-items:flex-start">'+
             '<div><h3 style="margin:0">하루 학습 선택 · 교재 29~52쪽</h3>'+
-            '<p class="muted" style="margin:5px 0 0">페이지 전체 또는 한자/단어를 눌러 오늘 배울 범위를 고릅니다.</p></div>'+
+            '<p class="muted" style="margin:5px 0 0">교재 29~52쪽에서 오늘 배울 10단어를 고릅니다. 10단어 학습 + 확인시험 완전 통과 시 500P.</p></div>'+
             '<button class="ghost" id="dailyClear">전체 해제</button>'+
           '</div>'+
           '<div class="pagePickGrid">'+pageHtml+'</div>'+
@@ -50,8 +50,8 @@
             '<div class="wordPickGrid">'+wordHtml+'</div>'+
           '</div>'+
           '<div class="dailySelectionBar">'+
-            '<div><b>'+chosen.length+'단어 · '+(chosen.length*2)+'자 선택</b><span>'+(chosenPages.length?chosenPages.map(function(p){return p+'쪽'}).join(' · '):'선택 없음')+'</span></div>'+
-            '<button class="pri" id="saveDailyPick" '+(chosen.length?'':'disabled')+'>오늘 학습으로 저장</button>'+
+            '<div><b>'+chosen.length+'/10단어 · '+(chosen.length*2)+'자 선택</b><span>'+(chosen.length===10?'500P 도전 가능 · ':'10단어를 모두 골라야 500P · ')+(chosenPages.length?chosenPages.map(function(p){return p+'쪽'}).join(' · '):'선택 없음')+'</span></div>'+
+            '<button class="pri" id="saveDailyPick" '+(chosen.length===10?'':'disabled')+'>10단어 오늘 학습으로 저장</button>'+
           '</div>'+
           (chosen.length?'<details class="pickedList"><summary>선택한 단어 보기</summary><div class="scopeWords">'+chosenHtml+'</div></details>':'')+
         '</div>';
@@ -68,7 +68,7 @@
         b.onclick=function(e){
           e.stopPropagation();
           var id=Number(b.dataset.word);
-          if(selected.has(id))selected.delete(id);else selected.add(id);
+          if(selected.has(id))selected.delete(id);else{if(selected.size>=10)return toast('하루 학습은 10단어까지 선택합니다');selected.add(id)}
           paint();
         };
       });
@@ -76,13 +76,18 @@
         card.onclick=function(e){
           if(e.target.closest('button'))return;
           var id=Number(card.dataset.wordCard);
-          if(selected.has(id))selected.delete(id);else selected.add(id);
+          if(selected.has(id))selected.delete(id);else{if(selected.size>=10)return toast('하루 학습은 10단어까지 선택합니다');selected.add(id)}
           paint();
         };
       });
       document.querySelector('#togglePage').onclick=function(){
         var ids=pageIds(active), all=ids.every(function(id){return selected.has(id)});
-        ids.forEach(function(id){ if(all)selected.delete(id); else selected.add(id); });
+        if(all){ids.forEach(function(id){selected.delete(id);});}
+        else{
+          const add=ids.filter(function(id){return !selected.has(id)});
+          if(selected.size+add.length>10)return toast('하루 학습은 정확히 10단어입니다. 일부 단어를 먼저 해제해 주세요');
+          add.forEach(function(id){selected.add(id);});
+        }
         paint();
       };
       document.querySelector('#dailyClear').onclick=function(){selected.clear();paint()};
@@ -91,11 +96,11 @@
           var A=byId(a),B=byId(b);
           return ((A&&A.detailPage)||0)-((B&&B.detailPage)||0) || a-b;
         });
-        if(!ids.length)return toast('학습할 단어를 선택해 주세요');
+        if(ids.length!==10)return toast('하루 학습은 정확히 10단어를 선택해 주세요');
         db.dailyScope={wordIds:ids,activePage:active,source:'detail-pages-29-52'};
         db.sess=null;
         save();
-        toast(ids.length+'단어 · '+(ids.length*2)+'자를 오늘 학습으로 저장했습니다');
+        toast('10단어 저장 완료 · 전부 통과하면 500P');
         paint();
       };
     }
