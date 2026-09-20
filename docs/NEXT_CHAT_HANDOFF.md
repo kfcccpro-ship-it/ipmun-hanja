@@ -8,7 +8,7 @@
 - GitHub repository: `kfcccpro-ship-it/ipmun-hanja`
 - branch: `main`
 - GitHub Pages: https://kfcccpro-ship-it.github.io/ipmun-hanja/
-- current app version: **0.23.0**
+- current app version: **0.24.0**
 - current validation/deploy: **Validate Hanja App SUCCESS / Deploy GitHub Pages SUCCESS**
 - source textbook: **장원한자.pdf**
 - 핵심 대상: 초등 4학년, iPad + Apple Pencil 1세대 / Galaxy Tab + S Pen
@@ -276,10 +276,11 @@ GitHub Actions:
 - 500P
 - 주간 학습 / 누적 시험 루틴
 
-최신 확인:
+최신 앱 커밋 검증:
+- app commit: `4ff7b246e81109810f0bca76b666ad647a3760e3`
 - Validate Hanja App: SUCCESS
 - Deploy GitHub Pages: SUCCESS
-- current latest workflow SHA: `0e405c7f00361b60e6cee8bbdcd921daf943f164`
+- v0.24.0부터 `tests/routine-logic.js`가 주간 만료, 누적범위, 20문제 혼합, 500P 완료조건, 당일 이어하기를 자동 검증한다.
 
 ---
 
@@ -291,13 +292,18 @@ GitHub Actions:
 2. `VERSION`, `index.html`, `assets/v21-parent-picker.js`, `assets/v22-points.js`, `assets/v23-daily-routine.js` 최신본 확인
 3. GitHub Actions 최신 성공 여부 확인
 4. UI를 함부로 전면 개편하지 않는다.
-5. 현재 가장 중요한 다음 작업:
-   - **주간 10단어 학습모드가 실제로 7일 동안 동일하게 반복되는지 전체 흐름 점검**
-   - **쪽지시험 누적범위가 29쪽부터 부모 지정 마지막 단어까지 정확하게 계산되는지 검증**
-   - **매일 20문제 선정 로직이 오답/최근/기존 범위를 적절히 섞는지 검증**
-   - **학습모드 500P와 매일 2트랙 루틴의 상태가 충돌하지 않는지 통합검수**
-   - **부모 모드에서 주간 10단어 / 누적 진도 설정이 초보자도 1분 안에 가능한지 UI 정리**
-6. 이상이 있으면 직접 GitHub main에 수정하고 Validate + Pages 성공 확인
+5. v0.24.0에서 완료된 통합검수:
+   - **주간 10단어는 해당 주 start~end 안에서만 유효하며 다음 주에는 새 범위를 요구**
+   - **29쪽부터 부모 지정 마지막 단어까지 누적범위 계산 자동 회귀검증**
+   - **당일 20문제는 오답 우선 + 최근 진도 + 기존 누적범위를 섞고 중복 없이 저장**
+   - **정규 10단어 학습만 끝나서는 학습모드 완료가 아니며, 500P 확인시험 완전통과까지 완료해야 함**
+   - **당일 20문제 세트와 현재 위치를 저장해 중간 이탈 후 같은 문제 세트에서 이어하기**
+   - **부모 설정 상단을 '주간 10단어 + 누적진도 끝' 2단계로 안내**
+6. 현재 가장 중요한 다음 작업:
+   - **iPad Apple Pencil 1세대 / Galaxy Tab S Pen 실제 기기 최종 실기검수**
+   - **학생의 하루 전체 동선(학습모드 → 500P → 쪽지시험 대비) 사용성 점검**
+   - **부모 설정을 실제 태블릿에서 1분 이내 완료 가능한지 최종 확인**
+7. 이상이 있으면 직접 GitHub main에 최소 수정하고 Validate + Pages 성공 확인
 7. "완료"라고 말하기 전에 실제 workflow 성공 확인
 
 ---
