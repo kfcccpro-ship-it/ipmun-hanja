@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>태이를 위해 아빠가 만든 한자앱 · v0.23</title>
+<title>태이를 위해 아빠가 만든 한자앱 · v0.24.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="data/meta.js?v=0.11.0"></script>
@@ -435,7 +435,7 @@ const DAILY = 10;
 /* ===== 저장소 (기기 저장 + 카톡 리포트) ===== */
 const KEY='hanja_app_v3';
 const KEEP_DAYS=7; // 이미지 기록 보관 일수 (태블릿 저장 공간 보호)
-const blank=()=>({wordNext:0,sess:null,dailyScope:null,weeklyPlan:null,quizProgress:null,routineDays:{},learned:[],days:{},wrong:{},exam:null,subs:[],fast:[],notes:{},he:{},qz:{},focus:{},focusGoalMin:20,pendingReport:null,pw:'1234',penOnly:true,points:{total:0,days:{}},dailyChecks:[]});
+const blank=()=>({wordNext:0,sess:null,dailyScope:null,weeklyPlan:null,quizProgress:null,dailyQuizPlans:{},routineDays:{},learned:[],days:{},wrong:{},exam:null,subs:[],fast:[],notes:{},he:{},qz:{},focus:{},focusGoalMin:20,pendingReport:null,pw:'1234',penOnly:true,points:{total:0,days:{}},dailyChecks:[]});
 let db;
 try{db=Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){db=blank()}
 function prune(){for(const k of ['notes','qz','he']){const ks=Object.keys(db[k]).sort();while(ks.length>KEEP_DAYS)delete db[k][ks.shift()]}}
@@ -1589,6 +1589,6 @@ go('home');
 </script>
 <script src="assets/v21-parent-picker.js?v=0.22.0"></script>
 <script src="assets/v22-points.js?v=0.23.0"></script>
-<script src="assets/v23-daily-routine.js?v=0.23.0"></script>
+<script src="assets/v23-daily-routine.js?v=0.24.0"></script>
 </body>
 </html>
