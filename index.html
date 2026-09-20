@@ -994,7 +994,7 @@ function strokeSpeed(list){
     app.querySelectorAll('.choice button').forEach(b=>b.onclick=()=>{const n=parseInt(b.textContent);if(n===correct){ok++;toast('정답!')}else{addWrong(c.id);save();toast(`정답: ${correct}획`)}i++;setTimeout(step,n===correct?350:900)});
   };step();
 }
-function wrongReview(){function wrongReview(){
+function wrongReview(){
   const ids=Object.keys(db.wrong).map(Number).sort((a,b)=>db.wrong[b]-db.wrong[a]);
   if(!ids.length){app.innerHTML=`<div class="card"><h2>오답이 없어요</h2><button class="pri" onclick="go('fast')">돌아가기</button></div>`;return}
   app.innerHTML=`<h2 style="margin-top:0">오답 다시 보기</h2><div class="grid" id="wl"></div>
