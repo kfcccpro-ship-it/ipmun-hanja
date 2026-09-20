@@ -434,7 +434,7 @@ const DAILY = 10;
 /* ===== 저장소 (기기 저장 + 카톡 리포트) ===== */
 const KEY='hanja_app_v3';
 const KEEP_DAYS=7; // 이미지 기록 보관 일수 (태블릿 저장 공간 보호)
-const blank=()=>({wordNext:0,sess:null,dailyScope:null,learned:[],days:{},wrong:{},exam:null,subs:[],fast:[],notes:{},he:{},qz:{},focus:{},focusGoalMin:20,pendingReport:null,pw:'1234',penOnly:true,points:{total:0,days:{}},dailyChecks:[]});
+const blank=()=>({wordNext:0,sess:null,dailyScope:null,weeklyPlan:null,quizProgress:null,routineDays:{},learned:[],days:{},wrong:{},exam:null,subs:[],fast:[],notes:{},he:{},qz:{},focus:{},focusGoalMin:20,pendingReport:null,pw:'1234',penOnly:true,points:{total:0,days:{}},dailyChecks:[]});
 let db;
 try{db=Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){db=blank()}
 function prune(){for(const k of ['notes','qz','he']){const ks=Object.keys(db[k]).sort();while(ks.length>KEEP_DAYS)delete db[k][ks.shift()]}}
@@ -493,7 +493,7 @@ const allPrintedPages=()=>[...new Set(ITEMS.flatMap(sourcePages))].sort((a,b)=>a
 const book=d=>`<span class="book">📖 ${d.page}쪽${d.detailPage?` · 쓰기 ${d.detailPage}쪽`:``} · <b>${d.word}</b></span>`;
 function addWrong(id,n=1){db.wrong[id]=Math.max(0,(db.wrong[id]||0)+n);if(!db.wrong[id])delete db.wrong[id]}
 const alive=el=>document.body.contains(el);
-const WL=uniqWords(ITEMS);          // 단어 48개 (각 단어의 첫 글자 항목)
+const WL=uniqWords(ITEMS);          // 교재 29~52쪽 96개 2글자 단어
 const WPD=5;                        // 하루 5단어 = 10자
 const charsOf=w=>[byId(w.id),byId(w.id+1)];
 const wordsOnPage=p=>uniqWords(ITEMS.filter(d=>pageIn(d,+p)));
