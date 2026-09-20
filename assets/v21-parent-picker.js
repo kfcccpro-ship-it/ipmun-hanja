@@ -60,7 +60,12 @@
         b.onclick=function(){
           active=Number(b.dataset.page);
           var ids=pageIds(active), all=ids.every(function(id){return selected.has(id)});
-          ids.forEach(function(id){ if(all)selected.delete(id); else selected.add(id); });
+          if(all){ids.forEach(function(id){selected.delete(id);});}
+          else{
+            const add=ids.filter(function(id){return !selected.has(id)});
+            if(selected.size+add.length>10)return toast('하루 학습은 정확히 10단어입니다. 일부 단어를 먼저 해제해 주세요');
+            add.forEach(function(id){selected.add(id);});
+          }
           paint();
         };
       });
