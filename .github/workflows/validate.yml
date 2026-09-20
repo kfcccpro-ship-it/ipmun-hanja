@@ -47,6 +47,10 @@ jobs:
             'single_openSub':s.count('let openSub=null;')==1,
             'parent_grade':'function pGrade' in s,
             'exam_20':'읽기 10문제 + 쓰기 10문제' in s,
+            'daily_word_scope':'function pDailyRange' in s and '마지막 단어' in s,
+            'prestudy_20':'function preStudy' in s and '시험 전 20쓰기 학습' in s,
+            'write_clues':'writeClues' in s and '[${c.hun} ${c.eum}]' in s,
+            'hint_2_4':'힌트 1 · 2획' in s and '힌트 2 · 4획' in s and 'renderStrokePrefix' in s,
           }
           for k,v in checks.items(): print(k, 'PASS' if v else 'FAIL')
           if not all(checks.values()): sys.exit(1)
