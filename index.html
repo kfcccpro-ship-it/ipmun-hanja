@@ -202,6 +202,7 @@ a.btnlink{display:inline-block;border-radius:14px;padding:12px 20px;font-family:
 .miniStrokeLesson{display:grid;place-items:center;background:rgba(255,255,255,.86)}
 .miniStrokeLesson .stroke{box-shadow:none;border:0;background:transparent}
 .simpleSingleHanja span{color:inherit}
+.rangeSet{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.rangeSet label{display:grid;gap:5px;font-family:'Jua';font-size:17px}.rangeSet input,.rangeSet select{font-size:18px;padding:9px 10px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}.scopePreview{margin:12px 0;padding:12px;border-radius:14px;background:var(--paper);border:1px solid var(--line)}.scopeWords{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.scopeWords span{display:grid;justify-items:center;padding:7px 9px;background:var(--card);border:1px solid var(--line);border-radius:10px}.scopeWords small{font-size:12px;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -430,7 +431,7 @@ const DAILY = 10;
 /* ===== 저장소 (기기 저장 + 카톡 리포트) ===== */
 const KEY='hanja_app_v3';
 const KEEP_DAYS=7; // 이미지 기록 보관 일수 (태블릿 저장 공간 보호)
-const blank=()=>({wordNext:0,sess:null,learned:[],days:{},wrong:{},exam:null,subs:[],fast:[],notes:{},he:{},qz:{},focus:{},focusGoalMin:20,pendingReport:null,pw:'1234',penOnly:true});
+const blank=()=>({wordNext:0,sess:null,dailyScope:null,learned:[],days:{},wrong:{},exam:null,subs:[],fast:[],notes:{},he:{},qz:{},focus:{},focusGoalMin:20,pendingReport:null,pw:'1234',penOnly:true});
 let db;
 try{db=Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){db=blank()}
 function prune(){for(const k of ['notes','qz','he']){const ks=Object.keys(db[k]).sort();while(ks.length>KEEP_DAYS)delete db[k][ks.shift()]}}
@@ -492,6 +493,27 @@ const alive=el=>document.body.contains(el);
 const WL=uniqWords(ITEMS);          // 단어 48개 (각 단어의 첫 글자 항목)
 const WPD=5;                        // 하루 5단어 = 10자
 const charsOf=w=>[byId(w.id),byId(w.id+1)];
+const wordsOnPage=p=>uniqWords(ITEMS.filter(d=>pageIn(d,+p)));
+function wordsInAssignedScope(scope=db.dailyScope){
+  if(!scope)return [];
+  let list=uniqWords(ITEMS.filter(d=>inPageRange(d,scope.start,scope.end)));
+  if(scope.endWordId){
+    const ix=list.findIndex(w=>w.id===scope.endWordId);
+    if(ix>=0)list=list.slice(0,ix+1);
+  }
+  return list;
+}
+function sessionWords(sess=db.sess){
+  if(sess?.wordIds?.length)return sess.wordIds.map(byId).filter(Boolean);
+  if(sess)return WL.slice(sess.start||0,(sess.start||0)+WPD);
+  const assigned=wordsInAssignedScope();
+  return assigned.length?assigned:WL.slice(db.wordNext,db.wordNext+WPD);
+}
+function dailyScopeLabel(scope=db.dailyScope){
+  if(!scope)return '기본 5단어';
+  const words=wordsInAssignedScope(scope),last=words[words.length-1];
+  return `${scope.start}~${scope.end}쪽${last?` · ${last.word}까지`:''}`;
+}
 
 /* ===== 펜 호환: 블록 선택·길게 누르기 메뉴 차단 ===== */
 const isField=t=>t&&t.closest&&t.closest('input,textarea');
@@ -657,55 +679,58 @@ const FIELD='autocomplete="off" autocorrect="off" autocapitalize="off" spellchec
 
 /* ===== 오늘의 학습: 한 컬럼 흐름 ===== */
 // 단어마다: [글자: 배우기 → 5번 쓰기 → 훈·음 쓰기] × 2 → 단어 익히기 → 누적 쪽지(1번 단어부터)
-function buildSteps(start){
-  const st=[];
-  WL.slice(start,start+WPD).forEach((w,k)=>{
+function buildSteps(start,wordIds=null){
+  const words=wordIds?.length?wordIds.map(byId).filter(Boolean):WL.slice(start,start+WPD);
+  const ids=words.map(w=>w.id),st=[];
+  words.forEach((w,k)=>{
     charsOf(w).forEach(c=>{st.push({t:'learn',c,k});st.push({t:'write',c,k});st.push({t:'he',c,k})});
-    st.push({t:'word',w,k});st.push({t:'quiz',k,start});
+    st.push({t:'word',w,k});st.push({t:'quiz',k,start,wordIds:ids});
   });
   return st;
 }
 const STEP_NAME={learn:'배우기',write:'5번 쓰기',he:'훈·음 쓰기',word:'단어 익히기',quiz:'누적 쪽지'};
 function startDay(){
-  if(db.wordNext>=WL.length)return toast('교재 끝까지 모두 배웠어요!');
-  db.sess={date:today(),start:db.wordNext,step:0,maxStep:0};save();daily();
+  const words=sessionWords(null);
+  if(!words.length)return toast('부모 모드에서 오늘 학습 범위를 먼저 정해 주세요');
+  db.sess={date:today(),start:Math.max(0,WL.findIndex(w=>w.id===words[0].id)),wordIds:words.map(w=>w.id),step:0,maxStep:0,activeMs:0,awayN:0};
+  save();daily();
 }
-function gotoStep(i){ // 뒤로 갔던 단계 범위(maxStep) 안에서만 이동: 안 풀어본 단계로 건너뛰기는 막음
-  const s=db.sess;if(!s)return;
-  s.step=Math.max(0,Math.min(i,s.maxStep||0));save();daily();
+function gotoStep(i){
+  const ss=db.sess;if(!ss)return;
+  ss.step=Math.max(0,Math.min(i,ss.maxStep||0));save();daily();
 }
 function daily(){
-  curView='daily'; // home()/startDay()에서 라우터(go) 없이 직접 호출되므로 여기서 명시적으로 표시
-  const s=db.sess;if(!s)return home();
-  const steps=buildSteps(s.start);
-  if(s.step>=steps.length)return finishDay();
-  const canForward=s.step<(s.maxStep||0); // 이전에 도달했던 지점까지만 "다음"으로 되돌아갈 수 있음
-  s.maxStep=Math.max(s.maxStep||0,s.step);save();
-  const cur=steps[s.step],words=WL.slice(s.start,s.start+WPD);
-  const pct=Math.round(s.step/steps.length*100);
+  curView='daily';
+  const ss=db.sess;if(!ss)return home();
+  const words=sessionWords(ss),steps=buildSteps(ss.start,ss.wordIds);
+  if(ss.step>=steps.length)return finishDay();
+  const canForward=ss.step<(ss.maxStep||0);
+  ss.maxStep=Math.max(ss.maxStep||0,ss.step);save();
+  const cur=steps[ss.step],pct=Math.round(ss.step/steps.length*100);
   const firstStepOfWord=k2=>steps.findIndex(st=>st.k===k2);
   let flow='';
   words.slice(0,cur.k).forEach((w,i)=>flow+=`<div class="fl">✓ ${i+1}단어 <b class="hz">${w.word}</b> 배우기·쪽지 완료</div>`);
-  steps.forEach((st,i)=>{if(i<s.step&&st.k===cur.k)flow+=`<div class="fl nav" onclick="gotoStep(${i})">✓ ${st.c?`<b class="hz">${st.c.ch}</b> `:st.w?`<b class="hz">${st.w.word}</b> `:''}${STEP_NAME[st.t]}</div>`});
+  steps.forEach((st,i)=>{if(i<ss.step&&st.k===cur.k)flow+=`<div class="fl nav" onclick="gotoStep(${i})">✓ ${st.c?`<b class="hz">${st.c.ch}</b> `:st.w?`<b class="hz">${st.w.word}</b> `:''}${STEP_NAME[st.t]}</div>`});
   flow+=`<div class="fl now">▶ ${cur.c?`<b class="hz">${cur.c.ch}</b> `:cur.w?`<b class="hz">${cur.w.word}</b> `:''}${STEP_NAME[cur.t]}${cur.t==='quiz'?` (1~${cur.k+1}단어)`:''}</div>`;
   app.innerHTML=`
   <div class="card">
-    <div class="row" style="justify-content:space-between"><b class="jua" style="font-size:22px">오늘의 학습 · ${Math.floor(s.start/WPD)+1}일차</b><span class="muted">${pct}%</span></div>
+    <div class="row" style="justify-content:space-between"><b class="jua" style="font-size:22px">오늘의 학습 · ${words.length}단어</b><span class="muted">${pct}%</span></div>
+    <div class="muted" style="margin-top:4px">부모 지정 범위 · ${dailyScopeLabel()}</div>
     <div id="focusTime" class="focusTime"></div>
     <div class="prog" style="margin:8px 0"><div style="width:${pct}%"></div></div>
-    <div class="wchips">${words.map((w,k)=>{const canJump=k<cur.k&&firstStepOfWord(k)<=(s.maxStep||0);
+    <div class="wchips">${words.map((w,k)=>{const canJump=k<cur.k&&firstStepOfWord(k)<=(ss.maxStep||0);
       return `<span class="wchip ${k<cur.k?'done':k===cur.k?'now':''}${canJump?' nav':''}"${canJump?` onclick="gotoStep(${firstStepOfWord(k)})"`:''}>${w.word}<small>${k<cur.k?'완료':w.read}</small></span>`}).join('')}</div>
     <div class="row navRow" style="justify-content:space-between;margin-top:10px">
-      <button class="ghost" id="prevBtn" ${s.step<=0?'disabled':''}>◀ 이전</button>
+      <button class="ghost" id="prevBtn" ${ss.step<=0?'disabled':''}>◀ 이전</button>
       <button class="ghost" id="nextBtn" ${canForward?'':'disabled'}>다음 ▶</button>
     </div>
   </div>
   <div class="flow">${flow}</div>
   <div class="card stepCard" id="stepCard"></div>`;
-  $('#prevBtn').onclick=()=>gotoStep(s.step-1);
-  $('#nextBtn').onclick=()=>gotoStep(s.step+1);
+  $('#prevBtn').onclick=()=>gotoStep(ss.step-1);
+  $('#nextBtn').onclick=()=>gotoStep(ss.step+1);
   const card=$('#stepCard');
-  const next=()=>{if(!alive(card))return;s.step++;save();daily()};
+  const next=()=>{if(!alive(card))return;ss.step++;save();daily()};
   ({learn:stepLearn,write:stepWrite,he:stepHE,word:stepWord,quiz:stepQuiz})[cur.t](card,cur,next);
   paintFocus();
   setTimeout(()=>{if(alive(card))card.scrollIntoView({behavior:'smooth',block:'start'})},60);
@@ -853,10 +878,10 @@ function stepWord(card,{w},next){
   const g=$('#go');gate(g,4,'예문 읽었어요 → 누적 쪽지');g.onclick=next;
 }
 
-function stepQuiz(card,{k,start},next){
+function stepQuiz(card,{k,start,wordIds},next){
   const date=db.sess.date,tag=`${start}-${k}`;
   db.qz[date]=(db.qz[date]||[]).filter(r=>r.tag!==tag); // 다시 풀면 이전 기록 교체
-  const items=[];WL.slice(start,start+k+1).forEach(w=>{items.push({type:'read',w});items.push({type:'write',w})});
+  const scopeWords=(wordIds?.length?wordIds.map(byId).filter(Boolean):WL.slice(start,start+k+1)).slice(0,k+1);const items=[];scopeWords.forEach(w=>{items.push({type:'read',w});items.push({type:'write',w})});
   let i=0,okN=0;
   const show=()=>{
     if(!alive(card))return;
@@ -900,24 +925,22 @@ function stepQuiz(card,{k,start},next){
 }
 
 function finishDay(){
-  const s=db.sess,words=WL.slice(s.start,s.start+WPD),ids=words.flatMap(w=>[w.id,w.id+1]);
+  const ss=db.sess,words=sessionWords(ss),ids=words.flatMap(w=>[w.id,w.id+1]);
   ids.forEach(id=>{if(!db.learned.includes(id))db.learned.push(id)});
-  db.days[s.date]=[...new Set([...(db.days[s.date]||[]),...ids])];
-  db.wordNext=Math.max(db.wordNext,s.start+WPD);
-  const ms=s.activeMs||0,awayN=s.awayN||0,goal=(db.focusGoalMin||20)*60000;
-  db.focus[s.date]={ms,awayN};
-  db.pendingReport=s.date;
-  db.sess=null;save();
-  const mm=Math.floor(ms/60000),ss=Math.floor(ms%60000/1000);
-  const focusMsg=ms<=goal?`🏅 집중 시간 ${mm}분 ${ss}초 · ${db.focusGoalMin||20}분 목표 달성!`:`집중 시간 ${mm}분 ${ss}초 (목표 ${db.focusGoalMin||20}분)`;
+  db.days[ss.date]=[...new Set([...(db.days[ss.date]||[]),...ids])];
+  const maxIx=Math.max(-1,...words.map(w=>WL.findIndex(x=>x.id===w.id)));if(maxIx>=0)db.wordNext=Math.max(db.wordNext,maxIx+1);
+  const ms=ss.activeMs||0,awayN=ss.awayN||0,goal=(db.focusGoalMin||20)*60000;
+  db.focus[ss.date]={ms,awayN};db.pendingReport=ss.date;db.sess=null;save();
+  const mm=Math.floor(ms/60000),sec=Math.floor(ms%60000/1000);
+  const focusMsg=ms<=goal?`🏅 집중 시간 ${mm}분 ${sec}초 · ${db.focusGoalMin||20}분 목표 달성!`:`집중 시간 ${mm}분 ${sec}초 (목표 ${db.focusGoalMin||20}분)`;
   app.innerHTML=`<div class="card" style="text-align:center">
     <span class="stampOk" style="width:140px;height:140px;font-size:28px">오늘<br>학습 끝</span>
-    <h2>10자 × 5번 = 50번 썼어요!</h2>
+    <h2>${ids.length}자 × 5번 = ${ids.length*5}번 썼어요!</h2>
     <p class="hz" style="font-size:30px">${words.map(w=>w.word).join(' · ')}</p>
     <p class="jua" style="font-size:20px;color:${ms<=goal?'var(--leaf)':'var(--seal)'}">${focusMsg}${awayN?` · 자리비움 ${awayN}회`:''}</p>
     <p class="muted" style="margin:10px 0 0">📤 부모님께 보내야 다음으로 넘어가요</p>
     <button class="sun big" id="rep">📤 부모님께 카톡 보내기</button></div>`;
-  $('#rep').onclick=()=>sendReport(s.date,()=>{db.pendingReport=null;save();go('home')});
+  $('#rep').onclick=()=>sendReport(ss.date,()=>{db.pendingReport=null;save();go('home')});
 }
 function reportGate(){ // 카톡 리포트를 보내기 전까지는 어디로도 못 감(새로고침해도 유지)
   const date=db.pendingReport;
@@ -1232,7 +1255,7 @@ function examTable(parent){
 }
 
 /* ===== 부모 모드 ===== */
-let parentOK=false,ptab='range';
+let parentOK=false,ptab='dailyRange';
 function parentLogin(){
   if(parentOK)return parent();
   app.innerHTML=`<div class="card" style="max-width:420px;margin:40px auto;text-align:center">
@@ -1245,12 +1268,46 @@ function parentLogin(){
 function parent(){
   const pend=db.subs.filter(s=>s.status==='pending').length+Object.values(db.qz).flat().filter(r=>r.type==='write'&&r.grade===null).length;
   app.innerHTML=`<div class="tabs">
-    <button data-t="range">시험 범위</button><button data-t="grade">채점${pend?` (${pend})`:''}</button>
+    <button data-t="dailyRange">하루 학습</button><button data-t="range">시험 범위</button><button data-t="grade">채점${pend?` (${pend})`:''}</button>
     <button data-t="status">학습 현황</button><button data-t="set">설정</button>
     <button class="ghost" id="out" style="margin-left:auto">나가기</button></div><div id="pv"></div>`;
   app.querySelectorAll('[data-t]').forEach(b=>{b.classList.toggle('on',b.dataset.t===ptab);b.onclick=()=>{ptab=b.dataset.t;parent()}});
   $('#out').onclick=()=>{parentOK=false;go('home')};
-  ({range:pRange,grade:pGrade,status:pStatus,set:pSet})[ptab]($('#pv'));
+  ({dailyRange:pDailyRange,range:pRange,grade:pGrade,status:pStatus,set:pSet})[ptab]($('#pv'));
+}
+function pDailyRange(v){
+  const pages=allPrintedPages(),scope=db.dailyScope||{start:11,end:11,endWordId:null};
+  v.innerHTML=`<div class="card">
+    <h3 style="margin-top:0">하루 학습 범위</h3>
+    <div class="rangeSet">
+      <label>시작 쪽 <input type="number" id="ds" min="11" max="52" value="${scope.start}"></label>
+      <label>끝 쪽 <input type="number" id="de" min="11" max="52" value="${scope.end}"></label>
+      <label>마지막 단어 <select id="dw"></select></label>
+    </div>
+    <p class="muted">페이지 전체가 아니라, 선택한 끝 쪽의 특정 단어까지만 지정할 수 있습니다.</p>
+    <div id="dailyPreview" class="scopePreview"></div>
+    <button class="pri" id="saveDaily">오늘 학습 범위 저장</button>
+  </div>
+  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">쪽별 단어</h3>
+    <table>${pages.map(p=>`<tr><td>${p}쪽</td><td style="font-family:var(--hanja);font-size:21px">${wordsOnPage(p).map(w=>w.word).join(' · ')||'-'}</td></tr>`).join('')}</table>
+  </div>`;
+  const endWords=()=>wordsOnPage(+$('#de').value);
+  const fillEndWords=()=>{
+    const list=endWords(),sel=$('#dw'),wanted=db.dailyScope?.endWordId;
+    sel.innerHTML=list.map(w=>`<option value="${w.id}" ${w.id===wanted?'selected':''}>${w.word} (${w.read})</option>`).join('');
+    if(!list.length)sel.innerHTML='<option value="">이 쪽에는 단어 없음</option>';
+    preview();
+  };
+  const candidate=()=>{const st=+$('#ds').value,en=+$('#de').value,endId=+$('#dw').value||null;return {start:Math.min(st,en),end:Math.max(st,en),endWordId:endId}};
+  const preview=()=>{
+    const sc=candidate(),list=wordsInAssignedScope(sc);
+    $('#dailyPreview').innerHTML=list.length?`<b>${list.length}단어 · ${list.length*2}자</b><div class="scopeWords">${list.map(w=>`<span><b class="hz">${w.word}</b><small>${w.read}</small></span>`).join('')}</div>`:'<span class="badMsg">선택된 단어가 없습니다.</span>';
+  };
+  $('#ds').oninput=preview;$('#de').oninput=fillEndWords;$('#dw').onchange=preview;fillEndWords();
+  $('#saveDaily').onclick=()=>{
+    const sc=candidate(),list=wordsInAssignedScope(sc);if(!list.length)return toast('학습할 단어가 없습니다');
+    db.dailyScope=sc;db.sess=null;save();toast(`${list.length}단어를 하루 학습 범위로 저장했습니다`);pDailyRange(v);
+  };
 }
 function pRange(v){
   const pages=allPrintedPages();
