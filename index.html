@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>태이를 위해 아빠가 만든 한자앱 · v0.18</title>
+<title>태이를 위해 아빠가 만든 한자앱 · v0.19</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="data/meta.js?v=0.11.0"></script>
@@ -199,6 +199,9 @@ a.btnlink{display:inline-block;border-radius:14px;padding:12px 20px;font-family:
 .writeFeedback{min-height:58px;margin:8px auto 0;display:flex;align-items:center;justify-content:center;gap:10px;max-width:720px;border:2px solid transparent;border-radius:14px;padding:7px 12px;opacity:0;transform:translateY(-4px);transition:opacity .15s,transform .15s;background:transparent;pointer-events:none}.writeFeedback.show{opacity:1;transform:translateY(0);background:#FFF8E4;border-color:#EACB69}.writeFeedback .simpleHunEum{font-family:'Jua';font-size:30px;color:var(--seal)}.postStrokeReplay{position:absolute;inset:0;z-index:5;pointer-events:none;background:rgba(255,255,255,.22)}.postStrokeReplay svg{width:100%;height:100%;display:block}.pad.active .postStrokeReplay{border-radius:2px}
 @media(max-width:600px){.writeFeedback{min-height:58px}.writeFeedback .simpleHunEum{font-size:27px}}
 .writeHeroSimple{grid-template-columns:auto auto;justify-content:center;gap:22px}.writeHeroSimple .writeHeroText{align-self:center}.writeHeroSimple .writeHE{font-size:44px}.writeHeroSimple .writeStroke{margin:4px 0 0}
+.miniStrokeLesson{display:grid;place-items:center;background:rgba(255,255,255,.86)}
+.miniStrokeLesson .stroke{box-shadow:none;border:0;background:transparent}
+.simpleSingleHanja span{color:inherit}
 </style>
 </head>
 <body>
@@ -506,12 +509,13 @@ function strokeLoader(ch,onLoad,onError){
   .then(data=>{STROKE_DATA.set(ch,data);onLoad(data)}).catch(onError);
 }
 const getStrokeData=ch=>new Promise((resolve,reject)=>strokeLoader(ch,resolve,reject));
+const strokePad=size=>Math.max(8,Math.round(size*14/420));
 function strokeBox(host,ch,size,opts={}){
   if(!window.HanziWriter){host.innerHTML='<p class="muted">획순 기능을 불러오지 못했습니다.</p>';return null}
   const el=document.createElement('div');el.className='stroke';el.style.width=size+'px';el.style.height=size+'px';el.style.position='relative';
   el.innerHTML=`<svg width="${size}" height="${size}" style="position:absolute"><line x1="${size/2}" y1="0" x2="${size/2}" y2="${size}" stroke="#F0A5A0" stroke-dasharray="4"/><line x1="0" y1="${size/2}" x2="${size}" y2="${size/2}" stroke="#F0A5A0" stroke-dasharray="4"/></svg>`;
   host.appendChild(el);
-  return HanziWriter.create(el,ch,Object.assign({width:size,height:size,padding:14,strokeColor:'#1B2A44',radicalColor:'#D8443A',
+  return HanziWriter.create(el,ch,Object.assign({width:size,height:size,padding:strokePad(size),strokeColor:'#1B2A44',radicalColor:'#D8443A',
     outlineColor:'#D9E0EA',strokeAnimationSpeed:1.15,delayBetweenStrokes:420,showCharacter:false,showOutline:true,
     charDataLoader:strokeLoader,onLoadCharDataError:()=>{host.innerHTML='<p class="muted">이 글자의 획순 자료가 없습니다.</p>'}},opts));
 }
@@ -540,7 +544,7 @@ function mountStrokeLesson(host,ch,hoek,{size=420,auto=true,onFirstComplete=null
   const stage=host.querySelector('#strokeStage'),status=host.querySelector('.strokeStepText');
   const writer=strokeBox(stage,ch,size,{showCharacter:false,showOutline:true});
   if(!writer)return null;
-  const nums=addStrokeNumbers(stage,ch,size,14,1);
+  const nums=addStrokeNumbers(stage,ch,size,strokePad(size),1);
   let one=0,numOn=true,firstDone=false;
   const mark=n=>nums.querySelectorAll('.strokeNum').forEach(x=>x.classList.toggle('current',+x.dataset.stroke===n));
   const playAll=()=>{
@@ -567,16 +571,16 @@ function attachTraceGuide(pad,ch,size,index){
 }
 function replayStrokeOrderMini(pad,ch,hoek,onComplete){
   const old=pad.el.querySelector('.postStrokeReplay');if(old)old.remove();
-  const layer=document.createElement('div');layer.className='postStrokeReplay';pad.el.appendChild(layer);
+  const layer=document.createElement('div');layer.className='postStrokeReplay miniStrokeLesson';pad.el.appendChild(layer);
   const size=Math.max(96,Math.round(pad.el.getBoundingClientRect().width||130));
-  const writer=strokeBox(layer,ch,size,{showCharacter:false,showOutline:true,strokeAnimationSpeed:.82,delayBetweenStrokes:260});
+  const writer=strokeBox(layer,ch,size,{showCharacter:false,showOutline:true});
   if(!writer){onComplete&&onComplete();return null}
-  addStrokeNumbers(layer,ch,size,10,.9);
+  addStrokeNumbers(layer,ch,size,strokePad(size),.95);
   setTimeout(()=>{if(!alive(layer)){onComplete&&onComplete();return}
     writer.hideCharacter();writer.animateCharacter({onComplete:()=>{
-      setTimeout(()=>{if(alive(layer))layer.remove();onComplete&&onComplete()},250);
+      setTimeout(()=>{if(alive(layer))layer.remove();onComplete&&onComplete()},300);
     }});
-  },80);
+  },120);
   return layer;
 }
 
@@ -713,7 +717,7 @@ function stepLearn(card,{c},next){
   <div class="strokeLearnLayout">
     <div class="strokeMain" id="strokeMain"></div>
     <div class="strokeInfoPanel">
-      <div class="hunEum">${c.hun} <span>${c.eum}</span></div>
+      <div class="hunEum simpleSingleHanja">[${c.hun} ${c.eum}]</div>
       <div class="meta">부수 <b>${c.bu}</b> · 교재 기준 <b>${c.hoek}획</b></div>
       <div style="margin:12px 0">${book(c)}</div>
       <p class="muted" style="margin:0 0 12px"><b class="hz">${c.word}</b>(${c.read})의 <b class="hz">${c.ch}</b>${c.cmp?` · ${c.cmp}`:''}</p>
@@ -721,7 +725,7 @@ function stepLearn(card,{c},next){
       ${CHAR_INFO[c.ch]?.referenceTerms?.length?`<details class="srcMore"><summary>교재 참고 보기</summary><div class="srcTags">${CHAR_INFO[c.ch].referenceTerms.map(x=>`<span>${x}</span>`).join('')}</div><p class="muted">${(CHAR_INFO[c.ch].semanticSenses||[]).join(' · ')}</p></details>`:''}
     </div>
   </div>
-  <p class="say">획순을 보며 소리 내어 3번 읽어요: <b>"${c.hun} ${c.eum}"</b></p>
+  <p class="say"><b>[${c.hun} ${c.eum}]</b></p>
   <button class="pri big" id="go"></button>`;
   const g=$('#go');g.disabled=true;g.textContent='획순 자동 재생 중…';g.onclick=next;
   mountStrokeLesson($('#strokeMain'),c.ch,c.hoek,{size,auto:true,onFirstComplete:()=>{g.disabled=false;g.textContent='획순 확인 완료 → 5번 쓰기'}});
@@ -739,7 +743,7 @@ function stepWrite(card,{c},next){
   card.innerHTML=`<div class="stepTag">5번 쓰기</div>
   <div class="writeHero writeHeroSimple">
     <div style="text-align:center"><div id="mdl"></div></div>
-    <div class="writeHeroText"><div class="writeHE">${c.hun} <b>${c.eum}</b></div><div class="writeStroke"><b>${c.hoek}획</b></div></div>
+    <div class="writeHeroText"><div class="writeHE">[${c.hun} ${c.eum}]</div><div class="writeStroke"><b>${c.hoek}획</b></div></div>
   </div>
   <div class="note5" id="g"></div>
   <div id="writeFeedback" class="writeFeedback" aria-live="polite"></div>
@@ -758,7 +762,7 @@ function stepWrite(card,{c},next){
   const guidedFeedback=(p,index,token,replayDone)=>{
     if(index>2){replayDone();return}
     const f=$('#writeFeedback');
-    if(f){f.innerHTML=`<span class="simpleHunEum">${c.hun} ${c.eum}</span>`;f.classList.add('show')}
+    if(f){f.innerHTML=`<span class="simpleHunEum">[${c.hun} ${c.eum}]</span>`;f.classList.add('show')}
     feedbackTimer=setTimeout(clearFeedback,2000);
     replayStrokeOrderMini(p,c.ch,c.hoek,()=>{if(token===cycle)replayDone()});
   };
