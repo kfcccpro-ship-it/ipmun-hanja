@@ -433,7 +433,7 @@ const DAILY = 10;
 /* ===== 저장소 (기기 저장 + 카톡 리포트) ===== */
 const KEY='hanja_app_v3';
 const KEEP_DAYS=7; // 이미지 기록 보관 일수 (태블릿 저장 공간 보호)
-const blank=()=>({wordNext:0,sess:null,dailyScope:null,learned:[],days:{},wrong:{},exam:null,subs:[],fast:[],notes:{},he:{},qz:{},focus:{},focusGoalMin:20,pendingReport:null,pw:'1234',penOnly:true});
+const blank=()=>({wordNext:0,sess:null,dailyScope:null,learned:[],days:{},wrong:{},exam:null,subs:[],fast:[],notes:{},he:{},qz:{},focus:{},focusGoalMin:20,pendingReport:null,pw:'1234',penOnly:true,points:{total:0,days:{}},dailyChecks:[]});
 let db;
 try{db=Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){db=blank()}
 function prune(){for(const k of ['notes','qz','he']){const ks=Object.keys(db[k]).sort();while(ks.length>KEEP_DAYS)delete db[k][ks.shift()]}}
