@@ -26,6 +26,7 @@ jobs:
         run: |
           node --check assets/v21-parent-picker.js
           node --check assets/v22-points.js
+          node --check assets/v23-daily-routine.js
       - name: Structural checks
         run: |
           python3 - <<'PY'
@@ -59,6 +60,8 @@ jobs:
             'hint_2_4':'힌트 1 · 2획' in s and '힌트 2 · 4획' in s and 'renderStrokePrefix' in s,
             'daily_500_points':'assets/v22-points.js' in s,
             'points_state':'points:{total:0,days:{}}' in s and 'dailyChecks:[]' in s,
+            'daily_two_track':'assets/v23-daily-routine.js' in s,
+            'weekly_plan':'weeklyPlan:null' in s and 'quizProgress:null' in s,
             'ten_word_daily':'10단어' in Path('assets/v21-parent-picker.js').read_text(encoding='utf-8'),
           }
           for k,v in checks.items(): print(k, 'PASS' if v else 'FAIL')
