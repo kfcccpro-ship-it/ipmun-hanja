@@ -59,6 +59,8 @@
       v.querySelectorAll('[data-page]').forEach(function(b){
         b.onclick=function(){
           active=Number(b.dataset.page);
+          var ids=pageIds(active), all=ids.every(function(id){return selected.has(id)});
+          ids.forEach(function(id){ if(all)selected.delete(id); else selected.add(id); });
           paint();
         };
       });
