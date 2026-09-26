@@ -17,8 +17,7 @@ jobs:
           import re
           s=Path('index.html').read_text(encoding='utf-8')
           blocks=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',s,re.S)
-          Path('inline-check.js').write_text('
-'.join(blocks),encoding='utf-8')
+          Path('inline-check.js').write_text('\n'.join(blocks),encoding='utf-8')
           print('inline blocks',len(blocks),'bytes',Path('inline-check.js').stat().st_size)
           PY
       - name: JavaScript syntax check
