@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>태이를 위해 아빠가 만든 한자앱 · v0.24.0</title>
+<title>태이를 위해 아빠가 만든 한자앱 · v0.25.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="data/meta.js?v=0.11.0"></script>
@@ -823,7 +823,7 @@ function stepWrite(card,{c},next){
   };
   const startT=()=>{
     if(counting||cur>=5)return;
-    counting=true;const p=pads[cur],doneIndex=cur,token=++cycle;let n=3,delayDone=false,replayDone=doneIndex>2;
+    counting=true;const p=pads[cur],doneIndex=cur,token=++cycle;let n=2,delayDone=false,replayDone=doneIndex>2;
     const o=document.createElement('div');o.className='cd';o.textContent=n;p.el.appendChild(o);
     const maybeAdvance=()=>{
       if(token!==cycle||!delayDone||!replayDone)return;
@@ -1589,6 +1589,6 @@ go('home');
 </script>
 <script src="assets/v21-parent-picker.js?v=0.22.0"></script>
 <script src="assets/v22-points.js?v=0.23.0"></script>
-<script src="assets/v23-daily-routine.js?v=0.24.0"></script>
+<script src="assets/v23-daily-routine.js?v=0.24.0"></script>\n<script src="assets/v25-five-day-flow.js?v=0.25.0"></script>
 </body>
 </html>

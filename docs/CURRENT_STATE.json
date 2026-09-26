@@ -3,7 +3,7 @@
   "repo": "kfcccpro-ship-it/ipmun-hanja",
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
-  "version": "0.24.0",
+  "version": "0.25.0",
   "latest_app_commit": "4ff7b246e81109810f0bca76b666ad647a3760e3",
   "source": {
     "textbook": "장원한자.pdf",
@@ -20,7 +20,7 @@
     "unique_characters": 187,
     "status": "PHASE1_LOCKED"
   },
-  "design_policy": "기존 학생용 웹앱 UI/색상/히어로/카드 구조를 본체로 유지. 새 기능 충돌 시 기존 UX 우선.",
+  "design_policy": "기존 학생용 UI를 유지하면서 v0.25.0에서 5일 학원 대비 사이클을 최상위 흐름으로 사용",
   "weekly_learning": {
     "cadence": "주 1회 부모 지정, 해당 주 월~일 동안 매일 같은 10단어 반복",
     "words_per_week": 10,
@@ -68,7 +68,9 @@
     "assets/v23-daily-routine.js",
     "tests/routine-logic.js",
     "docs/PHASE1_DATA_LOCK.md",
-    ".github/workflows/validate.yml"
+    ".github/workflows/validate.yml",
+    "assets/v25-five-day-flow.js",
+    "tests/v25-flow-logic.js"
   ],
   "completed_in_v024": [
     "주간 10단어 7일 유효기간 강제",
@@ -80,10 +82,39 @@
     "Node 기반 루틴 논리 회귀테스트를 GitHub Actions에 추가"
   ],
   "next_default_tasks": [
-    "iPad Apple Pencil 1세대 / Galaxy Tab S Pen 실제 기기에서 필기·손바닥 차단·20획 연속 입력 최종 실기검수",
-    "학생 홈에서 학습모드→500P 확인시험→쪽지시험 대비까지 실제 1일 전체 동선 사용성 점검",
-    "부모 모드에서 주간 10단어 변경·누적진도 변경을 실제 태블릿에서 1분 이내 처리 가능한지 최종 UI 점검",
-    "실기에서 발견되는 오류만 최소 수정하고 기존 UI는 유지"
+    "iPad Apple Pencil / Galaxy Tab S Pen에서 v0.25.0 1일 전체 동선 실기검수",
+    "부모 모드에서 5일 계획 설정을 1분 이내 처리 가능한지 확인",
+    "깜짝 쪽지시험 생성→학생 응시→부모 채점 동선 실기검수",
+    "발견되는 오류만 최소 수정"
   ],
-  "resume_phrase": "다음 작업 진행"
-}
+  "resume_phrase": "다음 작업 진행",
+  "five_day_cycle": {
+    "cadence": "부모가 1회 설정, 저장일 포함 D1~D5 사용, D6 새 계획",
+    "set1": "부모 직접 선택 1~10단어(권장 3단어), 매일 학습 후 해당 단어만 쪽지시험",
+    "set2": "29쪽부터 부모 지정 현재 진도 마지막 단어까지 누적범위 고정, 매일 최대 20단어를 골라 학습 후 실전시험",
+    "sequence": [
+      "1세트 학습",
+      "1세트 쪽지시험",
+      "2세트 학습",
+      "2세트 실전 쪽지시험"
+    ],
+    "reward": "두 세트 쪽지시험 모두 완료 시 하루 최대 500P"
+  },
+  "surprise_quiz": {
+    "source": "당일 1세트/2세트에서 실제로 학습한 단어",
+    "creation": "부모가 원하는 단어를 수기 선택하여 별도 시험 생성",
+    "student": "한글→한자 직접 쓰기, 힌트/정답 미노출",
+    "grading": "부모 O/X",
+    "independence": "1·2세트 완료 및 500P와 독립"
+  },
+  "stroke_transition_delay": "정확 획수 충족 후 2초",
+  "completed_in_v025": [
+    "5일(D1~D5) 계획 유효기간",
+    "1세트 복습 단어 자유선택(1~10, 권장 3단어)",
+    "2세트 29쪽부터 현재 진도 끝까지 누적범위와 일일 최대 20단어",
+    "1세트 학습→시험→2세트 학습→시험 순서 강제",
+    "두 세트 완료 시 하루 500P",
+    "당일 학습 단어 기반 부모 수기 깜짝 쪽지시험 생성 및 부모 채점",
+    "획수 충족 후 자동 전환 2초"
+  ]
+}\n

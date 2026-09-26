@@ -8,7 +8,7 @@
 - GitHub repository: `kfcccpro-ship-it/ipmun-hanja`
 - branch: `main`
 - GitHub Pages: https://kfcccpro-ship-it.github.io/ipmun-hanja/
-- current app version: **0.24.0**
+- current app version: **0.25.0**
 - current validation/deploy: **Validate Hanja App SUCCESS / Deploy GitHub Pages SUCCESS**
 - source textbook: **장원한자.pdf**
 - 핵심 대상: 초등 4학년, iPad + Apple Pencil 1세대 / Galaxy Tab + S Pen
@@ -331,3 +331,19 @@ GitHub Actions:
 **다음 작업 진행**
 
 이 한 줄을 받으면 추가 설명을 요구하지 말고 위 인수인계 기준으로 바로 작업을 계속한다.
+
+
+---
+
+## 12. v0.25.0 운영 구조 — 5일 학원 대비 사이클
+
+- 부모가 한 번 설정하면 **저장일 포함 5일(D1~D5)** 동안 같은 계획을 사용한다.
+- D6부터는 새 계획을 요구한다.
+- 1세트: 부모가 직접 고른 이번 주 복습 단어. 1~10단어, 권장 3단어(약 6글자). 매일 **학습 → 1세트 쪽지시험**.
+- 2세트: 범위는 항상 **29쪽부터 부모가 지정한 현재 진도 마지막 단어까지**. 고정된 5일 범위 안에서 매일 최대 20단어를 오답/최근/기존범위로 선정하고 **학습 → 실전 쪽지시험**.
+- 진행 순서: **1세트 학습 → 1세트 시험 → 2세트 학습 → 2세트 시험**.
+- 두 세트 시험을 모두 완료하면 하루 최대 **500P**.
+- 별도 **깜짝 쪽지시험**: 부모가 그날 1·2세트에서 실제 학습한 단어만 골라 수기로 시험을 생성한다. 학생은 힌트 없이 한글→한자를 쓰고, 부모가 O/X 채점한다. 이 시험은 500P 및 1·2세트 완료와 독립이다.
+- 정확한 획수 입력 뒤 자동 전환 대기시간은 **3초 → 2초**로 단축.
+- 구현 파일: `assets/v25-five-day-flow.js`
+- 회귀검증: `tests/v25-flow-logic.js`

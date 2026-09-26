@@ -26,9 +26,9 @@ jobs:
         run: |
           node --check assets/v21-parent-picker.js
           node --check assets/v22-points.js
-          node --check assets/v23-daily-routine.js
+          node --check assets/v23-daily-routine.js\n          node --check assets/v25-five-day-flow.js
       - name: Daily routine logic tests
-        run: node tests/routine-logic.js
+        run: |\n          node tests/routine-logic.js\n          node tests/v25-flow-logic.js
       - name: Structural checks
         run: |
           python3 - <<'PY'
@@ -68,7 +68,7 @@ jobs:
             'week_expiry':'function isCurrentWeekPlan' in Path('assets/v23-daily-routine.js').read_text(encoding='utf-8'),
             'reward_integration':'learnCore&&rewarded' in Path('assets/v23-daily-routine.js').read_text(encoding='utf-8'),
             'daily_resume':'getDailyQuizPlan' in Path('assets/v23-daily-routine.js').read_text(encoding='utf-8'),
-            'ten_word_daily':'10단어' in Path('assets/v21-parent-picker.js').read_text(encoding='utf-8'),
+            'ten_word_daily':'10단어' in Path('assets/v21-parent-picker.js').read_text(encoding='utf-8'),\n            'v25_five_day':'FIVE_DAYS=5' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),\n            'v25_two_sets':'1세트 · 이번 주 복습' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and '2세트 · 실제 시험 대비' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),\n            'v25_surprise':'깜짝 쪽지시험 만들기' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),\n            'v25_two_second_delay':'let n=2,delayDone=false' in s,
           }
           for k,v in checks.items(): print(k, 'PASS' if v else 'FAIL')
           if not all(checks.values()): sys.exit(1)
