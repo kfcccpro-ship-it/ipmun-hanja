@@ -4,7 +4,7 @@
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
   "version": "0.25.0",
-  "latest_app_commit": "4ff7b246e81109810f0bca76b666ad647a3760e3",
+  "latest_app_commit": "18591485f3309969b905ab0aeeab27ff413e2e85",
   "source": {
     "textbook": "장원한자.pdf",
     "primary_printed_pages": [
@@ -48,7 +48,10 @@
     ]
   },
   "validation": {
-    "automated_test": "tests/routine-logic.js",
+    "automated_tests": [
+      "tests/routine-logic.js",
+      "tests/v25-flow-logic.js"
+    ],
     "workflow": ".github/workflows/validate.yml",
     "app_commit_validate": "SUCCESS",
     "app_commit_pages": "SUCCESS"
@@ -117,4 +120,4 @@
     "당일 학습 단어 기반 부모 수기 깜짝 쪽지시험 생성 및 부모 채점",
     "획수 충족 후 자동 전환 2초"
   ]
-}\n
+}
