@@ -4,7 +4,7 @@
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
   "version": "0.25.1",
-  "latest_app_commit": "18591485f3309969b905ab0aeeab27ff413e2e85",
+  "latest_app_commit": "99cc2a282ce458e9bdbbef59cd979eea77d06bd0",
   "source": {
     "textbook": "장원한자.pdf",
     "primary_printed_pages": [
@@ -20,7 +20,7 @@
     "unique_characters": 187,
     "status": "PHASE1_LOCKED"
   },
-  "design_policy": "기존 학생용 UI를 유지하면서 v0.25.0에서 5일 학원 대비 사이클을 최상위 흐름으로 사용",
+  "design_policy": "기존 학생용 UI를 유지하면서 v0.25.1의 5일 학원 대비 사이클을 최상위 흐름으로 사용",
   "weekly_learning": {
     "cadence": "주 1회 부모 지정, 해당 주 월~일 동안 매일 같은 10단어 반복",
     "words_per_week": 10,
@@ -50,9 +50,11 @@
   "validation": {
     "automated_tests": [
       "tests/routine-logic.js",
-      "tests/v25-flow-logic.js"
+      "tests/v25-flow-logic.js",
+      "tests/v251-ipad-regression.js"
     ],
     "workflow": ".github/workflows/validate.yml",
+    "app_commit": "99cc2a282ce458e9bdbbef59cd979eea77d06bd0",
     "app_commit_validate": "SUCCESS",
     "app_commit_pages": "SUCCESS"
   },
