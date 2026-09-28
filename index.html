@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>태이를 위해 아빠가 만든 한자앱 · v0.26.0</title>
+<title>태이를 위해 아빠가 만든 한자앱 · v0.27.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="data/meta.js?v=0.11.0"></script>
@@ -83,6 +83,11 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .pad .cell.grid::before{left:50%;top:0;bottom:0;border-left-width:1.5px}
 .pad .cell.grid::after{top:50%;left:0;right:0;border-top-width:1.5px}
 .pad canvas{position:absolute;inset:0;touch-action:none}
+.padEraserMini{position:absolute;right:6px;top:6px;z-index:12;padding:6px 9px!important;min-height:0!important;border-radius:10px!important;font-family:'Jua'!important;font-size:14px!important;line-height:1.1;background:rgba(255,255,255,.94)!important;color:#22304A!important;border:2px solid var(--line)!important;box-shadow:0 2px 7px rgba(0,0,0,.10)}
+.padEraserMini.on{background:var(--sun)!important;border-color:var(--sun)!important}
+.pad.eraserMode{box-shadow:0 0 0 4px var(--sun)}
+.pad.eraserMode canvas:last-of-type{cursor:crosshair}
+
 .q{font-family:'Jua';font-size:24px;text-align:center;margin:6px 0 14px}
 .qword{font-family:var(--hanja);font-size:84px;text-align:center;line-height:1.1}
 .prog{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
@@ -673,27 +678,40 @@ function makePad(host,{cells=2,size=150,grid=true,trace='',alpha=0.2,w=null,h=nu
   const ua=navigator.userAgent||'';
   const isIPad=/iPad/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
   const isGalaxy=/Android/.test(ua)&&(/SM-|Samsung/i.test(ua));
-  let drawing=false,last=null,strokes=0,locked=false,currentPath=null,paths=[];
+  let drawing=false,last=null,strokes=0,locked=false,currentPath=null,paths=[],eraserMode=false,eraseDirty=false;
   const pos=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top,p:(e.pressure>0?e.pressure:0.5),pt:e.pointerType||'unknown'}};
   const penWidth=p=>{const base=isIPad?4.8:isGalaxy?4.1:4.5,gain=isIPad?7.2:isGalaxy?5.8:7;return(base+p*gain)*k};
   const line=(a,b)=>{ctx.lineWidth=penWidth(b.p);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()};
   const redrawInk=()=>{ctx.clearRect(0,0,W,H);for(const path of paths){if(!path.length)continue;if(path.length===1){const a=path[0];line(a,{...a,x:a.x+.1});continue}for(let i=1;i<path.length;i++)line(path[i-1],path[i])}};
-  // iOS: 길게 누르기(텍스트 선택·확대경) 방지
-  pad.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
-  pad.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+  const eraseRadius=Math.max(20,Math.min(36,H*.13));
+  const eraseAt=p=>{
+    const r2=eraseRadius*eraseRadius;let changed=false;const kept=[];
+    for(const path of paths){
+      const hit=path.some(pt=>{const dx=pt.x-p.x,dy=pt.y-p.y;return dx*dx+dy*dy<=r2});
+      if(hit)changed=true;else kept.push(path);
+    }
+    if(changed){paths=kept;strokes=paths.length;redrawInk();eraseDirty=true}
+  };
+  const er=document.createElement('button');er.type='button';er.className='padEraserMini';er.textContent='🧽 획 지우개';pad.appendChild(er);
+  const setEraser=v=>{eraserMode=!!v;pad.classList.toggle('eraserMode',eraserMode);er.classList.toggle('on',eraserMode);er.textContent=eraserMode?'✏️ 쓰기':'🧽 획 지우개'};
+  er.onclick=e=>{e.preventDefault();e.stopPropagation();if(!locked)setEraser(!eraserMode)};
+  pad.addEventListener('touchstart',e=>{if(e.target.closest&&e.target.closest('button'))return;e.preventDefault()},{passive:false});
+  pad.addEventListener('touchmove',e=>{if(e.target.closest&&e.target.closest('button'))return;e.preventDefault()},{passive:false});
   cv.addEventListener('pointerdown',e=>{
     if(locked)return;
-    if(db.penOnly&&e.pointerType==='touch')return;          // 손바닥·손가락 무시
-    if(e.pointerType==='pen'&&(e.buttons&~1))return;          // S펜 버튼·지우개 입력 무시
+    if(db.penOnly&&e.pointerType==='touch')return;
+    if(e.pointerType==='pen'&&(e.buttons&~1))return;
     e.preventDefault();drawing=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}
+    if(eraserMode){eraseDirty=false;currentPath=null;eraseAt(pos(e));onDown&&onDown();return}
     last=pos(e);currentPath=[last];paths.push(currentPath);strokes=paths.length;line(last,{...last,x:last.x+.1});onDown&&onDown();
   });
   cv.addEventListener('pointermove',e=>{
     if(!drawing)return;e.preventDefault();
     const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+    if(eraserMode){for(const ev of (evs.length?evs:[e]))eraseAt(pos(ev));return}
     for(const ev of (evs.length?evs:[e])){const p=pos(ev);line(last,p);currentPath&&currentPath.push(p);last=p}
   });
-  const end=()=>{if(!drawing)return;drawing=false;currentPath=null;onUp&&onUp();onChange&&onChange()};
+  const end=()=>{if(!drawing)return;drawing=false;currentPath=null;onUp&&onUp();if(eraserMode){if(eraseDirty){eraseDirty=false;onChange&&onChange()}return}onChange&&onChange()};
   cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('lostpointercapture',end);
   return{
     el:pad,canvas:cv,
@@ -701,7 +719,9 @@ function makePad(host,{cells=2,size=150,grid=true,trace='',alpha=0.2,w=null,h=nu
     undo(){if(drawing||!paths.length)return;paths.pop();strokes=paths.length;redrawInk();onChange&&onChange()},
     empty:()=>strokes===0,
     strokes:()=>strokes,
-    lock(v){locked=v;pad.classList.toggle('locked',v)},
+    setEraser(v){setEraser(v)},
+    eraser:()=>eraserMode,
+    lock(v){locked=v;if(v)setEraser(false);er.hidden=!!v;pad.classList.toggle('locked',v)},
     load(src){if(!src)return;const im=new Image();im.onload=()=>{ctx.drawImage(im,0,0,W,H);paths=[];strokes=Math.max(strokes,1)};im.src=src},
     raw:()=>cv.toDataURL('image/png'),
     image(scale=0.6){return joinImg([{canvas:cv}],H*scale,W/H,grid?cells:0)}
@@ -1606,6 +1626,6 @@ go('home');
 </script>
 <script src="assets/v21-parent-picker.js?v=0.22.0"></script>
 <script src="assets/v22-points.js?v=0.23.0"></script>
-<script src="assets/v23-daily-routine.js?v=0.24.0"></script>\n<script src="assets/v25-five-day-flow.js?v=0.26.0"></script>
+<script src="assets/v23-daily-routine.js?v=0.24.0"></script>\n<script src="assets/v25-five-day-flow.js?v=0.27.0"></script>
 </body>
 </html>
