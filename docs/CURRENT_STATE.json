@@ -4,7 +4,7 @@
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
   "version": "0.27.0",
-  "latest_app_commit": "6069fba7668550223c274c13e91e798530e8081e",
+  "latest_app_commit": "bedebec475dac9f2d17378507f3663e78c933d32",
   "source": {
     "textbook": "장원한자.pdf",
     "primary_printed_pages": [
@@ -52,10 +52,11 @@
       "tests/routine-logic.js",
       "tests/v25-flow-logic.js",
       "tests/v251-ipad-regression.js",
-      "tests/v26-learning-regression.js"
+      "tests/v26-learning-regression.js",
+      "tests/v27-voice-recall-eraser.js"
     ],
     "workflow": ".github/workflows/validate.yml",
-    "app_commit": "6069fba7668550223c274c13e91e798530e8081e",
+    "app_commit": "bedebec475dac9f2d17378507f3663e78c933d32",
     "app_commit_validate": "SUCCESS",
     "app_commit_pages": "SUCCESS"
   },
