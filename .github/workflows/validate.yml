@@ -34,6 +34,7 @@ jobs:
           node tests/v25-flow-logic.js
           node tests/v251-ipad-regression.js
           node tests/v26-learning-regression.js
+          node tests/v27-voice-recall-eraser.js
       - name: Structural checks
         run: |
           python3 - <<'PY'
@@ -84,6 +85,9 @@ jobs:
             'v26_usage':'연예·아이돌·무대 예시' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and '드라마·방송 대사처럼 소리 내어 읽기' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
             'v26_collision':'const placed=[],gap=' in s,
             'v26_large_hanja':'약한 획수·획순을 위해 한자 표시' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v27_voice':'window.SpeechRecognition||window.webkitSpeechRecognition' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and 'speechSynthesis' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v27_recall_gate':'function charRecallGate' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and '음·뜻·획수' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v27_eraser':"er.className='padEraserMini'" in s and 'const eraseAt=p=>' in s,
           }
           for k,v in checks.items(): print(k, 'PASS' if v else 'FAIL')
           if not all(checks.values()): sys.exit(1)
