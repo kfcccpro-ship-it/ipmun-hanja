@@ -6,7 +6,7 @@ const flow=fs.readFileSync('assets/v25-five-day-flow.js','utf8');
 assert(index.includes("layer.style.width=size+'px'"));
 assert(index.includes("layer.style.left='50%'"));
 assert(index.includes("layer.style.transform='translate(-50%,-50%)'"));
-assert(index.includes("const x=Math.max(edge,Math.min(size-edge"));
+assert(index.includes("const ox=Math.max(edge,Math.min(size-edge"));
 assert(index.includes("v0.25.1</title>"));
 
 const a=flow.indexOf('function runStudy(setKey)');
