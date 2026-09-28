@@ -7,7 +7,7 @@ assert(index.includes("layer.style.width=size+'px'"));
 assert(index.includes("layer.style.left='50%'"));
 assert(index.includes("layer.style.transform='translate(-50%,-50%)'"));
 assert(index.includes("const ox=Math.max(edge,Math.min(size-edge"));
-assert(index.includes("v0.26.0</title>"));
+assert(index.includes("v0.27.0</title>"));
 
 const a=flow.indexOf('function runStudy(setKey)');
 const b=flow.indexOf('function buildQuizItems',a);
