@@ -15,7 +15,7 @@ assert(flow.includes('if(k<3)attachTraceGuide'));
 assert(flow.includes('replayStrokeOrderMini'));
 assert(flow.includes("let n=2,delayDone=false"));
 assert(flow.includes('한 획 되돌리기'));
-assert(flow.includes('이 칸 지우기'));
+assert(flow.includes('이 칸 모두 지우기'));
 
 const a=flow.indexOf('function runStudy(setKey)');
 const b=flow.indexOf('function buildQuizItems',a);
