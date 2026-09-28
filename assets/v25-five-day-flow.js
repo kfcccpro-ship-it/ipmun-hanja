@@ -186,6 +186,12 @@
     .v26Dialogue{margin:12px 0;padding:14px 16px;border:2px solid #EED89B;border-radius:14px;background:#FFF8E4}.v26Dialogue small{display:block;font-family:'Jua';color:var(--sub);font-size:17px;margin-bottom:6px}.v26Dialogue b{display:block;font-size:21px;line-height:1.55}
     @media(max-width:600px){.strokeNum{width:27px!important;height:27px!important;font-size:14px!important}.v26MemoryLine{grid-template-columns:1fr;text-align:center}.v26MemoryLine>.hz{font-size:64px}.v251Combine b{font-size:58px!important}.v26WriteTitle>.hz{font-size:72px}}
   `;
+  style.textContent+=`
+    .v27VoiceBox{max-width:760px;margin:12px auto;padding:12px 14px;border:2px solid #BFD4F3;border-radius:14px;background:#F4F8FF;display:grid;gap:8px;text-align:center}.v27VoiceBox b{font-family:'Jua';font-size:23px}.v27VoiceBox small{display:block;color:var(--sub);font-size:14px;margin-top:3px}.v27VoiceStatus{min-height:26px;font-family:'Jua';font-size:17px;color:var(--sub)}
+    .v27RecallCard{max-width:780px;margin-left:auto;margin-right:auto}.v27RecallChar{font-size:120px;text-align:center;line-height:1}.v27RecallFields{display:grid;grid-template-columns:1fr 1fr 160px;gap:12px;margin:16px 0}.v27RecallFields.two{grid-template-columns:1fr 1.5fr}.v27RecallFields label{display:grid;gap:5px}.v27RecallFields label>span{font-family:'Jua';font-size:18px}.v27RecallFields input{width:100%;font-size:25px;padding:13px 14px}.v27RecallFields input.bad{border-color:var(--seal);background:#FDECEA}
+    .v27WordRecall{max-width:760px;margin:16px auto;padding:14px 16px;background:var(--paper);border:2px solid var(--line);border-radius:14px}.v27WordRecall h3{margin:0 0 4px;text-align:center}.v27StrokeCounts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0}.v27StrokeCounts span{font-family:'Jua';font-size:19px;padding:7px 11px;border-radius:10px;background:var(--paper);border:2px solid var(--line)}.v27StrokeCounts span.ok{border-color:var(--leaf);color:var(--leaf)}.v27StrokeCounts span.bad{border-color:var(--seal);color:var(--seal)}
+    @media(max-width:650px){.v27RecallFields,.v27RecallFields.two{grid-template-columns:1fr}.v27RecallChar{font-size:92px}.v27VoiceBox .row{justify-content:center}}
+  `;
   document.head.appendChild(style);
 
   home=function(){
@@ -228,6 +234,73 @@
     app.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go)}});
   };
 
+  function normRecall(s){return String(s==null?'':s).toLowerCase().replace(/[\s.,·!?'"“”‘’()\[\]{}:;\-_/]/g,'')}
+  function speakKo(text,statusEl){
+    if(!('speechSynthesis' in window)){if(statusEl)statusEl.textContent='이 기기에서는 음성 듣기를 지원하지 않아요.';return false}
+    try{
+      window.speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(String(text||''));u.lang='ko-KR';u.rate=.78;u.pitch=1.03;
+      const voices=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
+      const ko=voices.find(function(v){return /^ko(-|_)/i.test(v.lang||'')});if(ko)u.voice=ko;
+      u.onstart=function(){if(statusEl)statusEl.textContent='잘 듣고 그대로 따라 말해 보세요.'};
+      u.onend=function(){if(statusEl)statusEl.textContent='이제 마이크 버튼을 눌러 따라 말해도 좋아요.'};
+      u.onerror=function(){if(statusEl)statusEl.textContent='음성을 재생하지 못했어요. 화면의 한글을 소리 내어 읽어 주세요.'};
+      window.speechSynthesis.speak(u);return true;
+    }catch(_){if(statusEl)statusEl.textContent='음성을 재생하지 못했어요.';return false}
+  }
+  function listenKo(expected,statusEl){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){if(statusEl)statusEl.textContent='이 iPad/브라우저는 마이크 따라 말하기 인식을 지원하지 않아요. 듣기 후 직접 소리 내어 따라 말해 주세요.';return}
+    try{
+      const r=new SR();r.lang='ko-KR';r.interimResults=false;r.maxAlternatives=3;let got=false;
+      r.onstart=function(){if(statusEl)statusEl.textContent='듣고 있어요… 또박또박 말해 보세요.'};
+      r.onresult=function(e){
+        got=true;const alts=[];for(let i=0;i<e.results[0].length;i++)alts.push(e.results[0][i].transcript||'');
+        const exp=normRecall(expected),ok=alts.some(function(x){const a=normRecall(x);return a===exp||a.includes(exp)||(a.length>=2&&exp.includes(a))});
+        if(statusEl)statusEl.innerHTML=ok?'<span class="okMsg">잘했어요! “'+esc(alts[0])+'”라고 들렸어요.</span>':'<span class="badMsg">“'+esc(alts[0]||'')+'”라고 들렸어요. 한 번 더 따라 말해 보세요.</span>';
+      };
+      r.onerror=function(e){if(statusEl)statusEl.textContent=e.error==='not-allowed'?'마이크 사용 권한이 필요해요. 브라우저에서 마이크를 허용해 주세요.':'마이크 인식이 잘 되지 않았어요. 다시 눌러 말해 보세요.'};
+      r.onend=function(){if(!got&&statusEl&&!statusEl.textContent)statusEl.textContent='말소리를 듣지 못했어요. 다시 해 보세요.'};
+      r.start();
+    }catch(_){if(statusEl)statusEl.textContent='마이크를 시작하지 못했어요. 잠시 뒤 다시 시도해 주세요.'}
+  }
+  function bindVoice(listenSel,repeatSel,statusSel,speakText,expectedText){
+    const a=document.querySelector(listenSel),b=document.querySelector(repeatSel),s=document.querySelector(statusSel);
+    if(a)a.onclick=function(){speakKo(speakText,s)};
+    if(b)b.onclick=function(){listenKo(expectedText,s)};
+  }
+  function voiceBoxHtml(prefix,title){
+    return `<div class="v27VoiceBox"><div><b>${esc(title)}</b><small>듣고 → 그대로 따라 말해 보세요. 음성은 저장하지 않습니다.</small></div><div class="row" style="justify-content:center"><button class="sun" id="${prefix}Listen">🔊 듣기</button><button class="ghost" id="${prefix}Repeat">🎤 따라 말하기</button></div><div class="v27VoiceStatus" id="${prefix}Status"></div></div>`;
+  }
+  function charRecallGate(setKey,st,w,c,charIndex,label){
+    st.writeCheckpoint=st.writeCheckpoint||{};
+    const key=w.id+':'+charIndex;
+    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charIndex===0?'첫':'둘째'} 글자 확인</span><span class="jua">${st.studyIndex+1}단어 · ${charIndex+1}/2글자</span></div>
+      <div class="card v27RecallCard" style="margin-top:12px">
+        <div class="v27RecallChar hz">${c.ch}</div><h2 style="text-align:center;margin:8px 0">5번 쓰기 완료 · 기억 확인</h2>
+        <p class="muted" style="text-align:center">음, 뜻(훈), 획수를 모두 맞혀야 다음 글자로 넘어갑니다.</p>
+        ${voiceBoxHtml('v27RecallVoice','['+c.hun+' '+c.eum+']')}
+        <div class="v27RecallFields">
+          <label><span>음 · 소리</span><input id="v27CharEum" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="예: ${esc(c.eum)}"></label>
+          <label><span>뜻 · 훈</span><input id="v27CharHun" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="예: ${esc(c.hun.split('/')[0])}"></label>
+          <label><span>총 획수</span><input id="v27CharHoek" inputmode="numeric" pattern="[0-9]*" placeholder="몇 획?"></label>
+        </div>
+        <div id="v27RecallFb" class="hint" style="text-align:center"></div>
+        <div class="row" style="justify-content:space-between"><button class="ghost" id="v27RecallHome">오늘 화면</button><button class="pri big" id="v27RecallCheck">음·뜻·획수 확인</button></div>
+      </div>`;
+    const voiceLabel=c.hun.split('/')[0]+' '+c.eum;
+    bindVoice('#v27RecallVoiceListen','#v27RecallVoiceRepeat','#v27RecallVoiceStatus',voiceLabel,voiceLabel);
+    document.querySelector('#v27RecallHome').onclick=function(){go('home')};
+    document.querySelector('#v27RecallCheck').onclick=function(){
+      const e=normRecall(document.querySelector('#v27CharEum').value),h=normRecall(document.querySelector('#v27CharHun').value),n=+document.querySelector('#v27CharHoek').value;
+      const okE=e===normRecall(c.eum),okH=c.hun.split('/').some(function(x){return h===normRecall(x)}),okN=n===+c.hoek;
+      document.querySelector('#v27CharEum').classList.toggle('bad',!okE);document.querySelector('#v27CharHun').classList.toggle('bad',!okH);document.querySelector('#v27CharHoek').classList.toggle('bad',!okN);
+      if(!(okE&&okH&&okN)){document.querySelector('#v27RecallFb').innerHTML='<span class="badMsg">'+[!okE?'음':null,!okH?'뜻':null,!okN?'획수':null].filter(Boolean).join(' · ')+'을 다시 확인해 보세요.</span>';return}
+      document.querySelector('#v27RecallFb').innerHTML='<span class="okMsg">정답! 음·뜻·획수를 모두 기억했어요.</span>';
+      delete st.writeCheckpoint[key];st.studyPhase++;save();setTimeout(function(){runStudy(setKey)},650);
+    };
+  }
+
   function termReading(term){
     return Array.from(term||'').map(function(ch){return CHAR_INFO[ch]?.eum||''}).join('');
   }
@@ -255,19 +328,25 @@
     return Math.min(215,Math.max(155,Math.floor((w-82)/3)));
   }
   function runFiveWrite(setKey,st,w,c,charIndex,label){
+    const checkpointKey=w.id+':'+charIndex;
+    st.writeCheckpoint=st.writeCheckpoint||{};
+    if(st.writeCheckpoint[checkpointKey])return charRecallGate(setKey,st,w,c,charIndex,label);
     const cs=v26WriteCellSize();
     app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charIndex===0?'첫':'둘째'} 글자 5번 쓰기</span><span class="jua">${st.studyIndex+1}단어 · ${charIndex+1}/2글자</span></div>
       <div class="card v26FiveWrite" style="margin-top:12px">
         <div class="v26WriteTitle"><span class="hz">${c.ch}</span><div><b>[${esc(c.hun)} ${esc(c.eum)}]</b><small>총 ${c.hoek}획 · 1~3칸은 숫자 획순 따라쓰기 · 4~5칸은 혼자 쓰기</small></div></div>
+        ${voiceBoxHtml('v27WriteVoice','['+c.hun+' '+c.eum+']')}
         <div class="note5" id="v26WriteGrid"></div>
         <div id="v26WriteFeedback" class="writeFeedback" aria-live="polite"></div>
         <div class="row" style="justify-content:space-between;margin-top:10px;gap:10px">
           <span class="cnt" id="v26WriteCount"></span>
-          <div class="row"><button class="ghost" id="v26Undo">한 획 되돌리기</button><button class="ghost" id="v26Clear">이 칸 지우기</button></div>
+          <div class="row"><button class="ghost" id="v26Undo">한 획 되돌리기</button><button class="ghost" id="v26Clear">이 칸 모두 지우기</button></div>
         </div>
         <div id="v26WriteDone" style="text-align:center"></div>
         <div class="row" style="justify-content:flex-start;margin-top:12px"><button class="ghost" id="v26WriteHome">오늘 화면</button></div>
       </div>`;
+    const voiceLabel=c.hun.split('/')[0]+' '+c.eum;
+    bindVoice('#v27WriteVoiceListen','#v27WriteVoiceRepeat','#v27WriteVoiceStatus',voiceLabel,voiceLabel);
     const pads=[];let cur=0,tick=null,counting=false,feedbackTimer=null,cycle=0;
     const countEl=document.querySelector('#v26WriteCount');
     const stat=function(){const p=pads[cur];countEl.textContent=cur>=5?'5 / 5칸 완료':(cur+1)+' / 5 · '+(p?p.strokes():0)+'/'+c.hoek+'획'};
@@ -284,9 +363,9 @@
     const finish=function(){
       countEl.textContent='5 / 5칸 완료';
       document.querySelector('#v26Clear').style.display='none';document.querySelector('#v26Undo').style.display='none';
-      db.notes[today()]=db.notes[today()]||{};db.notes[today()][c.id]=joinImg(pads,72,1,1,c.ch);save();
-      document.querySelector('#v26WriteDone').innerHTML='<span class="stampOk">5번<br>완료</span><p class="okMsg">획수를 세며 다섯 번 썼어요.</p><button class="pri" id="v26WriteNext">다음 단계</button>';
-      document.querySelector('#v26WriteNext').onclick=function(){st.studyPhase++;save();runStudy(setKey)};
+      db.notes[today()]=db.notes[today()]||{};db.notes[today()][c.id]=joinImg(pads,72,1,1,c.ch);
+      st.writeCheckpoint[checkpointKey]=true;save();
+      charRecallGate(setKey,st,w,c,charIndex,label);
     };
     const startTimer=function(){
       if(counting||cur>=5)return;
@@ -341,15 +420,18 @@
       const charIndex=Math.floor(phase/2),isStroke=phase%2===0,c=cs[charIndex],charLabel=charIndex===0?'첫 글자':'둘째 글자';
       if(!isStroke)return runFiveWrite(setKey,st,w,c,charIndex,label);
       const size=Math.min(620,Math.max(410,Math.min(window.innerWidth-46,window.innerHeight*.68)));
+      const voiceLabel=c.hun.split('/')[0]+' '+c.eum;
       app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charLabel} 큰글씨 획순</span><span class="jua">${i+1} / ${words.length}단어 · ${charIndex+1}/2글자</span></div>
         <div class="prog" style="margin:10px 0 14px"><div style="width:${progress}%"></div></div>
         <div class="card v251CharCard v26StrokeCard">
           <div class="v251SingleStroke" id="v251SingleStroke"></div>
           <div class="v251CharMeta"><span class="hz v26HeroChar">${c.ch}</span><span>[${esc(c.hun)} ${esc(c.eum)}] · <b>${c.hoek}획</b></span></div>
           <div class="v26StrokeRule"><b>1 → 2 → 3… 숫자를 눈으로 따라가며</b> 펜을 공중에서 같이 움직여 보세요. 획순 자동재생이 끝나야 5번 쓰기로 넘어갑니다.</div>
+          ${voiceBoxHtml('v27CharVoice','['+c.hun+' '+c.eum+']')}
           ${charMemoryHtml(c,w)}
           <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v251StudyHome">오늘 화면</button><button class="pri" id="v251CharNext" disabled>획순 자동 재생 중…</button></div>
         </div>`;
+      bindVoice('#v27CharVoiceListen','#v27CharVoiceRepeat','#v27CharVoiceStatus',voiceLabel,voiceLabel);
       const nextBtn=document.querySelector('#v251CharNext');
       mountStrokeLesson(document.querySelector('#v251SingleStroke'),c.ch,c.hoek,{size:size,auto:true,onFirstComplete:function(){
         if(!nextBtn||!document.body.contains(nextBtn))return;
@@ -366,6 +448,7 @@
       <div class="prog" style="margin:10px 0 14px"><div style="width:${Math.round(((i+1)/words.length)*100)}%"></div></div>
       <div class="card v251WordCard v26WordUsage">
         <div class="v26WordHero hz">${w.word}</div><div class="wordRead">${esc(w.read)}</div>
+        ${voiceBoxHtml('v27WordVoice',w.read)}
         <div class="v251Combine">
           <div><b class="hz">${cs[0].ch}</b><span>[${esc(cs[0].hun)} ${esc(cs[0].eum)}]</span></div><strong>+</strong>
           <div><b class="hz">${cs[1].ch}</b><span>[${esc(cs[1].hun)} ${esc(cs[1].eum)}]</span></div><strong>→</strong>
@@ -376,22 +459,49 @@
           <div class="ex" style="border-color:var(--ink)"><small>교재 예문</small>${w.sent}</div>
           <div class="ex"><small>초등 4학년 생활 예시</small>${w.nat}</div>
           <div class="ex star entertainmentEx"><small>연예·아이돌·무대 예시</small>${star}</div>
-          <div class="v26Dialogue"><small>드라마·방송 대사처럼 소리 내어 읽기</small><b>“${star}”</b></div>
+          <div class="v26Dialogue"><small>드라마·방송 대사처럼 소리 내어 읽기</small><b>“${star}”</b><button class="ghost" id="v27LineListen" style="margin-top:8px">🔊 대사 듣기</button></div>
         </div>
-        <p class="muted" style="text-align:center">마지막으로 두 글자를 한 번 직접 써서 단어 모양을 연결해요.</p>
+        <div class="v27WordRecall">
+          <h3>단어 기억 확인</h3><p class="muted">읽는 소리(음), 뜻, 두 글자의 획수를 모두 맞혀야 다음 단어로 넘어갑니다.</p>
+          <div class="v27RecallFields two">
+            <label><span>음 · 읽는 소리</span><input id="v27WordRead" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="읽는 소리"></label>
+            <label><span>뜻</span><input id="v27WordMean" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="위에서 배운 뜻"></label>
+          </div>
+        </div>
+        <p class="muted" style="text-align:center">두 글자를 각각 <b>정확한 획수</b>로 써 보세요. 각 쓰기 칸의 지우개로 잘못 쓴 획만 지울 수 있어요.</p>
         <div id="v251StudyPad" class="row" style="justify-content:center;gap:12px"></div>
-        <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v251StudyHome">오늘 화면</button><button class="pri" id="v251StudyNext">${i<words.length-1?'이 단어 완료 → 다음 단어':'학습 완료 → 쪽지시험'}</button></div>
+        <div class="v27StrokeCounts"><span id="v27Count0">${cs[0].ch} · 0/${cs[0].hoek}획</span><span id="v27Count1">${cs[1].ch} · 0/${cs[1].hoek}획</span></div>
+        <div id="v27WordFb" class="hint" style="text-align:center"></div>
+        <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v251StudyHome">오늘 화면</button><button class="pri" id="v251StudyNext">${i<words.length-1?'음·뜻·획수 확인 → 다음 단어':'음·뜻·획수 확인 → 쪽지시험'}</button></div>
       </div>`;
-    const pad1=makePad(document.querySelector('#v251StudyPad'),{cells:1,size:size});
-    const pad2=makePad(document.querySelector('#v251StudyPad'),{cells:1,size:size});
+    bindVoice('#v27WordVoiceListen','#v27WordVoiceRepeat','#v27WordVoiceStatus',w.read+'. '+w.mean,w.read);
+    document.querySelector('#v27LineListen').onclick=function(){speakKo(star,document.querySelector('#v27WordVoiceStatus'))};
+    let pad1,pad2;
+    const updateCounts=function(){
+      if(!pad1||!pad2)return;
+      const n1=pad1.strokes(),n2=pad2.strokes();
+      const e0=document.querySelector('#v27Count0'),e1=document.querySelector('#v27Count1');
+      e0.textContent=cs[0].ch+' · '+n1+'/'+cs[0].hoek+'획';e1.textContent=cs[1].ch+' · '+n2+'/'+cs[1].hoek+'획';
+      e0.classList.toggle('bad',n1>cs[0].hoek);e1.classList.toggle('bad',n2>cs[1].hoek);
+      e0.classList.toggle('ok',n1===cs[0].hoek);e1.classList.toggle('ok',n2===cs[1].hoek);
+    };
+    pad1=makePad(document.querySelector('#v251StudyPad'),{cells:1,size:size,onChange:updateCounts});
+    pad2=makePad(document.querySelector('#v251StudyPad'),{cells:1,size:size,onChange:updateCounts});
+    updateCounts();
     document.querySelector('#v251StudyHome').onclick=function(){go('home')};
     document.querySelector('#v251StudyNext').onclick=function(){
-      if(!pad1.strokes()||!pad2.strokes())return toast('두 글자를 모두 직접 써 주세요');
+      const readOk=normRecall(document.querySelector('#v27WordRead').value)===normRecall(w.read);
+      const meanOk=normRecall(document.querySelector('#v27WordMean').value)===normRecall(w.mean);
+      const strokeOk1=pad1.strokes()===+cs[0].hoek,strokeOk2=pad2.strokes()===+cs[1].hoek;
+      document.querySelector('#v27WordRead').classList.toggle('bad',!readOk);document.querySelector('#v27WordMean').classList.toggle('bad',!meanOk);
+      if(!(readOk&&meanOk&&strokeOk1&&strokeOk2)){
+        document.querySelector('#v27WordFb').innerHTML='<span class="badMsg">'+[!readOk?'음':null,!meanOk?'뜻':null,!(strokeOk1&&strokeOk2)?'획수':null].filter(Boolean).join(' · ')+'을 다시 확인해 보세요.</span>';return;
+      }
       recordLearned(setKey,w);st.studyIndex=i+1;st.studyPhase=0;
       if(st.studyIndex>=words.length)st.learnDone=true;
       save();
-      if(st.learnDone)return runSetQuiz(setKey);
-      runStudy(setKey);
+      document.querySelector('#v27WordFb').innerHTML='<span class="okMsg">정답! 음·뜻·획수를 모두 맞혔어요.</span>';
+      setTimeout(function(){if(st.learnDone)return runSetQuiz(setKey);runStudy(setKey)},650);
     };
   }
 
