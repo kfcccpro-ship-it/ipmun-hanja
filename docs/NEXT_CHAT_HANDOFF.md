@@ -8,7 +8,7 @@
 - GitHub repository: `kfcccpro-ship-it/ipmun-hanja`
 - branch: `main`
 - GitHub Pages: https://kfcccpro-ship-it.github.io/ipmun-hanja/
-- current app version: **0.25.1**
+- current app version: **0.26.0**
 - current validation/deploy: **Validate Hanja App SUCCESS / Deploy GitHub Pages SUCCESS**
 - source textbook: **장원한자.pdf**
 - 핵심 대상: 초등 4학년, iPad + Apple Pencil 1세대 / Galaxy Tab + S Pen
@@ -361,3 +361,26 @@ GitHub Actions:
 - 화면당 HanziWriter 자동재생은 1개만 실행하여 구형 iPad의 CPU/GPU 부하도 줄임.
 - 일일 학습 재진입 시 `studyPhase`로 현재 글자 단계까지 이어서 진행.
 - 회귀검증: `tests/v251-ipad-regression.js`.
+
+
+---
+
+## 14. v0.26.0 획수·획순 집중 학습 / 5번 쓰기 복원
+
+- 사용자의 약점인 **획수와 획순**을 최우선 학습 목표로 재설계.
+- 한 단어 학습 순서:
+  1. 첫 글자 큰글씨 숫자 획순 자동재생
+  2. 첫 글자 5번 쓰기
+  3. 둘째 글자 큰글씨 숫자 획순 자동재생
+  4. 둘째 글자 5번 쓰기
+  5. 두 글자 단어의 뜻·생활 예시·연예/아이돌/무대 예시·대사처럼 읽기 + 두 글자 직접쓰기
+- 과거 프로젝트의 5번 쓰기 모듈을 v0.26 학습 흐름에 복원:
+  - 1~3칸: 실제 숫자 획순 가이드 위에 따라쓰기
+  - 4~5칸: 빈칸 자유쓰기
+  - 정확한 획수에 도달하면 2초 확인 + 미니 획순 재생
+  - 한 획 되돌리기 / 현재 칸 지우기
+  - 5칸 완료 후 다음 단계
+- 한 글자 화면에 초4 눈높이 기억 설명, 현재 단어, 교재 참고 한자어를 읽기와 함께 표시.
+- 두 글자 화면에는 기존 교재 예문·생활 예문·연예/무대 예문을 모두 표시하고 연예 예문을 '대사처럼 소리 내어 읽기'로 재활용.
+- 한자 표시 크기를 주요 학습·시험·획순 화면에서 기존 대비 약 1.5배 확대.
+- 획순 숫자끼리 가까우면 자동으로 조금씩 벌리는 충돌 회피 배치 추가.

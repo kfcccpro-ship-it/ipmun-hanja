@@ -160,6 +160,32 @@
     .v25GradeRow img{max-width:220px;width:100%;background:#fff;border:1px solid var(--line);border-radius:8px}
     @media(max-width:760px){.v25Cards{grid-template-columns:1fr}.v25PickGrid{grid-template-columns:repeat(2,1fr)}.v25GradeRow{grid-template-columns:34px 1fr}.v25GradeRow .gbtn{grid-column:1/-1}.v25GradeRow img{max-width:100%}.v251Combine{grid-template-columns:1fr auto 1fr}.v251Combine>strong:nth-of-type(2){display:none}.v251Combine .result{grid-column:1/-1;border-left:0;border-top:2px solid var(--line);padding:10px 0 0}}
   `;
+  style.textContent+=`
+    /* v0.26: 약한 획수·획순을 위해 한자 표시를 기존 대비 약 1.5배 확대 */
+    .wordBig{font-size:clamp(112px,22vw,190px)!important}
+    .qword{font-size:clamp(112px,20vw,150px)!important}
+    .word{font-size:66px!important}.ans{font-size:50px!important}
+    .today{font-size:42px!important}.strokeHubChar b{font-size:78px!important}
+    .strokeHubChar{min-height:170px!important}.v25Pick .hz{font-size:34px!important}
+    .v25PlanSummary .hz{font-size:28px!important}.v25StudyWord{font-size:84px!important}
+    .v251Combine b{font-size:72px!important}
+    .strokeNum{width:30px!important;height:30px!important;font-size:16px!important}
+    .strokeNum.current{transform:translate(-50%,-50%) scale(1.25)!important;-webkit-transform:translate(-50%,-50%) scale(1.25)!important}
+    .v26StrokeCard{padding-left:16px;padding-right:16px}.v26HeroChar{font-size:72px;line-height:1}
+    .v251CharMeta{display:flex!important;justify-content:center;align-items:center;gap:18px;flex-wrap:wrap;font-size:30px!important}
+    .v26StrokeRule{max-width:760px;margin:12px auto;padding:13px 16px;border-radius:14px;background:#FFF8E4;border:2px solid #EED89B;font-family:'Jua';font-size:20px;line-height:1.5;text-align:center}
+    .v26CharLearn{max-width:760px;margin:14px auto;display:grid;gap:10px}.v26MemoryLine{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--paper);padding:12px 14px;border-radius:14px;text-align:left}
+    .v26MemoryLine>.hz{font-size:72px;line-height:1}.v26MemoryLine strong{font-family:'Jua';font-size:25px}.v26MemoryLine span{font-size:18px}
+    .v26ShapeTip{padding:10px 12px;border-left:6px solid var(--sky);background:var(--paper);border-radius:0 12px 12px 0;text-align:left;font-size:17px}
+    .v26ExampleBox{padding:11px;background:var(--paper);border-radius:14px}.v26ExampleBox>b{font-family:'Jua';font-size:20px}.v26TermChips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+    .v26TermChips span{display:grid;justify-items:center;padding:8px 11px;background:var(--card);border:1px solid var(--line);border-radius:10px}.v26TermChips i{font-style:normal;font-size:34px}.v26TermChips small{font-size:13px;color:var(--sub)}
+    .v26FiveWrite .note5{gap:16px!important}.v26WriteTitle{display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap}.v26WriteTitle>.hz{font-size:90px;line-height:1}.v26WriteTitle>div{display:grid;gap:4px}.v26WriteTitle b{font-family:'Jua';font-size:31px}.v26WriteTitle small{font-size:16px;color:var(--sub)}
+    .v26FiveWrite .pad .num{font-size:20px!important}.v26FiveWrite .cnt{font-size:22px!important}
+    .v26WordHero{font-size:clamp(112px,20vw,170px);text-align:center;line-height:1}.v26Meaning{max-width:760px;margin:14px auto;padding:14px 16px;border-radius:14px;background:var(--paper);text-align:center}.v26Meaning>b{font-family:'Jua';font-size:24px}.v26Meaning p{margin:7px 0 0;font-size:19px;line-height:1.5}
+    .v26Examples{max-width:800px;margin:0 auto}.v26Examples .ex{font-size:19px;line-height:1.55;padding:12px 14px}.v26Examples .ex small{font-size:17px}
+    .v26Dialogue{margin:12px 0;padding:14px 16px;border:2px solid #EED89B;border-radius:14px;background:#FFF8E4}.v26Dialogue small{display:block;font-family:'Jua';color:var(--sub);font-size:17px;margin-bottom:6px}.v26Dialogue b{display:block;font-size:21px;line-height:1.55}
+    @media(max-width:600px){.strokeNum{width:27px!important;height:27px!important;font-size:14px!important}.v26MemoryLine{grid-template-columns:1fr;text-align:center}.v26MemoryLine>.hz{font-size:64px}.v251Combine b{font-size:58px!important}.v26WriteTitle>.hz{font-size:72px}}
+  `;
   document.head.appendChild(style);
 
   home=function(){
@@ -202,6 +228,97 @@
     app.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go)}});
   };
 
+  function termReading(term){
+    return Array.from(term||'').map(function(ch){return CHAR_INFO[ch]?.eum||''}).join('');
+  }
+  function charWordExamples(c,w){
+    const info=CHAR_INFO[c.ch]||{},seen=new Set(),out=[];
+    [w.word,...(info.referenceTerms||[])].forEach(function(term){
+      if(!term||seen.has(term)||!term.includes(c.ch))return;
+      const chars=Array.from(term);
+      if(chars.length<2||chars.length>4||!chars.every(function(ch){return CHAR_INFO[ch]?.eum}))return;
+      seen.add(term);out.push({term:term,read:termReading(term),main:term===w.word});
+    });
+    return out.slice(0,4);
+  }
+  function charMemoryHtml(c,w){
+    const ex=charWordExamples(c,w),info=CHAR_INFO[c.ch]||{};
+    return `<div class="v26CharLearn">
+      <div class="v26MemoryLine"><b class="hz">${c.ch}</b><span><strong>[${esc(c.hun)} ${esc(c.eum)}]</strong><br>${esc(c.hun)}의 뜻을 가진 글자예요. <b>${w.word}(${esc(w.read)})</b>에 들어가요.</span></div>
+      ${c.cmp?`<div class="v26ShapeTip"><b>모양 기억</b> · ${esc(c.cmp)}</div>`:''}
+      ${ex.length?`<div class="v26ExampleBox"><b>이 글자가 들어간 낱말</b><div class="v26TermChips">${ex.map(function(x){return `<span><i class="hz">${x.term}</i><small>${esc(x.read)}${x.main?' · 오늘 단어':''}</small></span>`}).join('')}</div></div>`:''}
+      ${info.semanticSenses?.length?`<div class="muted" style="text-align:center">뜻 느낌 · ${info.semanticSenses.slice(0,3).map(esc).join(' · ')}</div>`:''}
+    </div>`;
+  }
+  function v26WriteCellSize(){
+    const w=Math.min(window.innerWidth||800,980);
+    return Math.min(215,Math.max(155,Math.floor((w-82)/3)));
+  }
+  function runFiveWrite(setKey,st,w,c,charIndex,label){
+    const cs=v26WriteCellSize();
+    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charIndex===0?'첫':'둘째'} 글자 5번 쓰기</span><span class="jua">${st.studyIndex+1}단어 · ${charIndex+1}/2글자</span></div>
+      <div class="card v26FiveWrite" style="margin-top:12px">
+        <div class="v26WriteTitle"><span class="hz">${c.ch}</span><div><b>[${esc(c.hun)} ${esc(c.eum)}]</b><small>총 ${c.hoek}획 · 1~3칸은 숫자 획순 따라쓰기 · 4~5칸은 혼자 쓰기</small></div></div>
+        <div class="note5" id="v26WriteGrid"></div>
+        <div id="v26WriteFeedback" class="writeFeedback" aria-live="polite"></div>
+        <div class="row" style="justify-content:space-between;margin-top:10px;gap:10px">
+          <span class="cnt" id="v26WriteCount"></span>
+          <div class="row"><button class="ghost" id="v26Undo">한 획 되돌리기</button><button class="ghost" id="v26Clear">이 칸 지우기</button></div>
+        </div>
+        <div id="v26WriteDone" style="text-align:center"></div>
+        <div class="row" style="justify-content:flex-start;margin-top:12px"><button class="ghost" id="v26WriteHome">오늘 화면</button></div>
+      </div>`;
+    const pads=[];let cur=0,tick=null,counting=false,feedbackTimer=null,cycle=0;
+    const countEl=document.querySelector('#v26WriteCount');
+    const stat=function(){const p=pads[cur];countEl.textContent=cur>=5?'5 / 5칸 완료':(cur+1)+' / 5 · '+(p?p.strokes():0)+'/'+c.hoek+'획'};
+    const setCur=function(){pads.forEach(function(p,i){p.lock(i!==cur);p.el.classList.toggle('active',i===cur)});stat()};
+    const clearFeedback=function(){clearTimeout(feedbackTimer);feedbackTimer=null;const f=document.querySelector('#v26WriteFeedback');if(f){f.classList.remove('show');f.innerHTML=''}};
+    const cancelT=function(){cycle++;clearInterval(tick);tick=null;counting=false;clearFeedback();const p=pads[cur],o=p&&p.el.querySelector('.cd'),rr=p&&p.el.querySelector('.postStrokeReplay');if(o)o.remove();if(rr)rr.remove()};
+    const guidedFeedback=function(p,index,token,done){
+      if(index>2){done();return}
+      const f=document.querySelector('#v26WriteFeedback');
+      if(f){f.innerHTML=`<span class="simpleHunEum">[${esc(c.hun)} ${esc(c.eum)}] · ${c.hoek}획</span>`;f.classList.add('show')}
+      feedbackTimer=setTimeout(clearFeedback,2000);
+      replayStrokeOrderMini(p,c.ch,c.hoek,function(){if(token===cycle)done()});
+    };
+    const finish=function(){
+      countEl.textContent='5 / 5칸 완료';
+      document.querySelector('#v26Clear').style.display='none';document.querySelector('#v26Undo').style.display='none';
+      db.notes[today()]=db.notes[today()]||{};db.notes[today()][c.id]=joinImg(pads,72,1,1,c.ch);save();
+      document.querySelector('#v26WriteDone').innerHTML='<span class="stampOk">5번<br>완료</span><p class="okMsg">획수를 세며 다섯 번 썼어요.</p><button class="pri" id="v26WriteNext">다음 단계</button>';
+      document.querySelector('#v26WriteNext').onclick=function(){st.studyPhase++;save();runStudy(setKey)};
+    };
+    const startTimer=function(){
+      if(counting||cur>=5)return;
+      counting=true;const p=pads[cur],doneIndex=cur,token=++cycle;let n=2,delayDone=false,replayDone=doneIndex>2;
+      const o=document.createElement('div');o.className='cd';o.textContent=n;p.el.appendChild(o);
+      const maybe=function(){
+        if(token!==cycle||!delayDone||!replayDone)return;
+        clearInterval(tick);tick=null;counting=false;clearFeedback();if(o&&o.isConnected)o.remove();
+        p.el.classList.add('done');cur++;if(cur<5)setCur();else finish();
+      };
+      if(doneIndex<3)guidedFeedback(p,doneIndex,token,function(){replayDone=true;maybe()});
+      tick=setInterval(function(){
+        if(!alive(p.el))return cancelT();
+        if(--n>0){o.textContent=n;return}
+        clearInterval(tick);tick=null;delayDone=true;if(o&&o.isConnected)o.textContent='✓';maybe();
+      },1000);
+    };
+    for(let k=0;k<5;k++){
+      const p=makePad(document.querySelector('#v26WriteGrid'),{cells:1,size:cs,trace:'',alpha:0,
+        onDown:function(){if(k===cur)cancelT()},
+        onChange:function(){if(k!==cur)return;const n=pads[cur].strokes();stat();pads[cur].el.classList.toggle('over',n>c.hoek);if(n===c.hoek)startTimer();else cancelT()}
+      });
+      const b=document.createElement('div');b.className='num';b.textContent=k+1;p.el.appendChild(b);
+      if(k<3)attachTraceGuide(p,c.ch,cs,k);
+      pads.push(p);
+    }
+    setCur();
+    document.querySelector('#v26Undo').onclick=function(){if(cur<5){cancelT();pads[cur].undo();stat()}};
+    document.querySelector('#v26Clear').onclick=function(){if(cur<5){cancelT();pads[cur].clear();stat()}};
+    document.querySelector('#v26WriteHome').onclick=function(){cancelT();go('home')};
+  }
+
   function startSet(setKey){
     const d=getDailyPlan(true);if(!d)return toast('부모 모드에서 5일 계획을 먼저 설정해 주세요');
     const st=d[setKey];
@@ -216,46 +333,53 @@
     const words=st.wordIds.map(byId).filter(Boolean);
     let i=Math.max(0,Math.min(+st.studyIndex||0,words.length));
     if(i>=words.length){st.learnDone=true;st.studyPhase=0;save();return runSetQuiz(setKey)}
-    const w=words[i],cs=charsOf(w),phase=Math.max(0,Math.min(+st.studyPhase||0,2));
+    const w=words[i],cs=charsOf(w),phase=Math.max(0,Math.min(+st.studyPhase||0,4));
     const label=setKey==='set1'?'1세트 · 이번 주 복습':'2세트 · 실제 시험 대비';
-    const progress=Math.round(((i+(phase/3))/Math.max(1,words.length))*100);
+    const progress=Math.round(((i+(phase/5))/Math.max(1,words.length))*100);
 
-    if(phase<2){
-      const c=cs[phase],charLabel=phase===0?'첫 글자':'둘째 글자';
-      const size=Math.min(390,Math.max(270,Math.min(window.innerWidth-90,window.innerHeight*.50)));
-      app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charLabel} 획순</span><span class="jua">${i+1} / ${words.length}단어 · ${phase+1}/2글자</span></div>
+    if(phase<4){
+      const charIndex=Math.floor(phase/2),isStroke=phase%2===0,c=cs[charIndex],charLabel=charIndex===0?'첫 글자':'둘째 글자';
+      if(!isStroke)return runFiveWrite(setKey,st,w,c,charIndex,label);
+      const size=Math.min(620,Math.max(410,Math.min(window.innerWidth-46,window.innerHeight*.68)));
+      app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charLabel} 큰글씨 획순</span><span class="jua">${i+1} / ${words.length}단어 · ${charIndex+1}/2글자</span></div>
         <div class="prog" style="margin:10px 0 14px"><div style="width:${progress}%"></div></div>
-        <div class="card v251CharCard">
-          <div class="v251WordContext"><span class="hz">${w.word}</span><b>${esc(w.read)}</b><small>${esc(w.mean)}</small></div>
+        <div class="card v251CharCard v26StrokeCard">
           <div class="v251SingleStroke" id="v251SingleStroke"></div>
-          <div class="v251CharMeta">[${esc(c.hun)} ${esc(c.eum)}] · <b>${c.hoek}획</b></div>
-          <p class="muted" style="text-align:center">지금은 <b>${charLabel}</b>만 봅니다. 자동 획순이 끝난 뒤 다음 단계로 넘어갑니다.</p>
+          <div class="v251CharMeta"><span class="hz v26HeroChar">${c.ch}</span><span>[${esc(c.hun)} ${esc(c.eum)}] · <b>${c.hoek}획</b></span></div>
+          <div class="v26StrokeRule"><b>1 → 2 → 3… 숫자를 눈으로 따라가며</b> 펜을 공중에서 같이 움직여 보세요. 획순 자동재생이 끝나야 5번 쓰기로 넘어갑니다.</div>
+          ${charMemoryHtml(c,w)}
           <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v251StudyHome">오늘 화면</button><button class="pri" id="v251CharNext" disabled>획순 자동 재생 중…</button></div>
         </div>`;
       const nextBtn=document.querySelector('#v251CharNext');
       mountStrokeLesson(document.querySelector('#v251SingleStroke'),c.ch,c.hoek,{size:size,auto:true,onFirstComplete:function(){
         if(!nextBtn||!document.body.contains(nextBtn))return;
-        nextBtn.disabled=false;
-        nextBtn.textContent=phase===0?'첫 글자 완료 → 둘째 글자':'둘째 글자 완료 → 단어로 연결';
+        nextBtn.disabled=false;nextBtn.textContent=charLabel+' 획순 완료 → 5번 따라쓰기';
       }});
       document.querySelector('#v251StudyHome').onclick=function(){go('home')};
       nextBtn.onclick=function(){if(nextBtn.disabled)return;st.studyPhase=phase+1;save();runStudy(setKey)};
       return;
     }
 
-    const size=Math.min(170,Math.max(128,Math.floor((Math.min(window.innerWidth,760)-90)/2)));
-    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · 두 글자 연결</span><span class="jua">${i+1} / ${words.length}단어 · 3/3</span></div>
+    const size=Math.min(230,Math.max(170,Math.floor((Math.min(window.innerWidth,820)-90)/2)));
+    const star=w.star||('연예·방송에서 '+w.read+'이라는 말을 찾아보세요.');
+    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · 두 글자 단어 쓰임</span><span class="jua">${i+1} / ${words.length}단어 · 5/5</span></div>
       <div class="prog" style="margin:10px 0 14px"><div style="width:${Math.round(((i+1)/words.length)*100)}%"></div></div>
-      <div class="card v251WordCard">
+      <div class="card v251WordCard v26WordUsage">
+        <div class="v26WordHero hz">${w.word}</div><div class="wordRead">${esc(w.read)}</div>
         <div class="v251Combine">
-          <div><b class="hz">${cs[0].ch}</b><span>[${esc(cs[0].hun)} ${esc(cs[0].eum)}]</span></div>
-          <strong>+</strong>
-          <div><b class="hz">${cs[1].ch}</b><span>[${esc(cs[1].hun)} ${esc(cs[1].eum)}]</span></div>
-          <strong>→</strong>
-          <div class="result"><b class="hz">${w.word}</b><span>${esc(w.read)} · ${esc(w.mean)}</span></div>
+          <div><b class="hz">${cs[0].ch}</b><span>[${esc(cs[0].hun)} ${esc(cs[0].eum)}]</span></div><strong>+</strong>
+          <div><b class="hz">${cs[1].ch}</b><span>[${esc(cs[1].hun)} ${esc(cs[1].eum)}]</span></div><strong>→</strong>
+          <div class="result"><b class="hz">${w.word}</b><span>${esc(w.read)}</span></div>
         </div>
-        <p class="muted" style="text-align:center">두 글자를 순서대로 배웠습니다. 이제 단어를 직접 한 번 써서 연결합니다.</p>
-        <div id="v251StudyPad" class="row" style="justify-content:center;gap:10px"></div>
+        <div class="v26Meaning"><b>이 단어는 이렇게 써요</b><p>뜻: ${esc(w.mean)}<br>이 뜻을 나타낼 때 <strong>${esc(w.read)}</strong>이라고 말하거나 써요.</p></div>
+        <div class="v26Examples">
+          <div class="ex" style="border-color:var(--ink)"><small>교재 예문</small>${w.sent}</div>
+          <div class="ex"><small>초등 4학년 생활 예시</small>${w.nat}</div>
+          <div class="ex star entertainmentEx"><small>연예·아이돌·무대 예시</small>${star}</div>
+          <div class="v26Dialogue"><small>드라마·방송 대사처럼 소리 내어 읽기</small><b>“${star}”</b></div>
+        </div>
+        <p class="muted" style="text-align:center">마지막으로 두 글자를 한 번 직접 써서 단어 모양을 연결해요.</p>
+        <div id="v251StudyPad" class="row" style="justify-content:center;gap:12px"></div>
         <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v251StudyHome">오늘 화면</button><button class="pri" id="v251StudyNext">${i<words.length-1?'이 단어 완료 → 다음 단어':'학습 완료 → 쪽지시험'}</button></div>
       </div>`;
     const pad1=makePad(document.querySelector('#v251StudyPad'),{cells:1,size:size});

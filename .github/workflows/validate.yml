@@ -33,6 +33,7 @@ jobs:
           node tests/routine-logic.js
           node tests/v25-flow-logic.js
           node tests/v251-ipad-regression.js
+          node tests/v26-learning-regression.js
       - name: Structural checks
         run: |
           python3 - <<'PY'
@@ -79,6 +80,10 @@ jobs:
             'v25_two_second_delay':'let n=2,delayDone=false' in s,
             'v251_ipad_number_layer':"layer.style.width=size+'px'" in s and "layer.style.left='50%'" in s,
             'v251_sequential_chars':'studyPhase' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and '첫 글자' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and '둘째 글자' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v26_five_write':'function runFiveWrite' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and '1~3칸은 숫자 획순 따라쓰기' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v26_usage':'연예·아이돌·무대 예시' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and '드라마·방송 대사처럼 소리 내어 읽기' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v26_collision':'const placed=[],gap=' in s,
+            'v26_large_hanja':'약한 획수·획순을 위해 한자 표시' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
           }
           for k,v in checks.items(): print(k, 'PASS' if v else 'FAIL')
           if not all(checks.values()): sys.exit(1)

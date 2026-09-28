@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>태이를 위해 아빠가 만든 한자앱 · v0.25.1</title>
+<title>태이를 위해 아빠가 만든 한자앱 · v0.26.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="data/meta.js?v=0.11.0"></script>
@@ -580,12 +580,22 @@ function addStrokeNumbers(host,ch,size,padding=14,opacity=1){
   host.appendChild(layer);
   getStrokeData(ch).then(data=>{
     if(!alive(layer))return;
-    const scale=(size-padding*2)/1024,edge=Math.max(13,Math.min(18,Math.round(size*.045)));
+    const scale=(size-padding*2)/1024,edge=Math.max(14,Math.min(22,Math.round(size*.045)));
+    const placed=[],gap=Math.max(27,Math.min(38,Math.round(size*.065)));
     (data.medians||[]).forEach((m,i)=>{
       if(!m||!m.length)return;
       const p=m[0],n=document.createElement('span');n.className='strokeNum';n.dataset.stroke=String(i+1);n.textContent=i+1;
-      const x=Math.max(edge,Math.min(size-edge,padding+p[0]*scale));
-      const y=Math.max(edge,Math.min(size-edge,padding+(1024-p[1])*scale));
+      const ox=Math.max(edge,Math.min(size-edge,padding+p[0]*scale));
+      const oy=Math.max(edge,Math.min(size-edge,padding+(1024-p[1])*scale));
+      let x=ox,y=oy;
+      for(let a=0;a<12;a++){
+        const clash=placed.some(q=>Math.hypot(q.x-x,q.y-y)<gap);
+        if(!clash)break;
+        const ang=((i*137.5+a*47)*Math.PI/180),r=8+Math.floor(a/2)*6;
+        x=Math.max(edge,Math.min(size-edge,ox+Math.cos(ang)*r));
+        y=Math.max(edge,Math.min(size-edge,oy+Math.sin(ang)*r));
+      }
+      placed.push({x,y});
       n.style.left=x+'px';n.style.top=y+'px';layer.appendChild(n);
     });
   }).catch(()=>{});
@@ -774,7 +784,7 @@ function daily(){
 }
 
 function stepLearn(card,{c},next){
-  const size=Math.min(500,Math.max(320,Math.min(window.innerWidth-90,window.innerHeight*.56)));
+  const size=Math.min(680,Math.max(400,Math.min(window.innerWidth-50,window.innerHeight*.70)));
   card.innerHTML=`<div class="stepTag">큰글씨 획순 배우기</div>
   <div class="strokeLearnLayout">
     <div class="strokeMain" id="strokeMain"></div>
@@ -1563,7 +1573,7 @@ function strokeHub(){
   app.querySelectorAll('.strokeHubChar').forEach(b=>b.onclick=()=>strokeFocus(byId(+b.dataset.id)));
 }
 function strokeFocus(c){
-  const size=Math.min(540,Math.max(330,Math.min(window.innerWidth-70,window.innerHeight*.62)));
+  const size=Math.min(680,Math.max(400,Math.min(window.innerWidth-50,window.innerHeight*.70)));
   app.innerHTML=`<div class="card strokeFocusCard">
     <div class="row" style="justify-content:space-between"><div><span class="stepTag" style="margin:0">큰글씨 획순</span><span class="jua" style="font-size:28px;margin-left:10px">${c.hun} ${c.eum} · ${c.hoek}획</span></div><button class="ghost" id="strokeBack">목록</button></div>
     <div id="strokeFocusHost" class="strokeFocusHost"></div>
@@ -1596,6 +1606,6 @@ go('home');
 </script>
 <script src="assets/v21-parent-picker.js?v=0.22.0"></script>
 <script src="assets/v22-points.js?v=0.23.0"></script>
-<script src="assets/v23-daily-routine.js?v=0.24.0"></script>\n<script src="assets/v25-five-day-flow.js?v=0.25.1"></script>
+<script src="assets/v23-daily-routine.js?v=0.24.0"></script>\n<script src="assets/v25-five-day-flow.js?v=0.26.0"></script>
 </body>
 </html>
