@@ -8,7 +8,7 @@
 - GitHub repository: `kfcccpro-ship-it/ipmun-hanja`
 - branch: `main`
 - GitHub Pages: https://kfcccpro-ship-it.github.io/ipmun-hanja/
-- current app version: **0.26.0**
+- current app version: **0.27.0**
 - current validation/deploy: **Validate Hanja App SUCCESS / Deploy GitHub Pages SUCCESS**
 - source textbook: **장원한자.pdf**
 - 핵심 대상: 초등 4학년, iPad + Apple Pencil 1세대 / Galaxy Tab + S Pen
@@ -384,3 +384,17 @@ GitHub Actions:
 - 두 글자 화면에는 기존 교재 예문·생활 예문·연예/무대 예문을 모두 표시하고 연예 예문을 '대사처럼 소리 내어 읽기'로 재활용.
 - 한자 표시 크기를 주요 학습·시험·획순 화면에서 기존 대비 약 1.5배 확대.
 - 획순 숫자끼리 가까우면 자동으로 조금씩 벌리는 충돌 회피 배치 추가.
+
+
+---
+
+## 15. v0.27.0 음성 따라 말하기 / 음·뜻·획수 게이트 / 상시 획 지우개
+
+- 한 글자 큰글씨 획순과 5번 쓰기 화면에 **🔊 듣기 / 🎤 따라 말하기** 추가.
+- 두 글자 단어 화면에도 단어 듣기·따라 말하기, 연예/드라마 예문 **대사 듣기** 추가.
+- 음성은 브라우저 Web Speech API를 사용하며 저장하지 않는다. 음성인식 미지원 기기는 안내문을 보여주고 듣기 후 직접 따라 말하기로 대체한다.
+- 한 글자 5번 쓰기 완료 후 반드시 **음(소리) + 뜻(훈) + 총 획수**를 직접 입력해 모두 맞혀야 다음 글자로 진행.
+- 새로고침/홈 이동 중에도 5번 쓰기 완료 상태는 `writeCheckpoint`로 보존하여 확인문제부터 이어서 진행.
+- 두 글자 단어 학습 마지막에는 **단어 읽기(음) + 뜻을 직접 입력**하고, 두 글자를 각각 교재 기준 정확한 획수로 써야 다음 단어로 진행.
+- 모든 `makePad` 필기 칸에 **🧽 획 지우개**를 기본 탑재. 잘못 쓴 획을 누르거나 문지르면 해당 획만 제거되어 획수 카운트도 함께 줄어든다.
+- 읽기/시험/5번 쓰기/실전시험/깜짝시험 등 현재 엔진의 모든 필기 패드에 동일 지우개가 자동 적용된다.
