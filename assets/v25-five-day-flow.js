@@ -85,8 +85,8 @@
       const s1=set1Words(p),s2=selectSet2(cumulativeWords(p),SET2_DAILY_WORDS);
       d={
         date,planKey:key,
-        set1:{wordIds:s1.map(function(w){return w.id}),studyIndex:0,learnDone:false,quizDone:false,quizState:null},
-        set2:{wordIds:s2.map(function(w){return w.id}),studyIndex:0,learnDone:false,quizDone:false,quizState:null},
+        set1:{wordIds:s1.map(function(w){return w.id}),studyIndex:0,studyPhase:0,learnDone:false,quizDone:false,quizState:null},
+        set2:{wordIds:s2.map(function(w){return w.id}),studyIndex:0,studyPhase:0,learnDone:false,quizDone:false,quizState:null},
         createdAt:Date.now()
       };
       db.dailySetPlans[date]=d;
@@ -152,12 +152,13 @@
     .v25StudyChars{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:10px 0}
     .v25StudyChars>div{display:grid;justify-items:center;gap:5px}
     .v25StudyWord{text-align:center;font-family:var(--hanja);font-size:56px;font-weight:800}
+    .v251CharCard{text-align:center}.v251SingleStroke{display:grid;justify-items:center;margin:8px auto 0;max-width:430px}.v251WordContext{display:grid;justify-items:center;gap:2px;margin-bottom:8px}.v251WordContext .hz{font-size:34px}.v251WordContext b{font-family:'Jua';font-size:24px}.v251WordContext small{color:var(--sub);font-size:15px}.v251CharMeta{font-family:'Jua';font-size:26px;margin-top:10px}.v251Combine{display:grid;grid-template-columns:auto auto auto auto minmax(150px,auto);gap:12px;align-items:center;justify-content:center;text-align:center;margin:10px 0 18px}.v251Combine>div{display:grid;gap:4px}.v251Combine b{font-size:52px}.v251Combine span{font-family:'Jua';font-size:18px}.v251Combine strong{font-family:'Jua';font-size:30px;color:var(--sub)}.v251Combine .result{padding-left:8px;border-left:2px solid var(--line)}.v251Combine .result b{color:var(--seal)}
     .v25QuizCard{text-align:center}.v25QuizCard .wordRead{font-size:52px}
     .v25Surprise{border:3px solid #E8B85D;background:#FFF8E4}
     .v25SurpriseList{display:grid;gap:10px}
     .v25GradeRow{display:grid;grid-template-columns:42px minmax(150px,1fr) minmax(180px,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
     .v25GradeRow img{max-width:220px;width:100%;background:#fff;border:1px solid var(--line);border-radius:8px}
-    @media(max-width:760px){.v25Cards{grid-template-columns:1fr}.v25PickGrid{grid-template-columns:repeat(2,1fr)}.v25GradeRow{grid-template-columns:34px 1fr}.v25GradeRow .gbtn{grid-column:1/-1}.v25GradeRow img{max-width:100%}}
+    @media(max-width:760px){.v25Cards{grid-template-columns:1fr}.v25PickGrid{grid-template-columns:repeat(2,1fr)}.v25GradeRow{grid-template-columns:34px 1fr}.v25GradeRow .gbtn{grid-column:1/-1}.v25GradeRow img{max-width:100%}.v251Combine{grid-template-columns:1fr auto 1fr}.v251Combine>strong:nth-of-type(2){display:none}.v251Combine .result{grid-column:1/-1;border-left:0;border-top:2px solid var(--line);padding:10px 0 0}}
   `;
   document.head.appendChild(style);
 
@@ -214,27 +215,55 @@
     const d=getDailyPlan(true),st=d&&d[setKey];if(!st)return go('home');
     const words=st.wordIds.map(byId).filter(Boolean);
     let i=Math.max(0,Math.min(+st.studyIndex||0,words.length));
-    if(i>=words.length){st.learnDone=true;save();return runSetQuiz(setKey)}
-    const w=words[i],cs=charsOf(w),size=Math.min(220,Math.max(150,Math.floor((Math.min(window.innerWidth,900)-80)/2)));
+    if(i>=words.length){st.learnDone=true;st.studyPhase=0;save();return runSetQuiz(setKey)}
+    const w=words[i],cs=charsOf(w),phase=Math.max(0,Math.min(+st.studyPhase||0,2));
     const label=setKey==='set1'?'1세트 · 이번 주 복습':'2세트 · 실제 시험 대비';
-    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · 학습</span><span class="jua">${i+1} / ${words.length}</span></div>
-      <div class="prog" style="margin:10px 0 14px"><div style="width:${(i+1)/words.length*100}%"></div></div>
-      <div class="card">
-        <div class="v25StudyWord">${w.word}</div><div class="wordRead">${esc(w.read)}</div>
-        <div class="writeClues">${cs.map(function(c){return `<span>[${esc(c.hun)} ${esc(c.eum)}]</span>`}).join('<b>+</b>')}</div>
-        <p style="text-align:center">${esc(w.mean)}</p>
-        <div class="v25StudyChars">${cs.map(function(c,k){return `<div><div id="v25Stroke${k}"></div><b class="jua">[${esc(c.hun)} ${esc(c.eum)}] · ${c.hoek}획</b></div>`}).join('')}</div>
-        <p class="muted" style="text-align:center">획순을 본 뒤 두 글자를 직접 한 번 써 봅니다.</p>
-        <div id="v25StudyPad" class="row" style="justify-content:center;gap:10px"></div>
-        <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v25StudyHome">오늘 화면</button><button class="pri" id="v25StudyNext">${i<words.length-1?'다음 단어':'학습 완료 → 쪽지시험'}</button></div>
+    const progress=Math.round(((i+(phase/3))/Math.max(1,words.length))*100);
+
+    if(phase<2){
+      const c=cs[phase],charLabel=phase===0?'첫 글자':'둘째 글자';
+      const size=Math.min(390,Math.max(270,Math.min(window.innerWidth-90,window.innerHeight*.50)));
+      app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charLabel} 획순</span><span class="jua">${i+1} / ${words.length}단어 · ${phase+1}/2글자</span></div>
+        <div class="prog" style="margin:10px 0 14px"><div style="width:${progress}%"></div></div>
+        <div class="card v251CharCard">
+          <div class="v251WordContext"><span class="hz">${w.word}</span><b>${esc(w.read)}</b><small>${esc(w.mean)}</small></div>
+          <div class="v251SingleStroke" id="v251SingleStroke"></div>
+          <div class="v251CharMeta">[${esc(c.hun)} ${esc(c.eum)}] · <b>${c.hoek}획</b></div>
+          <p class="muted" style="text-align:center">지금은 <b>${charLabel}</b>만 봅니다. 자동 획순이 끝난 뒤 다음 단계로 넘어갑니다.</p>
+          <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v251StudyHome">오늘 화면</button><button class="pri" id="v251CharNext" disabled>획순 자동 재생 중…</button></div>
+        </div>`;
+      const nextBtn=document.querySelector('#v251CharNext');
+      mountStrokeLesson(document.querySelector('#v251SingleStroke'),c.ch,c.hoek,{size:size,auto:true,onFirstComplete:function(){
+        if(!nextBtn||!document.body.contains(nextBtn))return;
+        nextBtn.disabled=false;
+        nextBtn.textContent=phase===0?'첫 글자 완료 → 둘째 글자':'둘째 글자 완료 → 단어로 연결';
+      }});
+      document.querySelector('#v251StudyHome').onclick=function(){go('home')};
+      nextBtn.onclick=function(){if(nextBtn.disabled)return;st.studyPhase=phase+1;save();runStudy(setKey)};
+      return;
+    }
+
+    const size=Math.min(170,Math.max(128,Math.floor((Math.min(window.innerWidth,760)-90)/2)));
+    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · 두 글자 연결</span><span class="jua">${i+1} / ${words.length}단어 · 3/3</span></div>
+      <div class="prog" style="margin:10px 0 14px"><div style="width:${Math.round(((i+1)/words.length)*100)}%"></div></div>
+      <div class="card v251WordCard">
+        <div class="v251Combine">
+          <div><b class="hz">${cs[0].ch}</b><span>[${esc(cs[0].hun)} ${esc(cs[0].eum)}]</span></div>
+          <strong>+</strong>
+          <div><b class="hz">${cs[1].ch}</b><span>[${esc(cs[1].hun)} ${esc(cs[1].eum)}]</span></div>
+          <strong>→</strong>
+          <div class="result"><b class="hz">${w.word}</b><span>${esc(w.read)} · ${esc(w.mean)}</span></div>
+        </div>
+        <p class="muted" style="text-align:center">두 글자를 순서대로 배웠습니다. 이제 단어를 직접 한 번 써서 연결합니다.</p>
+        <div id="v251StudyPad" class="row" style="justify-content:center;gap:10px"></div>
+        <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v251StudyHome">오늘 화면</button><button class="pri" id="v251StudyNext">${i<words.length-1?'이 단어 완료 → 다음 단어':'학습 완료 → 쪽지시험'}</button></div>
       </div>`;
-    cs.forEach(function(c,k){mountStrokeLesson(document.querySelector('#v25Stroke'+k),c.ch,c.hoek,{size,auto:true})});
-    const pad1=makePad(document.querySelector('#v25StudyPad'),{cells:1,size:Math.min(165,size)});
-    const pad2=makePad(document.querySelector('#v25StudyPad'),{cells:1,size:Math.min(165,size)});
-    document.querySelector('#v25StudyHome').onclick=function(){go('home')};
-    document.querySelector('#v25StudyNext').onclick=function(){
+    const pad1=makePad(document.querySelector('#v251StudyPad'),{cells:1,size:size});
+    const pad2=makePad(document.querySelector('#v251StudyPad'),{cells:1,size:size});
+    document.querySelector('#v251StudyHome').onclick=function(){go('home')};
+    document.querySelector('#v251StudyNext').onclick=function(){
       if(!pad1.strokes()||!pad2.strokes())return toast('두 글자를 모두 직접 써 주세요');
-      recordLearned(setKey,w);st.studyIndex=i+1;
+      recordLearned(setKey,w);st.studyIndex=i+1;st.studyPhase=0;
       if(st.studyIndex>=words.length)st.learnDone=true;
       save();
       if(st.learnDone)return runSetQuiz(setKey);

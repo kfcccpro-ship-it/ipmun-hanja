@@ -8,7 +8,7 @@
 - GitHub repository: `kfcccpro-ship-it/ipmun-hanja`
 - branch: `main`
 - GitHub Pages: https://kfcccpro-ship-it.github.io/ipmun-hanja/
-- current app version: **0.25.0**
+- current app version: **0.25.1**
 - current validation/deploy: **Validate Hanja App SUCCESS / Deploy GitHub Pages SUCCESS**
 - source textbook: **장원한자.pdf**
 - 핵심 대상: 초등 4학년, iPad + Apple Pencil 1세대 / Galaxy Tab + S Pen
@@ -347,3 +347,17 @@ GitHub Actions:
 - 정확한 획수 입력 뒤 자동 전환 대기시간은 **3초 → 2초**로 단축.
 - 구현 파일: `assets/v25-five-day-flow.js`
 - 회귀검증: `tests/v25-flow-logic.js`
+
+
+---
+
+## 13. v0.25.1 iPad 10.5 획순·순차학습 보정
+
+- 구형 iPad/Safari에서 획순 숫자 레이어가 한자 캔버스가 아니라 폭이 더 넓은 lesson stage를 기준으로 배치되어 숫자가 왼쪽으로 밀리는 현상을 수정.
+- 숫자 레이어의 크기를 HanziWriter와 동일한 정사각형으로 고정하고 중앙 정렬. 가장자리 이탈도 clamp 처리.
+- 숫자 배지는 오래된 Safari 호환성을 위해 flex 정렬과 `-webkit-transform`을 함께 적용.
+- v0.25 학습 화면에서 두 글자를 동시에 HanziWriter로 자동재생하던 구조를 제거.
+- 한 단어 학습 순서를 **첫 글자 획순(자동재생 완료 필수) → 둘째 글자 획순(자동재생 완료 필수) → 두 글자 조합·직접쓰기**로 변경.
+- 화면당 HanziWriter 자동재생은 1개만 실행하여 구형 iPad의 CPU/GPU 부하도 줄임.
+- 일일 학습 재진입 시 `studyPhase`로 현재 글자 단계까지 이어서 진행.
+- 회귀검증: `tests/v251-ipad-regression.js`.

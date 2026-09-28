@@ -3,7 +3,7 @@
   "repo": "kfcccpro-ship-it/ipmun-hanja",
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
-  "version": "0.25.0",
+  "version": "0.25.1",
   "latest_app_commit": "18591485f3309969b905ab0aeeab27ff413e2e85",
   "source": {
     "textbook": "장원한자.pdf",
@@ -73,7 +73,8 @@
     "docs/PHASE1_DATA_LOCK.md",
     ".github/workflows/validate.yml",
     "assets/v25-five-day-flow.js",
-    "tests/v25-flow-logic.js"
+    "tests/v25-flow-logic.js",
+    "tests/v251-ipad-regression.js"
   ],
   "completed_in_v024": [
     "주간 10단어 7일 유효기간 강제",
@@ -85,10 +86,11 @@
     "Node 기반 루틴 논리 회귀테스트를 GitHub Actions에 추가"
   ],
   "next_default_tasks": [
-    "iPad Apple Pencil / Galaxy Tab S Pen에서 v0.25.0 1일 전체 동선 실기검수",
-    "부모 모드에서 5일 계획 설정을 1분 이내 처리 가능한지 확인",
-    "깜짝 쪽지시험 생성→학생 응시→부모 채점 동선 실기검수",
-    "발견되는 오류만 최소 수정"
+    "iPad Pro 10.5 실제 기기에서 充電·雷電 등 획순 숫자가 한자 박스 안에 정확히 붙는지 확인",
+    "첫 글자 자동재생 완료 전 다음 글자 버튼이 잠겨 있는지 확인",
+    "둘째 글자 완료 후에만 두 글자 직접쓰기 화면이 나타나는지 확인",
+    "Apple Pencil 1세대와 Galaxy Tab S Pen에서 필기/손바닥 차단 재검수",
+    "실기에서 발견되는 오류만 최소 수정"
   ],
   "resume_phrase": "다음 작업 진행",
   "five_day_cycle": {
@@ -119,5 +121,29 @@
     "두 세트 완료 시 하루 500P",
     "당일 학습 단어 기반 부모 수기 깜짝 쪽지시험 생성 및 부모 채점",
     "획수 충족 후 자동 전환 2초"
+  ],
+  "ipad_105_fix": {
+    "issue": "구형 iPad/Safari에서 획순 숫자가 한자 박스 기준이 아니라 넓은 stage 기준으로 배치되어 왼쪽으로 밀림",
+    "root_cause": "strokeNums absolute layer가 HanziWriter 정사각형과 동일한 좌표계를 사용하지 않음",
+    "fix": [
+      "숫자 레이어를 HanziWriter와 동일한 size 정사각형으로 중앙 고정",
+      "숫자 좌표 가장자리 clamp",
+      "Safari용 -webkit-transform 보강",
+      "한 화면 한 글자만 자동재생"
+    ],
+    "sequential_learning": [
+      "첫 글자 획순 자동재생 완료",
+      "둘째 글자 획순 자동재생 완료",
+      "두 글자 조합 확인 및 직접 쓰기"
+    ],
+    "resume_state": "studyPhase"
+  },
+  "completed_in_v0251": [
+    "iPad 10.5/Safari 획순 숫자 위치 보정",
+    "두 글자 동시 자동재생 제거",
+    "첫 글자→둘째 글자→단어 연결 순차학습",
+    "화면당 HanziWriter 1개 자동재생으로 성능부하 감소",
+    "studyPhase 이어하기",
+    "v0.25.1 iPad 회귀테스트 추가"
   ]
 }
