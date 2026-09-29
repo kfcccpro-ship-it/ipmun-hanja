@@ -21,6 +21,7 @@ async function draw(page, canvas, y) {
   await canvas.scrollIntoViewIfNeeded();
   const box = await canvas.boundingBox();
   assert(box, 'active canvas must be visible');
+  console.log('pointer target', y, box, await page.evaluate(({x,y}) => ({tag: document.elementFromPoint(x,y)?.outerHTML.slice(0,150), count: document.querySelector('#v26WriteCount')?.textContent}), {x:box.x+55,y:box.y+y}));
   await page.mouse.move(box.x + 55, box.y + y);
   await page.mouse.down();
   await page.mouse.move(box.x + 100, box.y + y, { steps: 5 });
@@ -60,6 +61,7 @@ async function draw(page, canvas, y) {
     let canvas = page.locator('#v26WriteGrid .pad.active canvas:last-of-type');
     await draw(page, canvas, 45);
     await draw(page, canvas, 110);
+    console.log('count after two', await page.locator('#v26WriteCount').textContent());
     await page.waitForFunction(n => document.querySelector('#v26WriteCount')?.textContent.includes(`2/${n}획`), fixture.hoek);
     await page.locator('#v26WriteGrid .pad.active .padEraserMini').click();
     const box = await canvas.boundingBox();
