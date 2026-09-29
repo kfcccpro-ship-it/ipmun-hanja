@@ -714,4 +714,5 @@
 
   window.__v25Debug={activePlan,cycleDay,set1Words,cumulativeWords,selectSet2,getDailyPlan,manualPool,award500};
   ensureV25();
+  if(curView==='home')home();
 })();
