@@ -3,6 +3,8 @@ name: Validate Hanja App
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -35,6 +37,12 @@ jobs:
           node tests/v251-ipad-regression.js
           node tests/v26-learning-regression.js
           node tests/v27-voice-recall-eraser.js
+      - name: Install browser test dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: v0.27 browser interactions
+        run: npm run test:browser
       - name: Structural checks
         run: |
           python3 - <<'PY'
