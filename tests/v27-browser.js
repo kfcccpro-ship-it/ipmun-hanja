@@ -59,6 +59,11 @@ async function draw(page, canvas, y) {
     let canvas = page.locator('#v26WriteGrid .pad.active canvas:last-of-type');
     await draw(page, canvas, 45);
     await draw(page, canvas, 110);
+    console.log('two strokes', await page.evaluate(() => ({
+      count: document.querySelector('#v26WriteCount')?.textContent,
+      active: document.querySelector('#v26WriteGrid .pad.active')?.outerHTML.slice(0, 300),
+      errors: window.__testErrors
+    })));
     await page.waitForFunction(n => document.querySelector('#v26WriteCount')?.textContent.includes(`2/${n}획`), fixture.hoek);
     await page.locator('#v26WriteGrid .pad.active .padEraserMini').click();
     const box = await canvas.boundingBox();
