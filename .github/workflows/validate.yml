@@ -2,7 +2,7 @@ name: Validate Hanja App
 
 on:
   push:
-    branches: [main, work-v0.28.0-adaptive]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
