@@ -7,7 +7,7 @@ assert(index.includes("layer.style.width=size+'px'"));
 assert(index.includes("layer.style.left='50%'"));
 assert(index.includes("layer.style.transform='translate(-50%,-50%)'"));
 assert(index.includes("const ox=Math.max(edge,Math.min(size-edge"));
-assert(index.includes("v0.27.0</title>"));
+assert(index.includes("v0.27.1</title>"));
 
 const a=flow.indexOf('function runStudy(setKey)');
 const b=flow.indexOf('function buildQuizItems',a);
@@ -18,7 +18,7 @@ assert(runStudy.includes('const charIndex=Math.floor(phase/2)'));
 assert(runStudy.includes('onFirstComplete:function()'));
 assert.strictEqual((runStudy.match(/mountStrokeLesson\(/g)||[]).length,1);
 assert(!runStudy.includes('cs.forEach(function(c,k){mountStrokeLesson'));
-assert(runStudy.includes("st.studyPhase=phase+1"));
+assert(runStudy.includes("charRecallGate(setKey,st,w,c,charIndex,label)"));
 assert(runStudy.includes("st.studyPhase=0"));
 assert(flow.includes('studyPhase:0'));
 
