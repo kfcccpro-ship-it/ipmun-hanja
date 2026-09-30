@@ -366,6 +366,10 @@
     .v28QuickTests{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.v28QuickTests button{min-height:70px}
     @media(max-width:700px){.v28RecallActions>*{flex:1 1 100%}.v28WeakGrid{grid-template-columns:1fr}.v28QuickTests{grid-template-columns:1fr}}
   `;
+  style.textContent+=`
+    .v28AchievementGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.v28AchievementGrid>div{display:grid;gap:3px;text-align:center;padding:12px 8px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}.v28AchievementGrid small{color:var(--sub);font-family:'Jua'}.v28AchievementGrid b{font-family:'Jua';font-size:22px}
+    @media(max-width:700px){.v28AchievementGrid{grid-template-columns:1fr 1fr}}
+  `;
   document.head.appendChild(style);
 
   home=function(){
@@ -820,15 +824,21 @@
       app.innerHTML=progressBannerHtml(d)+'<div class="card routineDone"><h2>1세트 완료</h2><div class="score">복습 끝</div><p>깊게 배운 복습 세트를 끝냈어요. 이제 2세트는 <b>시험을 먼저</b> 보고, 틀린 것만 다시 공부합니다.</p><button class="pri big" id="v25GoSet2">2세트 실전 시작</button><button class="ghost" id="v25GoHome">오늘 화면</button></div>';
       document.querySelector('#v25GoSet2').onclick=function(){startSet('set2')};
       document.querySelector('#v25GoHome').onclick=function(){go('home')};
-    }else{
-      const got=award500(today()),p=activePlan(),day=cycleDay(p),learned=manualPool().length,rem=d.set2.remedialWordIds?.length||0;
-      app.innerHTML=progressBannerHtml(d)+`<div class="card routineDone"><h2>오늘 학습 완료</h2><div class="score">${got?'+500P':'500P'}</div>
-        <p><b>D${day}/5</b>를 끝까지 완료했어요. 오늘 ${learned}단어를 공부했고, 2세트에서 다시 볼 단어 ${rem}개도 끝까지 해결했습니다.</p>
-        <div class="v28Week">${fiveDayDots(p)}</div>
-        <p class="okMsg" style="margin-top:16px">${day<5?'내일은 오늘 헷갈린 단어가 자동으로 더 자주 나와요.':'5일 학습 완료! 학원 쪽지시험 전에 최종 점검만 하면 됩니다.'}</p>
-        <button class="pri big" id="v25DoneHome">오늘 화면으로</button></div>`;
-      document.querySelector('#v25DoneHome').onclick=function(){go('home')};
+      return;
     }
+    const got=award500(today()),p=activePlan(),day=cycleDay(p),learned=manualPool().length,rem=d.set2.remedialWordIds?.length||0,gap=todayGapSummary();
+    app.innerHTML=progressBannerHtml(d)+`<div class="card routineDone"><h2>오늘 학습 완료</h2><div class="score">${got?'+500P':'500P'}</div>
+      <p><b>D${day}/5</b>를 끝까지 완료했어요. 오늘 ${learned}단어를 공부했고, 2세트의 다시 볼 단어 ${rem}개도 끝까지 해결했습니다.</p>
+      <div class="v28AchievementGrid">
+        <div><small>오늘 학습</small><b>${learned}단어</b></div>
+        <div><small>집중 복습</small><b>${rem}단어</b></div>
+        <div><small>다시 확인한 신호</small><b>${gap.total}회</b></div>
+        <div><small>가장 많이 확인</small><b>${gap.top}</b></div>
+      </div>
+      <div class="v28Week">${fiveDayDots(p)}</div>
+      <p class="okMsg" style="margin-top:16px">${day<5?'내일은 오늘 헷갈린 부분이 자동으로 더 자주 나와요.':'5일 학습 완료! 학원 쪽지시험 전에 최종 점검만 하면 됩니다.'}</p>
+      <button class="pri big" id="v25DoneHome">오늘 화면으로</button></div>`;
+    document.querySelector('#v25DoneHome').onclick=function(){go('home')};
   }
 
   function runSurprise(id){
@@ -851,20 +861,46 @@
   parent=function(){
     ensureV25();
     const pendingSurprise=db.surpriseTests.filter(function(x){return x.status==='submitted'}).length;
-    const allowed=['five','surprise','grade','status','set'];if(!allowed.includes(ptab))ptab='five';
+    const allowed=['five','status','weak','surprise','grade','set'];if(!allowed.includes(ptab))ptab='five';
     app.innerHTML=`<div class="tabs">
-      <button data-t="five">5일 계획</button><button data-t="surprise">깜짝시험${pendingSurprise?` (${pendingSurprise})`:''}</button>
-      <button data-t="grade">기존 채점</button><button data-t="status">학습 현황</button><button data-t="set">설정</button>
+      <button data-t="five">5일 계획</button>
+      <button data-t="status">오늘 상태</button>
+      <button data-t="weak">약한 글자</button>
+      <button data-t="surprise">깜짝시험${pendingSurprise?` (${pendingSurprise})`:''}</button>
+      <button data-t="grade">기존 채점</button>
+      <button data-t="set">설정</button>
       <button class="ghost" id="out" style="margin-left:auto">나가기</button></div><div id="pv"></div>`;
     app.querySelectorAll('[data-t]').forEach(function(b){b.classList.toggle('on',b.dataset.t===ptab);b.onclick=function(){ptab=b.dataset.t;parent()}});
     document.querySelector('#out').onclick=function(){parentOK=false;go('home')};
     const v=document.querySelector('#pv');
     if(ptab==='five')return pFive(v);
+    if(ptab==='status')return pStatus(v);
+    if(ptab==='weak')return pWeak(v);
     if(ptab==='surprise')return pSurprise(v);
     if(ptab==='grade')return pGrade(v);
-    if(ptab==='status')return pStatus(v);
     return pSet(v);
   };
+
+  function skillTagsHtml(r){
+    const rows=['hun','eum','strokeCount','strokeOrder','read','meaning','writing','help']
+      .map(function(k){return [k,+r?.[k]||0]}).filter(function(x){return x[1]>0}).sort(function(a,b){return b[1]-a[1]});
+    return rows.length?'<div class="v28SkillTags">'+rows.map(function(x){return '<span>'+gapLabel(x[0])+' '+x[1]+'</span>'}).join('')+'</div>':'<span class="muted">기록 없음</span>';
+  }
+
+  function pWeak(v){
+    ensureV25();
+    const gap=todayGapSummary();
+    const chars=Object.entries(db.skillProfile.chars||{}).map(function(x){return {ch:x[0],r:x[1],score:skillScore(x[1])}}).filter(function(x){return x.score>0}).sort(function(a,b){return b.score-a.score}).slice(0,12);
+    const words=Object.entries(db.skillProfile.words||{}).map(function(x){const w=byId(+x[0]);return w?{w:w,r:x[1],score:skillScore(x[1])}:null}).filter(Boolean).filter(function(x){return x.score>0}).sort(function(a,b){return b.score-a.score}).slice(0,12);
+    v.innerHTML=`<div class="card"><h2 style="margin-top:0">약한 부분 지도</h2>
+      <p class="muted">단순히 '오답' 하나로 보지 않고 <b>훈 · 음 · 획수 · 획순 · 읽기 · 뜻 · 쓰기</b> 중 무엇을 다시 봐야 하는지 나눠 기록합니다.</p>
+      <div class="v28AchievementGrid"><div><small>오늘 다시 확인</small><b>${gap.total}회</b></div><div><small>오늘 가장 많은 부분</small><b>${gap.top}</b></div><div><small>누적 약한 글자</small><b>${chars.length}자</b></div><div><small>누적 약한 단어</small><b>${words.length}개</b></div></div>
+    </div>
+    <div class="v28WeakGrid" style="margin-top:14px">
+      <div class="card"><h3 style="margin-top:0">글자별</h3>${chars.length?chars.map(function(x){return `<div class="v28WeakCard"><h4><span class="hz" style="font-size:34px">${x.ch}</span> · 다시보기 ${x.score}</h4>${skillTagsHtml(x.r)}</div>`}).join(''):'<p class="muted">아직 약한 글자 기록이 없습니다.</p>'}</div>
+      <div class="card"><h3 style="margin-top:0">단어별</h3>${words.length?words.map(function(x){return `<div class="v28WeakCard"><h4><span class="hz" style="font-size:30px">${x.w.word}</span> · ${esc(x.w.read)} · 다시보기 ${x.score}</h4>${skillTagsHtml(x.r)}</div>`}).join(''):'<p class="muted">아직 약한 단어 기록이 없습니다.</p>'}</div>
+    </div>`;
+  }
 
   function pFive(v){
     ensureV25();
@@ -917,18 +953,34 @@
 
   function pSurprise(v){
     ensureV25();
-    const pool=manualPool(),tests=db.surpriseTests.slice().sort(function(a,b){return b.id-a.id});
-    v.innerHTML=`<div class="card"><h2 style="margin-top:0">깜짝 쪽지시험 만들기</h2><p class="muted"><b>1세트·2세트에서 오늘 실제로 학습한 단어만</b> 출제할 수 있습니다. 이 시험은 500P와 두 세트 완료 여부에는 영향을 주지 않습니다.</p>
-      ${pool.length?`<div id="v25ManualPool" class="v25PickGrid">${pool.map(function(w){return `<button class="v25Pick" data-id="${w.id}"><span class="hz">${w.word}</span><small>${esc(w.read)}</small></button>`}).join('')}</div><div class="row" style="justify-content:space-between;margin-top:12px"><b id="v25ManualCount">0문제 선택</b><button class="sun" id="v25MakeSurprise">선택한 단어로 깜짝시험 생성</button></div>`:'<p class="badMsg">오늘 1·2세트에서 학습을 시작한 단어가 아직 없습니다.</p>'}
+    const pool=manualPool(),quick=quickWordPool(),weak=weakWords(quick).filter(function(w){return wordWeakScore(w)>0});
+    const tests=db.surpriseTests.slice().sort(function(a,b){return b.id-a.id});
+    v.innerHTML=`<div class="card"><h2 style="margin-top:0">깜짝 쪽지시험 만들기</h2>
+      <p class="muted">원하면 단어를 직접 고를 수 있고, 급할 때는 아래 버튼 한 번으로 바로 시험을 만들 수 있습니다. 500P와 1·2세트 완료에는 영향을 주지 않습니다.</p>
+      <div class="v28QuickTests">
+        <button class="sun" id="v28QuickToday" ${pool.length?'':'disabled'}><b>오늘 배운 것</b><br>5문제</button>
+        <button class="sun" id="v28QuickWeak" ${weak.length?'':'disabled'}><b>약한 단어</b><br>5문제</button>
+        <button class="sun" id="v28QuickRandom" ${quick.length?'':'disabled'}><b>오늘 범위 랜덤</b><br>10문제</button>
+      </div>
+      ${pool.length?`<h3>직접 고르기</h3><div id="v25ManualPool" class="v25PickGrid">${pool.map(function(w){return `<button class="v25Pick" data-id="${w.id}"><span class="hz">${w.word}</span><small>${esc(w.read)}</small></button>`}).join('')}</div><div class="row" style="justify-content:space-between;margin-top:12px"><b id="v25ManualCount">0문제 선택</b><button class="ghost" id="v25MakeSurprise">선택한 단어로 생성</button></div>`:'<p class="muted">직접 고르기는 오늘 실제 학습한 단어가 생기면 열립니다.</p>'}
     </div>
     <div class="card" style="margin-top:14px"><h3 style="margin-top:0">깜짝시험 기록</h3><div class="v25SurpriseList">${tests.length?tests.map(function(t){const score=t.status==='graded'?t.grades.filter(function(g){return g===true}).length+'/'+t.wordIds.length:'-';return `<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0"><div><b>${t.date} · ${t.wordIds.length}문제</b><div class="muted">${t.status==='ready'?'학생 응시 전':t.status==='in_progress'?'응시 중':t.status==='submitted'?'채점 대기':'채점 완료 · '+score}</div></div>${t.status==='submitted'?`<button class="pri" data-grade="${t.id}">채점하기</button>`:''}</div>`}).join(''):'<p class="muted">아직 깜짝시험 기록이 없습니다.</p>'}</div></div>`;
+
+    const makeQuick=function(words,label,count){
+      const list=shuffle(words.slice()).slice(0,Math.min(count,words.length));
+      if(!list.length)return toast('출제할 단어가 아직 없습니다');
+      createSurprise(list.map(function(w){return w.id}));toast(label+' 깜짝시험을 만들었습니다');pSurprise(v);
+    };
+    const qToday=document.querySelector('#v28QuickToday');if(qToday)qToday.onclick=function(){makeQuick(pool,'오늘 배운 것',5)};
+    const qWeak=document.querySelector('#v28QuickWeak');if(qWeak)qWeak.onclick=function(){makeQuick(weak,'약한 단어',5)};
+    const qRandom=document.querySelector('#v28QuickRandom');if(qRandom)qRandom.onclick=function(){makeQuick(quick,'랜덤',10)};
+
     if(pool.length){
       const selected=new Set();
       v.querySelectorAll('#v25ManualPool [data-id]').forEach(function(b){b.onclick=function(){const id=+b.dataset.id;if(selected.has(id)){selected.delete(id);b.classList.remove('on')}else{selected.add(id);b.classList.add('on')}document.querySelector('#v25ManualCount').textContent=selected.size+'문제 선택'}});
       document.querySelector('#v25MakeSurprise').onclick=function(){
         if(!selected.size)return toast('출제할 단어를 1개 이상 선택해 주세요');
-        db.surpriseTests.push({id:Date.now(),date:today(),wordIds:Array.from(selected),status:'ready',cursor:0,answers:[],grades:Array.from({length:selected.size},function(){return null}),createdAt:Date.now()});
-        save();toast('학생 화면에 깜짝 쪽지시험을 보냈습니다');pSurprise(v);
+        createSurprise(Array.from(selected));toast('학생 화면에 깜짝 쪽지시험을 보냈습니다');pSurprise(v);
       };
     }
     v.querySelectorAll('[data-grade]').forEach(function(b){b.onclick=function(){gradeSurprise(v,+b.dataset.grade)}});
@@ -944,11 +996,11 @@
     v.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){t.grades[+b.dataset.k]=b.dataset.g==='1';save();gradeSurprise(v,id)}});
     document.querySelector('#v25GradeFinish').onclick=function(){
       const left=t.grades.filter(function(g){return g===null}).length;if(left)return toast('아직 '+left+'문항이 채점되지 않았습니다');
-      if(t.status!=='graded')t.wordIds.forEach(function(id,k){if(t.grades[k]===false){const w=byId(id);addWrong(w.id);addWrong(w.id+1)}});
+      if(t.status!=='graded')t.wordIds.forEach(function(id,k){if(t.grades[k]===false){const w=byId(id);addWrong(w.id);addWrong(w.id+1);noteWordGap(w,'writing')}});
       t.status='graded';t.gradedAt=Date.now();save();toast('깜짝시험 채점을 완료했습니다');pSurprise(v);
     };
   }
 
-  window.__v25Debug={activePlan,cycleDay,set1Words,cumulativeWords,selectSet2,getDailyPlan,manualPool,award500,dayMission,dailyProgress,set2StatusText};
+  window.__v25Debug={activePlan,cycleDay,set1Words,cumulativeWords,selectSet2,getDailyPlan,manualPool,award500,dayMission,dailyProgress,set2StatusText,wordWeakScore,weakWords,todayGapSummary,quickWordPool};
   ensureV25();
 })();
