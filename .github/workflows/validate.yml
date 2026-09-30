@@ -35,6 +35,7 @@ jobs:
           node tests/v251-ipad-regression.js
           node tests/v26-learning-regression.js
           node tests/v27-voice-recall-eraser.js
+          node tests/v271-he-before-write-clear.js
       - name: Structural checks
         run: |
           python3 - <<'PY'
@@ -88,6 +89,8 @@ jobs:
             'v27_voice':'window.SpeechRecognition||window.webkitSpeechRecognition' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and 'speechSynthesis' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
             'v27_recall_gate':'function charRecallGate' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and '음·뜻·획수' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
             'v27_eraser':"er.className='padEraserMini'" in s and 'const eraseAt=p=>' in s,
+            'v271_over_clear':"overClear.className='overClearBtn'" in s and 'overClear.onclick' in s and 'clearInk()' in s,
+            'v271_he_before_write':"st.push({t:'learn',c,k});st.push({t:'he',c,k});st.push({t:'write',c,k})" in s and '획순 확인 완료 → 훈·음·획수 쓰기' in s and '5번 쓰기 전 · 훈·음·획수 확인' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
           }
           for k,v in checks.items(): print(k, 'PASS' if v else 'FAIL')
           if not all(checks.values()): sys.exit(1)
