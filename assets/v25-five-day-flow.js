@@ -713,15 +713,22 @@
   }
   function markMiss(q,item){
     q.misses.push({id:item.id,type:item.type});
-    const w=byId(item.id);if(w){addWrong(w.id);addWrong(w.id+1)}
+    const w=byId(item.id);
+    if(w){
+      addWrong(w.id);addWrong(w.id+1);
+      noteWordGap(w,item.type==='read'?'read':'writing');
+    }
   }
   function runSetQuiz(setKey){
     const d=getDailyPlan(true),st=d&&d[setKey];if(!st)return go('home');
     if(setKey==='set2'&&!d.set1.quizDone)return toast('1세트를 먼저 완료해 주세요');
     if(setKey==='set1'&&!st.learnDone)return runStudy(setKey);
     if(setKey==='set2'&&st.diagnosticDone&&(st.reviewMode||!st.learnDone))return runStudy(setKey);
+
     const useRemedial=setKey==='set2'&&st.diagnosticDone&&st.retryOnly&&st.remedialWordIds?.length;
-    const words=(useRemedial?st.remedialWordIds:st.wordIds).map(byId).filter(Boolean),q=ensureQuizState(setKey,st,words);
+    const words=(useRemedial?st.remedialWordIds:st.wordIds).map(byId).filter(Boolean);
+    const q=ensureQuizState(setKey,st,words);
+
     if(q.cursor>=q.items.length){
       if(setKey==='set2'&&!st.diagnosticDone){
         st.diagnosticDone=true;
@@ -733,53 +740,79 @@
         }
         st.quizDone=true;st.retryOnly=false;st.quizState=null;save();return finishSet(setKey,d);
       }
+
       if(q.misses.length){
         const seen=new Set(),again=q.misses.filter(function(x){const k=x.type+':'+x.id;if(seen.has(k))return false;seen.add(k);return true});
         q.items=again;q.cursor=0;q.misses=[];q.round++;save();
         app.innerHTML=progressBannerHtml(d)+`<div class="card routineDone"><h2>틀린 문제만 다시!</h2><div class="score">${again.length}문제</div><p>깊게 복습한 뒤, 틀렸던 문제만 다시 확인합니다. 전부 맞으면 오늘 세트가 끝나요.</p><button class="pri" id="v25Retry">다시 도전</button></div>`;
         document.querySelector('#v25Retry').onclick=function(){runSetQuiz(setKey)};return;
       }
+
       st.quizDone=true;st.quizState=null;st.retryOnly=false;st.reviewMode=false;save();
       return finishSet(setKey,d);
     }
+
     const item=q.items[q.cursor],w=byId(item.id),cs=charsOf(w);
     const label=setKey==='set1'?'1세트 쪽지시험':(!st.diagnosticDone?'2세트 실전 진단':'2세트 복습 확인');
     const top=progressBannerHtml(d)+`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label}${q.round>1?' · 재도전 '+q.round+'회차':''}</span><span class="jua">${q.cursor+1} / ${q.items.length}</span></div><div class="prog" style="margin:10px 0 14px"><div style="width:${(q.cursor+1)/q.items.length*100}%"></div></div>`;
+
     if(item.type==='read'){
-      app.innerHTML=top+`<div class="card v25QuizCard"><div class="wordBig">${w.word}</div><p class="q">읽는 소리를 쓰세요</p><input id="v25ReadAns" class="heIn" style="max-width:340px;margin:0 auto;display:block;text-align:center" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><div id="v25ReadFb" class="hint"></div><button class="pri big" id="v25ReadCheck">확인</button></div>`;
+      app.innerHTML=top+`<div class="card v25QuizCard"><div class="wordBig">${w.word}</div><p class="q">읽는 소리를 쓰세요</p>
+        <input id="v25ReadAns" class="heIn" style="max-width:340px;margin:0 auto;display:block;text-align:center" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div id="v25ReadFb" class="hint"></div>
+        <div class="row v28RecallActions" style="justify-content:center"><button class="ghost v28DontKnow" id="v28ReadDontKnow">모르겠어요</button><button class="pri" id="v25ReadCheck">확인</button></div></div>`;
+
+      const advance=function(delay){setTimeout(function(){q.cursor++;save();runSetQuiz(setKey)},delay||650)};
       const check=function(){
         const inp=document.querySelector('#v25ReadAns'),v=inp.value.replace(/\s/g,'');if(!v)return toast('답을 써 주세요');
         const ok=v===w.read;if(!ok)markMiss(q,item);
         document.querySelector('#v25ReadFb').innerHTML=ok?'<span class="okMsg">정답!</span>':`<span class="badMsg">정답은 ${esc(w.read)}</span>`;
-        document.querySelector('#v25ReadCheck').disabled=true;save();
-        setTimeout(function(){q.cursor++;save();runSetQuiz(setKey)},ok?700:1200);
+        document.querySelector('#v25ReadCheck').disabled=true;document.querySelector('#v28ReadDontKnow').disabled=true;save();
+        advance(ok?650:1100);
       };
       document.querySelector('#v25ReadCheck').onclick=check;
+      document.querySelector('#v28ReadDontKnow').onclick=function(){
+        markMiss(q,item);noteWordGap(w,'help');
+        document.querySelector('#v25ReadFb').innerHTML=`<span class="badMsg">정답은 ${esc(w.read)}. 몇 문제 뒤 다시 나와요.</span>`;
+        document.querySelector('#v25ReadCheck').disabled=true;document.querySelector('#v28ReadDontKnow').disabled=true;save();advance(1100);
+      };
       document.querySelector('#v25ReadAns').onkeydown=function(e){if(e.key==='Enter')check()};
       document.querySelector('#v25ReadAns').focus();
-    }else{
-      const sz=cellSize(2);
-      app.innerHTML=top+`<div class="card v25QuizCard"><div class="wordRead">${esc(w.read)}</div><p class="q">${esc(w.mean)}<br>한자로 직접 쓰세요.</p>
-        <div class="writeClues">${cs.map(function(c){return `<span>[${esc(c.hun)} ${esc(c.eum)}]</span>`}).join('<b>+</b>')}</div>
-        <div id="v25WritePad" class="row" style="justify-content:center;gap:10px"></div>
-        <div class="hintButtons"><button class="ghost" id="v25Hint2">힌트 1 · 2획</button><button class="ghost" id="v25Hint4">힌트 2 · 4획</button><button class="sun" id="v25ShowAns">정답 확인</button></div>
-        <div id="v25WriteHint" class="strokeHintPair"></div><div id="v25WriteAns" class="preAnswer"></div>
-        <div id="v25Self" class="row" style="justify-content:center;margin-top:12px"></div></div>`;
-      const p1=makePad(document.querySelector('#v25WritePad'),{cells:1,size:sz}),p2=makePad(document.querySelector('#v25WritePad'),{cells:1,size:sz});
-      const showHint=function(n){
-        const h=document.querySelector('#v25WriteHint');h.innerHTML=cs.map(function(c){return `<div class="strokeHintCell" data-c="${c.ch}"></div>`}).join('');
-        h.querySelectorAll('[data-c]').forEach(function(el,k){renderStrokePrefix(el,cs[k].ch,n,Math.min(150,sz))});
-      };
-      document.querySelector('#v25Hint2').onclick=function(){showHint(2)};
-      document.querySelector('#v25Hint4').onclick=function(){showHint(4)};
-      document.querySelector('#v25ShowAns').onclick=function(){
-        if(!p1.strokes()||!p2.strokes())return toast('두 글자를 먼저 써 주세요');
-        document.querySelector('#v25WriteAns').innerHTML=`<div class="qword">${w.word}</div>`;
-        document.querySelector('#v25Self').innerHTML='<button class="ok" id="v25SelfO">맞았어요</button><button class="no" id="v25SelfX">다시 볼래요</button>';
-        document.querySelector('#v25SelfO').onclick=function(){q.cursor++;save();runSetQuiz(setKey)};
-        document.querySelector('#v25SelfX').onclick=function(){markMiss(q,item);q.cursor++;save();runSetQuiz(setKey)};
-      };
+      return;
     }
+
+    const sz=cellSize(2);
+    app.innerHTML=top+`<div class="card v25QuizCard"><div class="wordRead">${esc(w.read)}</div><p class="q">${esc(w.mean)}<br>한자로 직접 쓰세요.</p>
+      <div class="writeClues">${cs.map(function(c){return `<span>[${esc(c.hun)} ${esc(c.eum)}]</span>`}).join('<b>+</b>')}</div>
+      <div id="v25WritePad" class="row" style="justify-content:center;gap:10px"></div>
+      <div class="hintButtons"><button class="ghost" id="v25Hint2">힌트 1 · 2획</button><button class="ghost" id="v25Hint4">힌트 2 · 4획</button><button class="ghost v28DontKnow" id="v28WriteDontKnow">모르겠어요</button><button class="sun" id="v25ShowAns">정답 확인</button></div>
+      <div id="v25WriteHint" class="strokeHintPair"></div><div id="v25WriteAns" class="preAnswer"></div>
+      <div id="v25Self" class="row" style="justify-content:center;margin-top:12px"></div></div>`;
+
+    const p1=makePad(document.querySelector('#v25WritePad'),{cells:1,size:sz}),p2=makePad(document.querySelector('#v25WritePad'),{cells:1,size:sz});
+    let hintMarked=false;
+    const showHint=function(n){
+      if(!hintMarked){hintMarked=true;noteWordGap(w,'strokeOrder')}
+      const h=document.querySelector('#v25WriteHint');h.innerHTML=cs.map(function(c){return `<div class="strokeHintCell" data-c="${c.ch}"></div>`}).join('');
+      h.querySelectorAll('[data-c]').forEach(function(el,k){renderStrokePrefix(el,cs[k].ch,n,Math.min(150,sz))});
+    };
+    document.querySelector('#v25Hint2').onclick=function(){showHint(2)};
+    document.querySelector('#v25Hint4').onclick=function(){showHint(4)};
+
+    document.querySelector('#v28WriteDontKnow').onclick=function(){
+      markMiss(q,item);noteWordGap(w,'help');noteWordGap(w,'strokeOrder');
+      document.querySelector('#v25WriteAns').innerHTML=`<div class="qword">${w.word}</div><p class="badMsg">정답을 확인했어요. 이 단어는 집중 복습에 들어갑니다.</p>`;
+      document.querySelectorAll('#v25Hint2,#v25Hint4,#v28WriteDontKnow,#v25ShowAns').forEach(function(b){b.disabled=true});
+      save();setTimeout(function(){q.cursor++;save();runSetQuiz(setKey)},1200);
+    };
+
+    document.querySelector('#v25ShowAns').onclick=function(){
+      if(!p1.strokes()||!p2.strokes())return toast('두 글자를 먼저 써 주세요');
+      document.querySelector('#v25WriteAns').innerHTML=`<div class="qword">${w.word}</div>`;
+      document.querySelector('#v25Self').innerHTML='<button class="ok" id="v25SelfO">맞았어요</button><button class="no" id="v25SelfX">다시 볼래요</button>';
+      document.querySelector('#v25SelfO').onclick=function(){q.cursor++;save();runSetQuiz(setKey)};
+      document.querySelector('#v25SelfX').onclick=function(){markMiss(q,item);q.cursor++;save();runSetQuiz(setKey)};
+    };
   }
 
   function finishSet(setKey,d){
