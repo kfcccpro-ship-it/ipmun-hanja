@@ -277,8 +277,8 @@
     const key=w.id+':'+charIndex;
     app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charIndex===0?'첫':'둘째'} 글자 확인</span><span class="jua">${st.studyIndex+1}단어 · ${charIndex+1}/2글자</span></div>
       <div class="card v27RecallCard" style="margin-top:12px">
-        <div class="v27RecallChar hz">${c.ch}</div><h2 style="text-align:center;margin:8px 0">5번 쓰기 완료 · 기억 확인</h2>
-        <p class="muted" style="text-align:center">음, 뜻(훈), 획수를 모두 맞혀야 다음 글자로 넘어갑니다.</p>
+        <div class="v27RecallChar hz">${c.ch}</div><h2 style="text-align:center;margin:8px 0">5번 쓰기 전 · 훈·음·획수 확인</h2>
+        <p class="muted" style="text-align:center">어떤 글자인지 먼저 알고 쓰도록, 음·뜻(훈)·획수를 모두 맞혀야 5번 쓰기로 넘어갑니다.</p>
         ${voiceBoxHtml('v27RecallVoice','['+c.hun+' '+c.eum+']')}
         <div class="v27RecallFields">
           <label><span>음 · 소리</span><input id="v27CharEum" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="예: ${esc(c.eum)}"></label>
@@ -297,7 +297,7 @@
       document.querySelector('#v27CharEum').classList.toggle('bad',!okE);document.querySelector('#v27CharHun').classList.toggle('bad',!okH);document.querySelector('#v27CharHoek').classList.toggle('bad',!okN);
       if(!(okE&&okH&&okN)){document.querySelector('#v27RecallFb').innerHTML='<span class="badMsg">'+[!okE?'음':null,!okH?'뜻':null,!okN?'획수':null].filter(Boolean).join(' · ')+'을 다시 확인해 보세요.</span>';return}
       document.querySelector('#v27RecallFb').innerHTML='<span class="okMsg">정답! 음·뜻·획수를 모두 기억했어요.</span>';
-      delete st.writeCheckpoint[key];st.studyPhase++;save();setTimeout(function(){runStudy(setKey)},650);
+      st.studyPhase++;save();setTimeout(function(){runStudy(setKey)},650);
     };
   }
 
@@ -328,9 +328,6 @@
     return Math.min(215,Math.max(155,Math.floor((w-82)/3)));
   }
   function runFiveWrite(setKey,st,w,c,charIndex,label){
-    const checkpointKey=w.id+':'+charIndex;
-    st.writeCheckpoint=st.writeCheckpoint||{};
-    if(st.writeCheckpoint[checkpointKey])return charRecallGate(setKey,st,w,c,charIndex,label);
     const cs=v26WriteCellSize();
     app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charIndex===0?'첫':'둘째'} 글자 5번 쓰기</span><span class="jua">${st.studyIndex+1}단어 · ${charIndex+1}/2글자</span></div>
       <div class="card v26FiveWrite" style="margin-top:12px">
@@ -364,8 +361,8 @@
       countEl.textContent='5 / 5칸 완료';
       document.querySelector('#v26Clear').style.display='none';document.querySelector('#v26Undo').style.display='none';
       db.notes[today()]=db.notes[today()]||{};db.notes[today()][c.id]=joinImg(pads,72,1,1,c.ch);
-      st.writeCheckpoint[checkpointKey]=true;save();
-      charRecallGate(setKey,st,w,c,charIndex,label);
+      st.studyPhase++;save();
+      runStudy(setKey);
     };
     const startTimer=function(){
       if(counting||cur>=5)return;
@@ -435,10 +432,10 @@
       const nextBtn=document.querySelector('#v251CharNext');
       mountStrokeLesson(document.querySelector('#v251SingleStroke'),c.ch,c.hoek,{size:size,auto:true,onFirstComplete:function(){
         if(!nextBtn||!document.body.contains(nextBtn))return;
-        nextBtn.disabled=false;nextBtn.textContent=charLabel+' 획순 완료 → 5번 따라쓰기';
+        nextBtn.disabled=false;nextBtn.textContent=charLabel+' 획순 완료 → 훈·음·획수 쓰기';
       }});
       document.querySelector('#v251StudyHome').onclick=function(){go('home')};
-      nextBtn.onclick=function(){if(nextBtn.disabled)return;st.studyPhase=phase+1;save();runStudy(setKey)};
+      nextBtn.onclick=function(){if(nextBtn.disabled)return;charRecallGate(setKey,st,w,c,charIndex,label)};
       return;
     }
 
