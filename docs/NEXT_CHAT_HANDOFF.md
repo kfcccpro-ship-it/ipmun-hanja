@@ -9,7 +9,7 @@
 - branch: `main`
 - GitHub Pages: https://kfcccpro-ship-it.github.io/ipmun-hanja/
 - current app version: **0.28.1**
-- current validation/deploy: **v0.28.1 main 반영 후 Validate / Pages 최종 확인 필요**
+- current validation/deploy: **Validate Hanja App SUCCESS / Deploy GitHub Pages SUCCESS**
 - source textbook: **장원한자.pdf**
 - 핵심 대상: 초등 4학년, iPad + Apple Pencil 1세대 / Galaxy Tab + S Pen
 - 운영 모델: 학생 1명 + 부모 1명, 로그인/회원가입 없음, localStorage 중심
