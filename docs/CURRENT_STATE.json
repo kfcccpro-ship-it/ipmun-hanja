@@ -3,7 +3,7 @@
   "repo": "kfcccpro-ship-it/ipmun-hanja",
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
-  "version": "0.27.1",
+  "version": "0.28.1",
   "latest_app_commit": "d10d6d22812909c89887629ef617c415a9986bc4",
   "source": {
     "textbook": "장원한자.pdf",
@@ -20,7 +20,7 @@
     "unique_characters": 187,
     "status": "PHASE1_LOCKED"
   },
-  "design_policy": "기존 학생용 UI를 유지하면서 v0.25.1의 5일 학원 대비 사이클을 최상위 흐름으로 사용",
+  "design_policy": "초4 학습자의 강제 순차학습 + 항상 보이는 진행률 + 5일 반복 + 2세트 시험우선 적응형 복습 + 약점별 자동 재학습",
   "weekly_learning": {
     "cadence": "주 1회 부모 지정, 해당 주 월~일 동안 매일 같은 10단어 반복",
     "words_per_week": 10,
@@ -54,12 +54,13 @@
       "tests/v251-ipad-regression.js",
       "tests/v26-learning-regression.js",
       "tests/v27-voice-recall-eraser.js",
-      "tests/v271-he-before-write-clear.js"
+      "tests/v271-he-before-write-clear.js",
+      "tests/v28-adaptive-cycle.js",
+      "tests/v281-mastery-system.js"
     ],
     "workflow": ".github/workflows/validate.yml",
-    "app_commit": "d10d6d22812909c89887629ef617c415a9986bc4",
-    "app_commit_validate": "SUCCESS",
-    "app_commit_pages": "SUCCESS"
+    "app_commit_validate": "PENDING_MAIN",
+    "app_commit_pages": "PENDING_MAIN"
   },
   "backup_branch": "backup-v0.23.0-before-v0.24.0-20260921",
   "key_files": [
@@ -91,11 +92,11 @@
     "Node 기반 루틴 논리 회귀테스트를 GitHub Actions에 추가"
   ],
   "next_default_tasks": [
-    "iPad Pro 10.5에서 빨간 과획 경고를 직접 눌러 현재 칸이 즉시 0획으로 초기화되는지 확인",
-    "큰글씨 획순 완료 후 반드시 훈·음·획수 확인 화면이 먼저 나오는지 확인",
-    "훈·음·획수 정답 후에만 5번 쓰기로 이동하는지 확인",
-    "Apple Pencil/S Pen에서 획 지우개와 전체 칸 지우기가 서로 충돌하지 않는지 확인",
-    "구형 iPad에서 5번 쓰기 화면 버튼 겹침 및 터치영역 확인"
+    "v0.28.1을 main에 fast-forward 후 Validate Hanja App / GitHub Pages SUCCESS 확인",
+    "iPad Pro 10.5에서 상단 진행률 카드가 학습·5번쓰기·시험 화면에서 계속 보이는지 확인",
+    "2세트가 실전시험부터 시작하고 오답 단어만 깊은학습으로 이동하는지 실기검수",
+    "모르겠어요가 건너뛰기가 아니라 같은 글자/단어 재학습으로 되돌리는지 확인",
+    "부모 약한 글자 탭과 빠른 깜짝시험 3종을 실제 사용 흐름으로 검수"
   ],
   "resume_phrase": "다음 작업 진행",
   "five_day_cycle": {
@@ -193,5 +194,50 @@
       "상시 획 지우개: 닿은 획만 삭제",
       "빨간 과획 경고/하단 이 칸 지우기: 현재 칸 전체 삭제"
     ]
+  },
+  "v028": {
+    "progress": "D1~D5, 오늘 %, 4개 큰 단계, 현재 위치를 1·2세트 학습/시험 화면 상단에 지속 표시",
+    "day_roles": {
+      "D1": "제대로 배우는 날",
+      "D2": "기억에서 꺼내는 날",
+      "D3": "약한 글자 잡는 날",
+      "D4": "실전 예행연습",
+      "D5": "최종 점검"
+    },
+    "set1": "부모 선택 소수 단어를 획순·훈·음·획수·5번쓰기까지 매일 깊게 반복",
+    "set2": "실전시험 먼저 → 틀린 단어만 깊게 복습 → 틀린 문제만 재확인",
+    "adaptive_state": [
+      "diagnosticDone",
+      "remedialWordIds",
+      "reviewMode",
+      "retryOnly"
+    ],
+    "completion": "500P + Dn/5 + 학습단어/집중복습 수 + 5일 완료표"
+  },
+  "v0281": {
+    "skill_taxonomy": [
+      "훈",
+      "음",
+      "획수",
+      "획순",
+      "읽기",
+      "뜻",
+      "쓰기",
+      "모르겠어요"
+    ],
+    "state_keys": [
+      "skillProfile.chars",
+      "skillProfile.words",
+      "skillToday"
+    ],
+    "dont_know": "정답을 확인하되 통과시키지 않고 획순/단어 첫 단계로 되돌리거나 오답 재출제에 등록",
+    "weak_parent_view": "부모 모드 약한 글자 탭에서 글자/단어별 취약 영역 표시",
+    "quick_surprise": [
+      "오늘 배운 것 5문제",
+      "약한 단어 5문제",
+      "오늘 범위 랜덤 10문제",
+      "기존 수기 선택"
+    ],
+    "completion_card": "학습 단어, 집중복습 단어, 다시 확인 신호, 가장 많이 확인한 약점, D1~D5 완료표"
   }
 }
