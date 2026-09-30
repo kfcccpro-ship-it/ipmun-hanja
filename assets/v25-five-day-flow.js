@@ -26,6 +26,10 @@
     db.surpriseTests=db.surpriseTests||[];
     db.v25=db.v25||{};
     db.v28=db.v28||{};
+    db.skillProfile=db.skillProfile||{chars:{},words:{}};
+    db.skillProfile.chars=db.skillProfile.chars||{};
+    db.skillProfile.words=db.skillProfile.words||{};
+    db.skillToday=db.skillToday||{};
     db.points=db.points||{total:0,days:{}};
     db.points.days=db.points.days||{};
   }
@@ -61,9 +65,11 @@
     pool=uniqWords(pool);
     if(!pool.length)return [];
     const poolIds=new Set(pool.map(function(w){return w.id}));
-    const wrong=uniqWords(Object.entries(db.wrong||{}).sort(function(a,b){return b[1]-a[1]})
+    const oldWrong=uniqWords(Object.entries(db.wrong||{}).sort(function(a,b){return b[1]-a[1]})
       .map(function(x){return baseWord(+x[0])})
       .filter(function(w){return w&&poolIds.has(w.id)}));
+    const tracked=weakWords(pool).filter(function(w){return wordWeakScore(w)>0});
+    const wrong=uniqWords(tracked.concat(oldWrong));
     const recent=pool.slice(-Math.min(14,pool.length));
     const quota={
       1:{wrong:4,recent:10},
@@ -234,6 +240,52 @@
     return out;
   }
 
+  function skillRecord(scope,key){
+    ensureV25();
+    const root=scope==='char'?db.skillProfile.chars:db.skillProfile.words;
+    root[key]=root[key]||{hun:0,eum:0,strokeCount:0,strokeOrder:0,read:0,meaning:0,writing:0,help:0,last:null};
+    return root[key];
+  }
+  function noteSkill(scope,key,type){
+    const r=skillRecord(scope,key);
+    r[type]=(r[type]||0)+1;r.last=today();
+    db.skillToday[today()]=db.skillToday[today()]||{hun:0,eum:0,strokeCount:0,strokeOrder:0,read:0,meaning:0,writing:0,help:0};
+    db.skillToday[today()][type]=(db.skillToday[today()][type]||0)+1;
+    save();
+  }
+  function noteCharGap(c,type){if(c)noteSkill('char',c.ch,type)}
+  function noteWordGap(w,type){if(w)noteSkill('word',String(w.id),type)}
+  function skillScore(r){if(!r)return 0;return ['hun','eum','strokeCount','strokeOrder','read','meaning','writing','help'].reduce(function(a,k){return a+(+r[k]||0)},0)}
+  function wordWeakScore(w){
+    if(!w)return 0;
+    let n=skillScore(db.skillProfile?.words?.[String(w.id)]);
+    charsOf(w).forEach(function(c){n+=skillScore(db.skillProfile?.chars?.[c.ch])});
+    return n;
+  }
+  function weakWords(pool){
+    return uniqWords((pool||[]).filter(Boolean)).sort(function(a,b){return wordWeakScore(b)-wordWeakScore(a)});
+  }
+  function gapLabel(k){
+    return ({hun:'훈',eum:'음',strokeCount:'획수',strokeOrder:'획순',read:'읽기',meaning:'뜻',writing:'쓰기',help:'모르겠어요'})[k]||k;
+  }
+  function todayGapSummary(date=today()){
+    ensureV25();
+    const x=db.skillToday[date]||{},pairs=Object.entries(x).filter(function(z){return +z[1]>0}).sort(function(a,b){return b[1]-a[1]});
+    return {total:pairs.reduce(function(a,z){return a+(+z[1]||0)},0),top:pairs[0]?gapLabel(pairs[0][0]):'없음',pairs:pairs};
+  }
+  function quickWordPool(){
+    const d=getDailyPlan(false),ids=[];
+    manualPool().forEach(function(w){if(!ids.includes(w.id))ids.push(w.id)});
+    if(d){[...(d.set1?.wordIds||[]),...(d.set2?.wordIds||[])].forEach(function(id){if(!ids.includes(id))ids.push(id)})}
+    return ids.map(byId).filter(Boolean);
+  }
+  function createSurprise(wordIds){
+    const ids=[...new Set((wordIds||[]).map(Number).filter(Boolean))];
+    if(!ids.length)return false;
+    db.surpriseTests.push({id:Date.now(),date:today(),wordIds:ids,status:'ready',cursor:0,answers:[],grades:Array.from({length:ids.length},function(){return null}),createdAt:Date.now()});
+    save();return true;
+  }
+
   const style=document.createElement('style');
   style.id='v25-style';
   style.textContent=`
@@ -306,6 +358,13 @@
     .v28Adaptive{border:3px solid var(--sun);background:#FFF9E9}.v28Adaptive .score{font-size:46px}
     .v28Week{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}.v28Week span{font-family:'Jua';padding:7px 10px;border-radius:999px;background:var(--paper);border:1px solid var(--line)}.v28Week span.done{background:#EAF7EF;color:#2E7D4F}.v28Week span.cur{outline:3px solid var(--sky)}
     @media(max-width:700px){.v28Progress{top:62px}.v28ProgressTop{grid-template-columns:auto 1fr}.v28ProgressTop>strong{grid-column:1/-1;text-align:right;margin-top:-34px}.v28ProgressTop small{display:none}.v28StageRow{grid-template-columns:1fr 1fr}}
+  `;
+  style.textContent+=`
+    .v28RecallActions{gap:10px;flex-wrap:wrap}.v28DontKnow{border-style:dashed!important;color:var(--seal)!important}
+    .v28WeakGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.v28WeakCard{padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--paper)}
+    .v28WeakCard h4{margin:0 0 8px;font-family:'Jua';font-size:20px}.v28SkillTags{display:flex;gap:6px;flex-wrap:wrap}.v28SkillTags span{padding:5px 8px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13px}
+    .v28QuickTests{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.v28QuickTests button{min-height:70px}
+    @media(max-width:700px){.v28RecallActions>*{flex:1 1 100%}.v28WeakGrid{grid-template-columns:1fr}.v28QuickTests{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
 
@@ -390,8 +449,6 @@
     return `<div class="v27VoiceBox"><div><b>${esc(title)}</b><small>듣고 → 그대로 따라 말해 보세요. 음성은 저장하지 않습니다.</small></div><div class="row" style="justify-content:center"><button class="sun" id="${prefix}Listen">🔊 듣기</button><button class="ghost" id="${prefix}Repeat">🎤 따라 말하기</button></div><div class="v27VoiceStatus" id="${prefix}Status"></div></div>`;
   }
   function charRecallGate(setKey,st,w,c,charIndex,label){
-    st.writeCheckpoint=st.writeCheckpoint||{};
-    const key=w.id+':'+charIndex;
     app.innerHTML=progressBannerHtml(getDailyPlan(false))+`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charIndex===0?'첫':'둘째'} 글자 확인</span><span class="jua">${st.studyIndex+1}단어 · ${charIndex+1}/2글자</span></div>
       <div class="card v27RecallCard" style="margin-top:12px">
         <div class="v27RecallChar hz">${c.ch}</div><h2 style="text-align:center;margin:8px 0">5번 쓰기 전 · 훈·음·획수 확인</h2>
@@ -403,15 +460,21 @@
           <label><span>총 획수</span><input id="v27CharHoek" inputmode="numeric" pattern="[0-9]*" placeholder="몇 획?"></label>
         </div>
         <div id="v27RecallFb" class="hint" style="text-align:center"></div>
-        <div class="row" style="justify-content:space-between"><button class="ghost" id="v27RecallHome">오늘 화면</button><button class="pri big" id="v27RecallCheck">음·뜻·획수 확인</button></div>
+        <div class="row v28RecallActions" style="justify-content:space-between"><button class="ghost" id="v27RecallHome">오늘 화면</button><button class="ghost v28DontKnow" id="v28CharDontKnow">모르겠어요 · 획순 다시 보기</button><button class="pri" id="v27RecallCheck">음·뜻·획수 확인</button></div>
       </div>`;
     const voiceLabel=c.hun.split('/')[0]+' '+c.eum;
     bindVoice('#v27RecallVoiceListen','#v27RecallVoiceRepeat','#v27RecallVoiceStatus',voiceLabel,voiceLabel);
     document.querySelector('#v27RecallHome').onclick=function(){go('home')};
+    document.querySelector('#v28CharDontKnow').onclick=function(){
+      noteCharGap(c,'help');
+      document.querySelector('#v27RecallFb').innerHTML=`<span class="badMsg">괜찮아요. 정답은 [${esc(c.hun)} ${esc(c.eum)}] · ${c.hoek}획이에요. 획순부터 다시 보고 와요.</span>`;
+      st.studyPhase=charIndex*2;save();setTimeout(function(){runStudy(setKey)},700);
+    };
     document.querySelector('#v27RecallCheck').onclick=function(){
       const e=normRecall(document.querySelector('#v27CharEum').value),h=normRecall(document.querySelector('#v27CharHun').value),n=+document.querySelector('#v27CharHoek').value;
       const okE=e===normRecall(c.eum),okH=c.hun.split('/').some(function(x){return h===normRecall(x)}),okN=n===+c.hoek;
       document.querySelector('#v27CharEum').classList.toggle('bad',!okE);document.querySelector('#v27CharHun').classList.toggle('bad',!okH);document.querySelector('#v27CharHoek').classList.toggle('bad',!okN);
+      if(!okE)noteCharGap(c,'eum');if(!okH)noteCharGap(c,'hun');if(!okN)noteCharGap(c,'strokeCount');
       if(!(okE&&okH&&okN)){document.querySelector('#v27RecallFb').innerHTML='<span class="badMsg">'+[!okE?'음':null,!okH?'뜻':null,!okN?'획수':null].filter(Boolean).join(' · ')+'을 다시 확인해 보세요.</span>';return}
       document.querySelector('#v27RecallFb').innerHTML='<span class="okMsg">정답! 음·뜻·획수를 모두 기억했어요.</span>';
       st.studyPhase++;save();setTimeout(function(){runStudy(setKey)},650);
@@ -461,10 +524,10 @@
       </div>`;
     const voiceLabel=c.hun.split('/')[0]+' '+c.eum;
     bindVoice('#v27WriteVoiceListen','#v27WriteVoiceRepeat','#v27WriteVoiceStatus',voiceLabel,voiceLabel);
-    const pads=[];let cur=0,tick=null,counting=false,feedbackTimer=null,cycle=0;
+    const pads=[];let cur=0,tick=null,counting=false,feedbackTimer=null,cycle=0,overMarked=false;
     const countEl=document.querySelector('#v26WriteCount');
     const stat=function(){const p=pads[cur];countEl.textContent=cur>=5?'5 / 5칸 완료':(cur+1)+' / 5 · '+(p?p.strokes():0)+'/'+c.hoek+'획'};
-    const setCur=function(){pads.forEach(function(p,i){p.lock(i!==cur);p.el.classList.toggle('active',i===cur)});stat()};
+    const setCur=function(){overMarked=false;pads.forEach(function(p,i){p.lock(i!==cur);p.el.classList.toggle('active',i===cur)});stat()};
     const clearFeedback=function(){clearTimeout(feedbackTimer);feedbackTimer=null;const f=document.querySelector('#v26WriteFeedback');if(f){f.classList.remove('show');f.innerHTML=''}};
     const cancelT=function(){cycle++;clearInterval(tick);tick=null;counting=false;clearFeedback();const p=pads[cur],o=p&&p.el.querySelector('.cd'),rr=p&&p.el.querySelector('.postStrokeReplay');if(o)o.remove();if(rr)rr.remove()};
     const guidedFeedback=function(p,index,token,done){
@@ -500,7 +563,7 @@
     for(let k=0;k<5;k++){
       const p=makePad(document.querySelector('#v26WriteGrid'),{cells:1,size:cs,trace:'',alpha:0,
         onDown:function(){if(k===cur)cancelT()},
-        onChange:function(){if(k!==cur)return;const n=pads[cur].strokes();stat();pads[cur].el.classList.toggle('over',n>c.hoek);if(n===c.hoek)startTimer();else cancelT()}
+        onChange:function(){if(k!==cur)return;const n=pads[cur].strokes();stat();pads[cur].el.classList.toggle('over',n>c.hoek);if(n>c.hoek&&!overMarked){overMarked=true;noteCharGap(c,'strokeCount')}if(n===c.hoek)startTimer();else cancelT()}
       });
       const b=document.createElement('div');b.className='num';b.textContent=k+1;p.el.appendChild(b);
       if(k<3)attachTraceGuide(p,c.ch,cs,k);
@@ -592,7 +655,7 @@
         <div id="v251StudyPad" class="row" style="justify-content:center;gap:12px"></div>
         <div class="v27StrokeCounts"><span id="v27Count0">${cs[0].ch} · 0/${cs[0].hoek}획</span><span id="v27Count1">${cs[1].ch} · 0/${cs[1].hoek}획</span></div>
         <div id="v27WordFb" class="hint" style="text-align:center"></div>
-        <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v251StudyHome">오늘 화면</button><button class="pri" id="v251StudyNext">${i<words.length-1?'음·뜻·획수 확인 → 다음 단어':'음·뜻·획수 확인 → 쪽지시험'}</button></div>
+        <div class="row v28RecallActions" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v251StudyHome">오늘 화면</button><button class="ghost v28DontKnow" id="v28WordDontKnow">모르겠어요 · 다시 배우기</button><button class="pri" id="v251StudyNext">${i<words.length-1?'음·뜻·획수 확인 → 다음 단어':'음·뜻·획수 확인 → 쪽지시험'}</button></div>
       </div>`;
     bindVoice('#v27WordVoiceListen','#v27WordVoiceRepeat','#v27WordVoiceStatus',w.read+'. '+w.mean,w.read);
     document.querySelector('#v27LineListen').onclick=function(){speakKo(star,document.querySelector('#v27WordVoiceStatus'))};
@@ -609,11 +672,13 @@
     pad2=makePad(document.querySelector('#v251StudyPad'),{cells:1,size:size,onChange:updateCounts});
     updateCounts();
     document.querySelector('#v251StudyHome').onclick=function(){go('home')};
+    const wordDontKnow=document.querySelector('#v28WordDontKnow');if(wordDontKnow)wordDontKnow.onclick=function(){noteWordGap(w,'help');noteWordGap(w,'writing');st.studyPhase=0;save();runStudy(setKey)};
     document.querySelector('#v251StudyNext').onclick=function(){
       const readOk=normRecall(document.querySelector('#v27WordRead').value)===normRecall(w.read);
       const meanOk=normRecall(document.querySelector('#v27WordMean').value)===normRecall(w.mean);
       const strokeOk1=pad1.strokes()===+cs[0].hoek,strokeOk2=pad2.strokes()===+cs[1].hoek;
       document.querySelector('#v27WordRead').classList.toggle('bad',!readOk);document.querySelector('#v27WordMean').classList.toggle('bad',!meanOk);
+      if(!readOk)noteWordGap(w,'read');if(!meanOk)noteWordGap(w,'meaning');if(!strokeOk1)noteCharGap(cs[0],'strokeCount');if(!strokeOk2)noteCharGap(cs[1],'strokeCount');if(!(strokeOk1&&strokeOk2))noteWordGap(w,'writing');
       if(!(readOk&&meanOk&&strokeOk1&&strokeOk2)){
         document.querySelector('#v27WordFb').innerHTML='<span class="badMsg">'+[!readOk?'음':null,!meanOk?'뜻':null,!(strokeOk1&&strokeOk2)?'획수':null].filter(Boolean).join(' · ')+'을 다시 확인해 보세요.</span>';return;
       }
