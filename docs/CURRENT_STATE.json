@@ -3,7 +3,7 @@
   "repo": "kfcccpro-ship-it/ipmun-hanja",
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
-  "version": "0.27.0",
+  "version": "0.27.1",
   "latest_app_commit": "bedebec475dac9f2d17378507f3663e78c933d32",
   "source": {
     "textbook": "장원한자.pdf",
@@ -90,12 +90,11 @@
     "Node 기반 루틴 논리 회귀테스트를 GitHub Actions에 추가"
   ],
   "next_default_tasks": [
-    "iPad Pro 10.5에서 🔊 듣기 재생 확인",
-    "iPad Pro 10.5 Safari에서 🎤 따라 말하기 지원 여부 및 마이크 권한 흐름 확인",
-    "Apple Pencil로 획 지우개가 잘못 쓴 획 하나만 제거하고 획수가 감소하는지 확인",
-    "한 글자 5번 쓰기 후 음·뜻·획수 오답 시 다음 글자로 넘어가지 않는지 확인",
-    "두 글자 단어에서 읽기·뜻·각 글자 획수 조건이 모두 맞아야 다음 단어로 넘어가는지 확인",
-    "Galaxy Tab S Pen에서 동일 동작 실기검수"
+    "iPad Pro 10.5에서 빨간 과획 경고를 직접 눌러 현재 칸이 즉시 0획으로 초기화되는지 확인",
+    "큰글씨 획순 완료 후 반드시 훈·음·획수 확인 화면이 먼저 나오는지 확인",
+    "훈·음·획수 정답 후에만 5번 쓰기로 이동하는지 확인",
+    "Apple Pencil/S Pen에서 획 지우개와 전체 칸 지우기가 서로 충돌하지 않는지 확인",
+    "구형 iPad에서 5번 쓰기 화면 버튼 겹침 및 터치영역 확인"
   ],
   "resume_phrase": "다음 작업 진행",
   "five_day_cycle": {
@@ -184,5 +183,14 @@
     "word_gate": "단어 읽기(음) + 뜻 입력 + 두 글자 각각 정확한 획수 쓰기 모두 충족해야 다음 단어",
     "eraser": "모든 makePad에 상시 획 지우개. 지우개로 닿은 획 전체를 제거하여 획수 카운트 정합성 유지",
     "resume": "writeCheckpoint로 5번 쓰기 완료 후 기억확인 단계 재진입"
+  },
+  "v0271": {
+    "learning_order": "큰글씨 획순 → 훈·음·획수 확인 → 5번 쓰기 → 다음 글자",
+    "legacy_order": "배우기 → 훈·음·획수 쓰기 → 5번 쓰기",
+    "over_stroke_clear": "빨간 '획수가 많아요 · 이 칸 지우기' 경고 자체를 버튼화하여 현재 칸 전체 삭제",
+    "erase_modes": [
+      "상시 획 지우개: 닿은 획만 삭제",
+      "빨간 과획 경고/하단 이 칸 지우기: 현재 칸 전체 삭제"
+    ]
   }
 }
