@@ -8,7 +8,7 @@
 - GitHub repository: `kfcccpro-ship-it/ipmun-hanja`
 - branch: `main`
 - GitHub Pages: https://kfcccpro-ship-it.github.io/ipmun-hanja/
-- current app version: **0.27.0**
+- current app version: **0.27.1**
 - current validation/deploy: **Validate Hanja App SUCCESS / Deploy GitHub Pages SUCCESS**
 - source textbook: **장원한자.pdf**
 - 핵심 대상: 초등 4학년, iPad + Apple Pencil 1세대 / Galaxy Tab + S Pen
@@ -398,3 +398,16 @@ GitHub Actions:
 - 두 글자 단어 학습 마지막에는 **단어 읽기(음) + 뜻을 직접 입력**하고, 두 글자를 각각 교재 기준 정확한 획수로 써야 다음 단어로 진행.
 - 모든 `makePad` 필기 칸에 **🧽 획 지우개**를 기본 탑재. 잘못 쓴 획을 누르거나 문지르면 해당 획만 제거되어 획수 카운트도 함께 줄어든다.
 - 읽기/시험/5번 쓰기/실전시험/깜짝시험 등 현재 엔진의 모든 필기 패드에 동일 지우개가 자동 적용된다.
+
+
+---
+
+## 16. v0.27.1 훈·음·획수 선행 / 과획 경고 즉시 지우기
+
+- 학습 순서를 **큰글씨 획순 → 훈·음·획수 확인 → 5번 쓰기**로 변경. 아이가 어떤 글자인지 먼저 확인한 뒤 쓰도록 함.
+- 기존 레거시 학습 흐름도 `배우기 → 훈·음·획수 쓰기 → 5번 쓰기` 순으로 통일.
+- 훈·음 화면에 **총 획수 직접 입력**을 추가하고, 세 항목이 모두 맞아야 5번 쓰기로 이동.
+- 5번 쓰기 중 획수를 초과하면 나타나는 빨간 **“획수가 많아요 · 이 칸 지우기”** 영역을 실제 버튼으로 변경.
+- 빨간 영역을 누르면 하단 **“이 칸 지우기/이 칸 모두 지우기”**와 동일하게 현재 칸 전체 필기를 즉시 삭제하고 획수 카운트를 0으로 되돌림.
+- 기존 상시 획 지우개(잘못 쓴 한 획만 제거)와 전체 칸 지우기를 모두 유지.
+- 회귀검증: `tests/v271-he-before-write-clear.js`.
