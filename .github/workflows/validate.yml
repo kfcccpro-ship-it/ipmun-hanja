@@ -37,6 +37,7 @@ jobs:
           node tests/v27-voice-recall-eraser.js
           node tests/v271-he-before-write-clear.js
           node tests/v28-adaptive-cycle.js
+          node tests/v281-mastery-system.js
       - name: Structural checks
         run: |
           python3 - <<'PY'
@@ -95,6 +96,9 @@ jobs:
             'v28_progress':'function dailyProgress' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and 'v28Progress' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
             'v28_day_mission':'제대로 배우는 날' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and '최종 점검' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
             'v28_test_first':'diagnosticDone' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and 'remedialWordIds' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v281_skill_taxonomy':'db.skillProfile=db.skillProfile||{chars:{},words:{}}' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and 'function pWeak' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v281_dont_know':'v28ReadDontKnow' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and 'v28WriteDontKnow' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v281_quick_surprise':'v28QuickToday' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and 'v28QuickWeak' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and 'v28QuickRandom' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
           }
           for k,v in checks.items(): print(k, 'PASS' if v else 'FAIL')
           if not all(checks.values()): sys.exit(1)
