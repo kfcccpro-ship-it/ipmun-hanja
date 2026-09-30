@@ -36,6 +36,7 @@ jobs:
           node tests/v26-learning-regression.js
           node tests/v27-voice-recall-eraser.js
           node tests/v271-he-before-write-clear.js
+          node tests/v28-adaptive-cycle.js
       - name: Structural checks
         run: |
           python3 - <<'PY'
@@ -91,6 +92,9 @@ jobs:
             'v27_eraser':"er.className='padEraserMini'" in s and 'const eraseAt=p=>' in s,
             'v271_over_clear':"overClear.className='overClearBtn'" in s and 'overClear.onclick' in s and 'clearInk()' in s,
             'v271_he_before_write':"st.push({t:'learn',c,k});st.push({t:'he',c,k});st.push({t:'write',c,k})" in s and '획순 확인 완료 → 훈·음·획수 쓰기' in s and '5번 쓰기 전 · 훈·음·획수 확인' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v28_progress':'function dailyProgress' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and 'v28Progress' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v28_day_mission':'제대로 배우는 날' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and '최종 점검' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
+            'v28_test_first':'diagnosticDone' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8') and 'remedialWordIds' in Path('assets/v25-five-day-flow.js').read_text(encoding='utf-8'),
           }
           for k,v in checks.items(): print(k, 'PASS' if v else 'FAIL')
           if not all(checks.values()): sys.exit(1)
