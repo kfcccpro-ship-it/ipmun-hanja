@@ -3,7 +3,7 @@ const fs=require('fs');
 const index=fs.readFileSync('index.html','utf8');
 const flow=fs.readFileSync('assets/v25-five-day-flow.js','utf8');
 
-assert(index.includes('v0.27.1</title>'));
+assert(index.includes('v0.28.0</title>'));
 
 // Legacy learning path: know the character first, then five-write.
 const buildA=index.indexOf('function buildSteps');
