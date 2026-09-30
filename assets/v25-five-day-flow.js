@@ -25,6 +25,7 @@
     db.dailyLearnedWords=db.dailyLearnedWords||{};
     db.surpriseTests=db.surpriseTests||[];
     db.v25=db.v25||{};
+    db.v28=db.v28||{};
     db.points=db.points||{total:0,days:{}};
     db.points.days=db.points.days||{};
   }
@@ -56,24 +57,42 @@
     const d=byId(+id);
     return d&&byId(d.id%2===0?d.id-1:d.id);
   }
-  function selectSet2(pool,count=SET2_DAILY_WORDS){
+  function selectSet2(pool,count=SET2_DAILY_WORDS,day=cycleDay(activePlan())){
     pool=uniqWords(pool);
     if(!pool.length)return [];
     const poolIds=new Set(pool.map(function(w){return w.id}));
     const wrong=uniqWords(Object.entries(db.wrong||{}).sort(function(a,b){return b[1]-a[1]})
       .map(function(x){return baseWord(+x[0])})
       .filter(function(w){return w&&poolIds.has(w.id)}));
-    const recent=pool.slice(-Math.min(12,pool.length));
+    const recent=pool.slice(-Math.min(14,pool.length));
+    const quota={
+      1:{wrong:4,recent:10},
+      2:{wrong:6,recent:8},
+      3:{wrong:10,recent:6},
+      4:{wrong:8,recent:4},
+      5:{wrong:10,recent:2}
+    }[Math.max(1,Math.min(5,+day||1))];
     const out=[];
-    wrong.slice(0,Math.min(8,count)).forEach(function(w){if(!out.some(function(x){return x.id===w.id}))out.push(w)});
+    wrong.slice(0,Math.min(quota.wrong,count)).forEach(function(w){if(!out.some(function(x){return x.id===w.id}))out.push(w)});
     let recentN=0;
     shuffle(recent).forEach(function(w){
-      if(out.length<count&&recentN<8&&!out.some(function(x){return x.id===w.id})){out.push(w);recentN++}
+      if(out.length<count&&recentN<quota.recent&&!out.some(function(x){return x.id===w.id})){out.push(w);recentN++}
     });
-    shuffle(pool).forEach(function(w){
-      if(out.length<count&&!out.some(function(x){return x.id===w.id}))out.push(w);
-    });
+    shuffle(pool).forEach(function(w){if(out.length<count&&!out.some(function(x){return x.id===w.id}))out.push(w)});
     return out.slice(0,Math.min(count,pool.length));
+  }
+  function normalizeV28Plan(d){
+    if(!d||d.v28Adaptive)return d;
+    const st=d.set2;
+    if(st){
+      st.diagnosticDone=!!st.diagnosticDone||!!st.quizDone;
+      st.remedialWordIds=st.remedialWordIds||[];
+      st.reviewMode=!!st.reviewMode;
+      st.retryOnly=!!st.retryOnly;
+      if(!st.quizDone&&!st.quizState&&!st.studyIndex&&!st.studyPhase&&!st.learnDone)st.learnDone=true;
+    }
+    d.v28Adaptive=true;
+    return d;
   }
   function getDailyPlan(create=true,date=today()){
     ensureV25();
@@ -82,15 +101,18 @@
     const key=planKey(p);
     let d=db.dailySetPlans[date];
     if((!d||d.planKey!==key)&&create){
-      const s1=set1Words(p),s2=selectSet2(cumulativeWords(p),SET2_DAILY_WORDS);
+      const day=cycleDay(p,date);
+      const s1=set1Words(p),s2=selectSet2(cumulativeWords(p),SET2_DAILY_WORDS,day);
       d={
         date,planKey:key,
         set1:{wordIds:s1.map(function(w){return w.id}),studyIndex:0,studyPhase:0,learnDone:false,quizDone:false,quizState:null},
-        set2:{wordIds:s2.map(function(w){return w.id}),studyIndex:0,studyPhase:0,learnDone:false,quizDone:false,quizState:null},
-        createdAt:Date.now()
+        set2:{wordIds:s2.map(function(w){return w.id}),studyIndex:0,studyPhase:0,learnDone:true,quizDone:false,quizState:null,diagnosticDone:false,remedialWordIds:[],reviewMode:false,retryOnly:false},
+        v28Adaptive:true,createdAt:Date.now()
       };
       db.dailySetPlans[date]=d;
       save();
+    }else if(d&&d.planKey===key&&!d.v28Adaptive){
+      normalizeV28Plan(d);save();
     }
     return d&&d.planKey===key?d:null;
   }
@@ -127,6 +149,89 @@
     if(st.learnDone)return '학습 완료 · 쪽지시험 남음';
     if(st.studyIndex)return '학습 '+st.studyIndex+'/'+total+' 이어하기';
     return '학습 시작';
+  }
+
+  function dayMission(day){
+    return ({
+      1:{title:'제대로 배우는 날',icon:'🌱',desc:'새 범위는 천천히 배우고, 2세트는 시험으로 아는 것부터 확인해요.'},
+      2:{title:'기억에서 꺼내는 날',icon:'🧠',desc:'어제 배운 것을 스스로 떠올리고, 틀린 것만 다시 깊게 공부해요.'},
+      3:{title:'약한 글자 잡는 날',icon:'🎯',desc:'오답이 많았던 글자와 획수·획순을 더 자주 만나게 해요.'},
+      4:{title:'실전 예행연습',icon:'⏱️',desc:'학원 시험처럼 먼저 풀고, 막힌 단어만 바로 보충해요.'},
+      5:{title:'최종 점검',icon:'🏁',desc:'이번 5일 학습을 마무리하며 약한 단어를 끝까지 다시 확인해요.'}
+    })[Math.max(1,Math.min(5,+day||1))];
+  }
+  function quizFraction(st){
+    if(!st)return 0;
+    if(st.quizDone)return 1;
+    const q=st.quizState;
+    return q&&q.items?.length?Math.max(0,Math.min(1,(q.cursor||0)/q.items.length)):0;
+  }
+  function studyFraction(st,ids){
+    if(!st)return 0;
+    if(st.learnDone&&!st.reviewMode)return 1;
+    const n=Math.max(1,(ids||st.wordIds||[]).length);
+    return Math.max(0,Math.min(1,((st.studyIndex||0)+(st.studyPhase||0)/5)/n));
+  }
+  function dailyProgress(d){
+    if(!d)return{pct:0,doneStages:0,current:'부모 설정 필요'};
+    const s1=d.set1,s2=d.set2;
+    const a=studyFraction(s1,s1.wordIds),b=s1.quizDone?1:quizFraction(s1);
+    const c=s2.diagnosticDone?1:quizFraction(s2);
+    let e=0;
+    if(s2.quizDone)e=1;
+    else if(s2.diagnosticDone){
+      if(!s2.remedialWordIds?.length)e=1;
+      else if(s2.reviewMode||!s2.learnDone)e=studyFraction(s2,s2.remedialWordIds)*.65;
+      else e=.65+quizFraction(s2)*.35;
+    }
+    const pct=Math.round((a*.35+b*.15+c*.30+e*.20)*100);
+    const doneStages=[s1.learnDone,s1.quizDone,!!s2.diagnosticDone,s2.quizDone].filter(Boolean).length;
+    let current='1세트 학습';
+    if(s1.learnDone&&!s1.quizDone)current='1세트 쪽지시험';
+    else if(s1.quizDone&&!s2.diagnosticDone)current='2세트 실전 진단';
+    else if(s2.diagnosticDone&&!s2.quizDone)current=s2.remedialWordIds?.length?'틀린 단어 집중 복습':'2세트 마무리';
+    else if(s2.quizDone)current='오늘 학습 완료';
+    return{pct,doneStages,current};
+  }
+  function progressBannerHtml(d){
+    if(!d)return'';
+    const p=activePlan(),day=cycleDay(p),m=dayMission(day),pr=dailyProgress(d);
+    const stages=[
+      ['1세트 학습',d.set1.learnDone],
+      ['1세트 시험',d.set1.quizDone],
+      ['2세트 실전',!!d.set2.diagnosticDone],
+      ['오늘 완료',d.set2.quizDone]
+    ];
+    return `<div class="v28Progress">
+      <div class="v28ProgressTop"><span class="v28Day">D${day}/5</span><div><b>${m.icon} ${m.title}</b><small>${m.desc}</small></div><strong>${pr.pct}%</strong></div>
+      <div class="v28Bar"><i style="width:${pr.pct}%"></i></div>
+      <div class="v28StageRow">${stages.map(function(x){return `<span class="${x[1]?'done':''}">${x[1]?'✓ ':''}${x[0]}</span>`}).join('')}</div>
+      <div class="v28Current">지금: <b>${pr.current}</b> · ${pr.doneStages}/4 큰 단계 완료</div>
+    </div>`;
+  }
+  function set2StatusText(st){
+    if(st.quizDone)return '완료';
+    if(!st.diagnosticDone)return st.quizState?'실전 진단 진행 중':'시험 먼저 보기 · 아는 것부터 확인';
+    if(st.remedialWordIds?.length){
+      if(st.reviewMode||!st.learnDone)return '틀린 '+st.remedialWordIds.length+'단어만 깊게 복습 중';
+      return '집중 복습 완료 · 틀린 문제 다시 확인';
+    }
+    return '실전 진단 통과';
+  }
+  function set2ButtonText(st){
+    if(st.quizDone)return '오늘 2세트 완료';
+    if(!st.diagnosticDone)return st.quizState?'2세트 실전 이어하기':'2세트 실전시험 먼저 보기';
+    if(st.reviewMode||!st.learnDone)return st.studyIndex?'틀린 단어 복습 이어하기':'틀린 단어 집중 복습';
+    return '틀린 문제 다시 확인';
+  }
+  function fiveDayDots(p){
+    if(!p)return'';
+    let out='';
+    for(let i=0;i<5;i++){
+      const dt=isoAdd(p.start,i),x=db.dailySetPlans[dt],done=!!(x&&x.set1?.quizDone&&x.set2?.quizDone),cur=dt===today();
+      out+=`<span class="${done?'done':''} ${cur?'cur':''}">D${i+1} ${done?'✓':cur?'●':'○'}</span>`;
+    }
+    return out;
   }
 
   const style=document.createElement('style');
@@ -192,35 +297,47 @@
     .v27WordRecall{max-width:760px;margin:16px auto;padding:14px 16px;background:var(--paper);border:2px solid var(--line);border-radius:14px}.v27WordRecall h3{margin:0 0 4px;text-align:center}.v27StrokeCounts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0}.v27StrokeCounts span{font-family:'Jua';font-size:19px;padding:7px 11px;border-radius:10px;background:var(--paper);border:2px solid var(--line)}.v27StrokeCounts span.ok{border-color:var(--leaf);color:var(--leaf)}.v27StrokeCounts span.bad{border-color:var(--seal);color:var(--seal)}
     @media(max-width:650px){.v27RecallFields,.v27RecallFields.two{grid-template-columns:1fr}.v27RecallChar{font-size:92px}.v27VoiceBox .row{justify-content:center}}
   `;
+  style.textContent+=`
+    .v28Progress{position:sticky;top:72px;z-index:16;margin:0 0 14px;padding:12px 14px;border:2px solid var(--sky);border-radius:16px;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);box-shadow:0 5px 16px rgba(27,42,68,.08)}
+    .v28ProgressTop{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}.v28ProgressTop>div{display:grid;gap:1px}.v28ProgressTop b{font-family:'Jua';font-size:20px}.v28ProgressTop small{color:var(--sub);font-size:14px;line-height:1.35}.v28ProgressTop>strong{font-family:'Jua';font-size:28px;color:var(--sky)}
+    .v28Day{font-family:'Jua';font-size:18px;padding:7px 9px;border-radius:10px;background:var(--ink);color:#fff}.v28Bar{height:12px;margin:9px 0 8px;background:var(--line);border-radius:99px;overflow:hidden}.v28Bar i{display:block;height:100%;background:var(--sky);border-radius:99px;transition:width .25s}
+    .v28StageRow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.v28StageRow span{font-family:'Jua';font-size:14px;text-align:center;padding:5px 4px;border-radius:8px;background:var(--paper);color:var(--sub)}.v28StageRow span.done{background:#EAF7EF;color:#2E7D4F}.v28Current{text-align:center;font-size:14px;margin-top:7px;color:var(--sub)}
+    .v28Mission{margin-top:12px;padding:11px 13px;border-radius:13px;background:#FFF8E4;border:1px solid #EED89B}.v28Mission b{font-family:'Jua';font-size:19px}.v28Mission p{margin:4px 0 0}
+    .v28Adaptive{border:3px solid var(--sun);background:#FFF9E9}.v28Adaptive .score{font-size:46px}
+    .v28Week{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}.v28Week span{font-family:'Jua';padding:7px 10px;border-radius:999px;background:var(--paper);border:1px solid var(--line)}.v28Week span.done{background:#EAF7EF;color:#2E7D4F}.v28Week span.cur{outline:3px solid var(--sky)}
+    @media(max-width:700px){.v28Progress{top:62px}.v28ProgressTop{grid-template-columns:auto 1fr}.v28ProgressTop>strong{grid-column:1/-1;text-align:right;margin-top:-34px}.v28ProgressTop small{display:none}.v28StageRow{grid-template-columns:1fr 1fr}}
+  `;
   document.head.appendChild(style);
 
   home=function(){
     ensureV25();
-    const p=activePlan(),d=p?getDailyPlan(true):null,day=cycleDay(p),s1=p?set1Words(p):[],pool=p?cumulativeWords(p):[];
+    const p=activePlan(),d=p?getDailyPlan(true):null,day=cycleDay(p),mission=dayMission(day),s1=p?set1Words(p):[],pool=p?cumulativeWords(p):[];
     const pending=db.surpriseTests.filter(function(x){return x.date===today()&&(x.status==='ready'||x.status==='in_progress')}).sort(function(a,b){return b.id-a.id})[0];
     const done=!!(d&&d.set1.quizDone&&d.set2.quizDone);
     app.innerHTML=`
+      ${d?progressBannerHtml(d):''}
       <div class="card v25Hero">
         <div class="row" style="justify-content:space-between;align-items:flex-start;gap:14px">
           <div><div class="v25Kicker">학원 수업·쪽지시험 대비</div><h1 style="margin:5px 0 6px">오늘도 한자 공부 시작!</h1>
-          <p class="muted" style="margin:0">하루는 <b>1세트 복습 → 2세트 실전 대비</b> 순서로 진행합니다.</p></div>
+          <p class="muted" style="margin:0"><b>1세트는 깊게 반복</b>하고, <b>2세트는 시험부터</b> 본 뒤 틀린 단어만 다시 공부합니다.</p></div>
           <div style="text-align:right">${p?`<span class="v25Day">D${day} / D5</span><div class="muted" style="margin-top:6px">${p.start} ~ ${p.end}</div>`:'<span class="pill wait">부모 설정 필요</span>'}</div>
         </div>
-        ${done?`<p class="okMsg" style="margin:12px 0 0">두 세트 완료 · 오늘 500P ${db.points.days[today()]?'적립 완료':'적립 확인 중'}</p>`:''}
+        ${p?`<div class="v28Mission"><b>${mission.icon} D${day} · ${mission.title}</b><p>${mission.desc}</p></div>`:''}
+        ${done?`<p class="okMsg" style="margin:12px 0 0">오늘 학습 완료 · 500P ${db.points.days[today()]?'적립 완료':'적립 확인 중'}</p>`:''}
       </div>
       ${pending?`<div class="card v25Surprise" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div><h2 style="margin:0">깜짝 쪽지시험 도착</h2><p style="margin:5px 0 0">${pending.wordIds.length}문제 · 오늘 공부한 단어에서 부모님이 직접 골랐어요.</p></div><span class="big">📝</span></div><button class="sun big" id="v25SurpriseStart">지금 시험 보기</button></div>`:''}
       ${p?`<div class="v25Cards">
-        <div class="card v25Set"><span class="num">1</span><h2>① 이번 주 복습 세트</h2><p class="muted">부모가 고른 ${s1.length}단어를 5일 동안 반복합니다.</p>
+        <div class="card v25Set"><span class="num">1</span><h2>① 깊게 복습하는 세트</h2><p class="muted">부모가 고른 ${s1.length}단어를 5일 동안 반복합니다. 획순·훈·음·획수·5번 쓰기를 끝까지 합니다.</p>
           <div class="v25PlanSummary">${s1.map(function(w){return `<span class="hz">${w.word}</span>`}).join('')}</div>
           <div class="v25Status ${d.set1.quizDone?'done':''}">${statusText(d.set1,d.set1.wordIds.length)}</div>
           <button class="pri big" id="v25Set1">${d.set1.quizDone?'오늘 1세트 완료':d.set1.learnDone?'1세트 쪽지시험 보기':d.set1.studyIndex?'1세트 이어하기':'1세트 학습 시작'}</button>
         </div>
-        <div class="card v25Set ${d.set1.quizDone?'':'v25Locked'}"><span class="num">2</span><h2>② 실제 시험 대비 세트</h2><p class="muted">29쪽부터 현재 진도 끝까지 누적 ${pool.length}단어. 오늘은 ${d.set2.wordIds.length}단어를 먼저 학습한 뒤 시험을 봅니다.</p>
-          <div class="v25Status ${d.set2.quizDone?'done':''}">${d.set1.quizDone?statusText(d.set2,d.set2.wordIds.length):'1세트 완료 후 열립니다'}</div>
-          <button class="pri big" id="v25Set2" ${d.set1.quizDone?'':'disabled'}>${d.set2.quizDone?'오늘 2세트 완료':d.set2.learnDone?'2세트 실전시험 보기':d.set2.studyIndex?'2세트 이어하기':'2세트 학습 시작'}</button>
+        <div class="card v25Set ${d.set1.quizDone?'':'v25Locked'}"><span class="num">2</span><h2>② 실제 시험 대비 세트</h2><p class="muted">29쪽부터 현재 진도까지 누적 ${pool.length}단어. 오늘 ${d.set2.wordIds.length}단어는 <b>시험을 먼저 보고, 틀린 단어만 깊게 복습</b>합니다.</p>
+          <div class="v25Status ${d.set2.quizDone?'done':''}">${d.set1.quizDone?set2StatusText(d.set2):'1세트 완료 후 열립니다'}</div>
+          <button class="pri big" id="v25Set2" ${d.set1.quizDone?'':'disabled'}>${set2ButtonText(d.set2)}</button>
         </div>
       </div>`:`<div class="card" style="margin-top:14px;text-align:center"><h2>5일 학습 계획이 없습니다</h2><p class="muted">부모 모드에서 ① 복습 단어와 ② 현재 학원 진도 끝을 한 번 정하면 5일 동안 그대로 사용합니다.</p><button class="sun big" id="v25ParentSetup">부모 모드에서 설정</button></div>`}
-      <div class="card" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div><b class="jua" style="font-size:20px">오늘 보상</b><div class="muted">두 세트 쪽지시험을 모두 끝내면 하루 500P</div></div><div class="score">${db.points.total||0}P</div></div></div>
+      <div class="card" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div><b class="jua" style="font-size:20px">오늘 보상</b><div class="muted">1세트와 2세트를 끝까지 완료하면 하루 500P</div></div><div class="score">${db.points.total||0}P</div></div></div>
       <div class="path" style="margin-top:14px">
         <button class="step strokeHome" data-go="strokeHub"><span class="big hz">一二三</span><span class="t">큰글씨 획순</span><span class="muted">숫자 획순 자동재생</span></button>
         <button class="step" data-go="fast"><span class="big">⚡</span><span class="t">시험 전 점검</span><span class="muted">오답 ${Object.keys(db.wrong||{}).length}개 · 스피드 퀴즈</span></button>
@@ -275,7 +392,7 @@
   function charRecallGate(setKey,st,w,c,charIndex,label){
     st.writeCheckpoint=st.writeCheckpoint||{};
     const key=w.id+':'+charIndex;
-    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charIndex===0?'첫':'둘째'} 글자 확인</span><span class="jua">${st.studyIndex+1}단어 · ${charIndex+1}/2글자</span></div>
+    app.innerHTML=progressBannerHtml(getDailyPlan(false))+`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charIndex===0?'첫':'둘째'} 글자 확인</span><span class="jua">${st.studyIndex+1}단어 · ${charIndex+1}/2글자</span></div>
       <div class="card v27RecallCard" style="margin-top:12px">
         <div class="v27RecallChar hz">${c.ch}</div><h2 style="text-align:center;margin:8px 0">5번 쓰기 전 · 훈·음·획수 확인</h2>
         <p class="muted" style="text-align:center">어떤 글자인지 먼저 알고 쓰도록, 음·뜻(훈)·획수를 모두 맞혀야 5번 쓰기로 넘어갑니다.</p>
@@ -329,7 +446,7 @@
   }
   function runFiveWrite(setKey,st,w,c,charIndex,label){
     const cs=v26WriteCellSize();
-    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charIndex===0?'첫':'둘째'} 글자 5번 쓰기</span><span class="jua">${st.studyIndex+1}단어 · ${charIndex+1}/2글자</span></div>
+    app.innerHTML=progressBannerHtml(getDailyPlan(false))+`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charIndex===0?'첫':'둘째'} 글자 5번 쓰기</span><span class="jua">${st.studyIndex+1}단어 · ${charIndex+1}/2글자</span></div>
       <div class="card v26FiveWrite" style="margin-top:12px">
         <div class="v26WriteTitle"><span class="hz">${c.ch}</span><div><b>[${esc(c.hun)} ${esc(c.eum)}]</b><small>총 ${c.hoek}획 · 1~3칸은 숫자 획순 따라쓰기 · 4~5칸은 혼자 쓰기</small></div></div>
         ${voiceBoxHtml('v27WriteVoice','['+c.hun+' '+c.eum+']')}
@@ -400,15 +517,21 @@
     const st=d[setKey];
     if(setKey==='set2'&&!d.set1.quizDone)return toast('1세트를 먼저 완료해 주세요');
     if(st.quizDone)return toast('오늘 이 세트는 완료했습니다');
+    if(setKey==='set2'){
+      if(!st.diagnosticDone)return runSetQuiz('set2');
+      if(st.reviewMode||!st.learnDone)return runStudy('set2');
+      return runSetQuiz('set2');
+    }
     if(st.learnDone)return runSetQuiz(setKey);
     runStudy(setKey);
   }
 
   function runStudy(setKey){
     const d=getDailyPlan(true),st=d&&d[setKey];if(!st)return go('home');
-    const words=st.wordIds.map(byId).filter(Boolean);
+    const sourceIds=(setKey==='set2'&&st.remedialWordIds?.length&&st.reviewMode)?st.remedialWordIds:st.wordIds;
+    const words=sourceIds.map(byId).filter(Boolean);
     let i=Math.max(0,Math.min(+st.studyIndex||0,words.length));
-    if(i>=words.length){st.learnDone=true;st.studyPhase=0;save();return runSetQuiz(setKey)}
+    if(i>=words.length){st.learnDone=true;st.studyPhase=0;if(setKey==='set2'&&st.remedialWordIds?.length){st.reviewMode=false;st.retryOnly=true}save();return runSetQuiz(setKey)}
     const w=words[i],cs=charsOf(w),phase=Math.max(0,Math.min(+st.studyPhase||0,4));
     const label=setKey==='set1'?'1세트 · 이번 주 복습':'2세트 · 실제 시험 대비';
     const progress=Math.round(((i+(phase/5))/Math.max(1,words.length))*100);
@@ -418,7 +541,7 @@
       if(!isStroke)return runFiveWrite(setKey,st,w,c,charIndex,label);
       const size=Math.min(620,Math.max(410,Math.min(window.innerWidth-46,window.innerHeight*.68)));
       const voiceLabel=c.hun.split('/')[0]+' '+c.eum;
-      app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charLabel} 큰글씨 획순</span><span class="jua">${i+1} / ${words.length}단어 · ${charIndex+1}/2글자</span></div>
+      app.innerHTML=progressBannerHtml(d)+`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charLabel} 큰글씨 획순</span><span class="jua">${i+1} / ${words.length}단어 · ${charIndex+1}/2글자</span></div>
         <div class="prog" style="margin:10px 0 14px"><div style="width:${progress}%"></div></div>
         <div class="card v251CharCard v26StrokeCard">
           <div class="v251SingleStroke" id="v251SingleStroke"></div>
@@ -441,7 +564,7 @@
 
     const size=Math.min(230,Math.max(170,Math.floor((Math.min(window.innerWidth,820)-90)/2)));
     const star=w.star||('연예·방송에서 '+w.read+'이라는 말을 찾아보세요.');
-    app.innerHTML=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · 두 글자 단어 쓰임</span><span class="jua">${i+1} / ${words.length}단어 · 5/5</span></div>
+    app.innerHTML=progressBannerHtml(d)+`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · 두 글자 단어 쓰임</span><span class="jua">${i+1} / ${words.length}단어 · 5/5</span></div>
       <div class="prog" style="margin:10px 0 14px"><div style="width:${Math.round(((i+1)/words.length)*100)}%"></div></div>
       <div class="card v251WordCard v26WordUsage">
         <div class="v26WordHero hz">${w.word}</div><div class="wordRead">${esc(w.read)}</div>
@@ -495,7 +618,10 @@
         document.querySelector('#v27WordFb').innerHTML='<span class="badMsg">'+[!readOk?'음':null,!meanOk?'뜻':null,!(strokeOk1&&strokeOk2)?'획수':null].filter(Boolean).join(' · ')+'을 다시 확인해 보세요.</span>';return;
       }
       recordLearned(setKey,w);st.studyIndex=i+1;st.studyPhase=0;
-      if(st.studyIndex>=words.length)st.learnDone=true;
+      if(st.studyIndex>=words.length){
+        st.learnDone=true;
+        if(setKey==='set2'&&st.remedialWordIds?.length){st.reviewMode=false;st.retryOnly=true}
+      }
       save();
       document.querySelector('#v27WordFb').innerHTML='<span class="okMsg">정답! 음·뜻·획수를 모두 맞혔어요.</span>';
       setTimeout(function(){if(st.learnDone)return runSetQuiz(setKey);runStudy(setKey)},650);
@@ -527,21 +653,33 @@
   function runSetQuiz(setKey){
     const d=getDailyPlan(true),st=d&&d[setKey];if(!st)return go('home');
     if(setKey==='set2'&&!d.set1.quizDone)return toast('1세트를 먼저 완료해 주세요');
-    if(!st.learnDone)return runStudy(setKey);
-    const words=st.wordIds.map(byId).filter(Boolean),q=ensureQuizState(setKey,st,words);
+    if(setKey==='set1'&&!st.learnDone)return runStudy(setKey);
+    if(setKey==='set2'&&st.diagnosticDone&&(st.reviewMode||!st.learnDone))return runStudy(setKey);
+    const useRemedial=setKey==='set2'&&st.diagnosticDone&&st.retryOnly&&st.remedialWordIds?.length;
+    const words=(useRemedial?st.remedialWordIds:st.wordIds).map(byId).filter(Boolean),q=ensureQuizState(setKey,st,words);
     if(q.cursor>=q.items.length){
+      if(setKey==='set2'&&!st.diagnosticDone){
+        st.diagnosticDone=true;
+        if(q.misses.length){
+          const ids=[];q.misses.forEach(function(x){if(!ids.includes(x.id))ids.push(x.id)});
+          st.remedialWordIds=ids;st.quizState=null;st.learnDone=false;st.reviewMode=true;st.retryOnly=false;st.studyIndex=0;st.studyPhase=0;save();
+          app.innerHTML=progressBannerHtml(d)+`<div class="card routineDone v28Adaptive"><h2>시험에서 다시 볼 단어를 찾았어요</h2><div class="score">${ids.length}단어</div><p>20단어를 모두 다시 쓰지 않습니다. <b>틀린 ${ids.length}단어만</b> 획순·훈·음·획수·5번 쓰기로 집중 복습합니다.</p><button class="pri big" id="v28DeepReview">틀린 단어만 깊게 복습</button></div>`;
+          document.querySelector('#v28DeepReview').onclick=function(){runStudy('set2')};return;
+        }
+        st.quizDone=true;st.retryOnly=false;st.quizState=null;save();return finishSet(setKey,d);
+      }
       if(q.misses.length){
         const seen=new Set(),again=q.misses.filter(function(x){const k=x.type+':'+x.id;if(seen.has(k))return false;seen.add(k);return true});
         q.items=again;q.cursor=0;q.misses=[];q.round++;save();
-        app.innerHTML=`<div class="card routineDone"><h2>틀린 문제만 다시!</h2><div class="score">${again.length}문제</div><p>전부 맞을 때까지 짧게 한 번 더 확인합니다.</p><button class="pri" id="v25Retry">다시 도전</button></div>`;
+        app.innerHTML=progressBannerHtml(d)+`<div class="card routineDone"><h2>틀린 문제만 다시!</h2><div class="score">${again.length}문제</div><p>깊게 복습한 뒤, 틀렸던 문제만 다시 확인합니다. 전부 맞으면 오늘 세트가 끝나요.</p><button class="pri" id="v25Retry">다시 도전</button></div>`;
         document.querySelector('#v25Retry').onclick=function(){runSetQuiz(setKey)};return;
       }
-      st.quizDone=true;st.quizState=null;save();
+      st.quizDone=true;st.quizState=null;st.retryOnly=false;st.reviewMode=false;save();
       return finishSet(setKey,d);
     }
     const item=q.items[q.cursor],w=byId(item.id),cs=charsOf(w);
-    const label=setKey==='set1'?'1세트 쪽지시험':'2세트 실전 쪽지시험';
-    const top=`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label}${q.round>1?' · 재도전 '+q.round+'회차':''}</span><span class="jua">${q.cursor+1} / ${q.items.length}</span></div><div class="prog" style="margin:10px 0 14px"><div style="width:${(q.cursor+1)/q.items.length*100}%"></div></div>`;
+    const label=setKey==='set1'?'1세트 쪽지시험':(!st.diagnosticDone?'2세트 실전 진단':'2세트 복습 확인');
+    const top=progressBannerHtml(d)+`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label}${q.round>1?' · 재도전 '+q.round+'회차':''}</span><span class="jua">${q.cursor+1} / ${q.items.length}</span></div><div class="prog" style="margin:10px 0 14px"><div style="width:${(q.cursor+1)/q.items.length*100}%"></div></div>`;
     if(item.type==='read'){
       app.innerHTML=top+`<div class="card v25QuizCard"><div class="wordBig">${w.word}</div><p class="q">읽는 소리를 쓰세요</p><input id="v25ReadAns" class="heIn" style="max-width:340px;margin:0 auto;display:block;text-align:center" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><div id="v25ReadFb" class="hint"></div><button class="pri big" id="v25ReadCheck">확인</button></div>`;
       const check=function(){
@@ -549,7 +687,7 @@
         const ok=v===w.read;if(!ok)markMiss(q,item);
         document.querySelector('#v25ReadFb').innerHTML=ok?'<span class="okMsg">정답!</span>':`<span class="badMsg">정답은 ${esc(w.read)}</span>`;
         document.querySelector('#v25ReadCheck').disabled=true;save();
-        setTimeout(function(){q.cursor++;save();runSetQuiz(setKey)},ok?700:1500);
+        setTimeout(function(){q.cursor++;save();runSetQuiz(setKey)},ok?700:1200);
       };
       document.querySelector('#v25ReadCheck').onclick=check;
       document.querySelector('#v25ReadAns').onkeydown=function(e){if(e.key==='Enter')check()};
@@ -581,12 +719,16 @@
 
   function finishSet(setKey,d){
     if(setKey==='set1'){
-      app.innerHTML='<div class="card routineDone"><h2>1세트 완료</h2><div class="score">복습 끝</div><p>이제 오늘의 2세트 · 실제 쪽지시험 대비로 넘어갑니다.</p><button class="pri big" id="v25GoSet2">2세트 시작</button><button class="ghost" id="v25GoHome">오늘 화면</button></div>';
+      app.innerHTML=progressBannerHtml(d)+'<div class="card routineDone"><h2>1세트 완료</h2><div class="score">복습 끝</div><p>깊게 배운 복습 세트를 끝냈어요. 이제 2세트는 <b>시험을 먼저</b> 보고, 틀린 것만 다시 공부합니다.</p><button class="pri big" id="v25GoSet2">2세트 실전 시작</button><button class="ghost" id="v25GoHome">오늘 화면</button></div>';
       document.querySelector('#v25GoSet2').onclick=function(){startSet('set2')};
       document.querySelector('#v25GoHome').onclick=function(){go('home')};
     }else{
-      const got=award500(today());
-      app.innerHTML=`<div class="card routineDone"><h2>오늘 2세트 완료</h2><div class="score">${got?'+500P':'500P'}</div><p>1세트 복습과 2세트 실전 대비를 모두 끝냈습니다.</p><button class="pri big" id="v25DoneHome">오늘 화면</button></div>`;
+      const got=award500(today()),p=activePlan(),day=cycleDay(p),learned=manualPool().length,rem=d.set2.remedialWordIds?.length||0;
+      app.innerHTML=progressBannerHtml(d)+`<div class="card routineDone"><h2>오늘 학습 완료</h2><div class="score">${got?'+500P':'500P'}</div>
+        <p><b>D${day}/5</b>를 끝까지 완료했어요. 오늘 ${learned}단어를 공부했고, 2세트에서 다시 볼 단어 ${rem}개도 끝까지 해결했습니다.</p>
+        <div class="v28Week">${fiveDayDots(p)}</div>
+        <p class="okMsg" style="margin-top:16px">${day<5?'내일은 오늘 헷갈린 단어가 자동으로 더 자주 나와요.':'5일 학습 완료! 학원 쪽지시험 전에 최종 점검만 하면 됩니다.'}</p>
+        <button class="pri big" id="v25DoneHome">오늘 화면으로</button></div>`;
       document.querySelector('#v25DoneHome').onclick=function(){go('home')};
     }
   }
@@ -635,7 +777,7 @@
       ${p?`<div class="v25PlanSummary"><span>${p.start} ~ ${p.end}</span><span>1세트 ${p.set1WordIds.length}단어</span><span>2세트 29쪽 → ${p.set2EndPage}쪽</span></div>`:''}
     </div>
     <div class="card" style="margin-top:14px"><h3 style="margin-top:0">① 1세트 · 이번 주 복습 단어</h3><p class="muted">적게 골라도 됩니다. <b>권장 3단어(약 6글자)</b>, 최대 ${MAX_SET1_WORDS}단어입니다. 선택한 단어를 5일 동안 반복합니다.</p><div class="row" style="justify-content:space-between"><b id="v25PickCount">${selected.size}단어 선택</b><button class="ghost" id="v25ClearPick">선택 지우기</button></div><div id="v25PickPages"></div></div>
-    <div class="card" style="margin-top:14px"><h3 style="margin-top:0">② 2세트 · 실제 쪽지시험 범위</h3><p class="muted"><b>시작은 항상 29쪽</b>입니다. 부모는 현재 학원 진도의 <b>마지막 단어</b>만 정합니다. 이 범위에서 매일 최대 20단어를 골라 학습 → 실전시험으로 진행합니다.</p>
+    <div class="card" style="margin-top:14px"><h3 style="margin-top:0">② 2세트 · 실제 쪽지시험 범위</h3><p class="muted"><b>시작은 항상 29쪽</b>입니다. 부모는 현재 학원 진도의 <b>마지막 단어</b>만 정합니다. 이 범위에서 매일 최대 20단어를 골라 <b>실전시험을 먼저</b> 봅니다. 틀린 단어만 깊게 복습한 뒤 다시 확인합니다.</p>
       <div class="rangeSet"><label>현재 진도 끝 페이지<select id="v25EndPage">${Array.from({length:24},function(_,i){const pg=29+i;return `<option value="${pg}" ${pg===endPage?'selected':''}>${pg}쪽</option>`}).join('')}</select></label><label>마지막 단어<select id="v25EndWord"></select></label></div><div id="v25RangePreview" class="scopePreview"></div></div>
     <div class="card" style="margin-top:14px"><button class="pri big" id="v25SavePlan">${active?'5일 계획 다시 저장':'5일 계획 시작'}</button><p class="muted" style="text-align:center;margin-bottom:0">다시 저장하면 오늘을 새 D1로 하여 5일이 다시 시작됩니다.</p></div>`;
     const pagesHost=document.querySelector('#v25PickPages');
@@ -662,7 +804,7 @@
     const previewRange=function(){
       const pg=+document.querySelector('#v25EndPage').value,id=+document.querySelector('#v25EndWord').value;
       const temp={set2EndPage:pg,set2EndWordId:id},list=cumulativeWords(temp),last=list[list.length-1];
-      document.querySelector('#v25RangePreview').innerHTML=`<b>29쪽 → ${last?last.detailPage:pg}쪽 · ${last?last.word:'-'}까지 · 누적 ${list.length}단어</b><div class="muted">매일 이 범위에서 최대 ${SET2_DAILY_WORDS}단어를 선정합니다.</div>`;
+      document.querySelector('#v25RangePreview').innerHTML=`<b>29쪽 → ${last?last.detailPage:pg}쪽 · ${last?last.word:'-'}까지 · 누적 ${list.length}단어</b><div class="muted">매일 이 범위에서 최대 ${SET2_DAILY_WORDS}단어를 선정하고, 실전시험 → 틀린 단어 집중복습 순서로 진행합니다.</div>`;
     };
     document.querySelector('#v25EndPage').onchange=fillEnd;document.querySelector('#v25EndWord').onchange=previewRange;fillEnd();
     document.querySelector('#v25SavePlan').onclick=function(){
@@ -709,6 +851,6 @@
     };
   }
 
-  window.__v25Debug={activePlan,cycleDay,set1Words,cumulativeWords,selectSet2,getDailyPlan,manualPool,award500};
+  window.__v25Debug={activePlan,cycleDay,set1Words,cumulativeWords,selectSet2,getDailyPlan,manualPool,award500,dayMission,dailyProgress,set2StatusText};
   ensureV25();
 })();
