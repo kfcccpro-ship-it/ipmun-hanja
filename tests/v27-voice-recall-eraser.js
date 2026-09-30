@@ -3,7 +3,7 @@ const fs=require('fs');
 const index=fs.readFileSync('index.html','utf8');
 const flow=fs.readFileSync('assets/v25-five-day-flow.js','utf8');
 
-assert(index.includes('v0.27.1</title>'));
+assert(index.includes('v0.28.0</title>'));
 assert(index.includes("er.className='padEraserMini'"));
 assert(index.includes('const eraseAt=p=>'));
 assert(index.includes('setEraser(v){setEraser(v)}'));
