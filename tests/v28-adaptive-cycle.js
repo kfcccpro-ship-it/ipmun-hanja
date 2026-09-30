@@ -3,7 +3,7 @@ const fs=require('fs');
 const flow=fs.readFileSync('assets/v25-five-day-flow.js','utf8');
 const index=fs.readFileSync('index.html','utf8');
 
-assert(index.includes('v0.28.0</title>'));
+assert(index.includes('v0.28.1</title>'));
 assert(flow.includes("1:{title:'제대로 배우는 날'"));
 assert(flow.includes("3:{title:'약한 글자 잡는 날'"));
 assert(flow.includes("5:{title:'최종 점검'"));
