@@ -8,8 +8,8 @@
 - GitHub repository: `kfcccpro-ship-it/ipmun-hanja`
 - branch: `main`
 - GitHub Pages: https://kfcccpro-ship-it.github.io/ipmun-hanja/
-- current app version: **0.27.1**
-- current validation/deploy: **Validate Hanja App SUCCESS / Deploy GitHub Pages SUCCESS**
+- current app version: **0.28.1**
+- current validation/deploy: **v0.28.1 main 반영 후 Validate / Pages 최종 확인 필요**
 - source textbook: **장원한자.pdf**
 - 핵심 대상: 초등 4학년, iPad + Apple Pencil 1세대 / Galaxy Tab + S Pen
 - 운영 모델: 학생 1명 + 부모 1명, 로그인/회원가입 없음, localStorage 중심
@@ -411,3 +411,53 @@ GitHub Actions:
 - 빨간 영역을 누르면 하단 **“이 칸 지우기/이 칸 모두 지우기”**와 동일하게 현재 칸 전체 필기를 즉시 삭제하고 획수 카운트를 0으로 되돌림.
 - 기존 상시 획 지우개(잘못 쓴 한 획만 제거)와 전체 칸 지우기를 모두 유지.
 - 회귀검증: `tests/v271-he-before-write-clear.js`.
+
+
+---
+
+## 17. v0.28.0 — 5일 적응형 학습 시스템
+
+- 학생 화면 상단에 **D1~D5, 오늘 진행률(%), 4개 큰 단계, 현재 위치**를 계속 표시한다.
+- 5일 역할:
+  - D1 제대로 배우는 날
+  - D2 기억에서 꺼내는 날
+  - D3 약한 글자 잡는 날
+  - D4 실전 예행연습
+  - D5 최종 점검
+- 1세트는 부모가 고른 소수 단어를 획순·훈·음·획수·5번 쓰기까지 깊게 반복한다.
+- 2세트는 **실전시험 먼저 → 틀린 단어만 깊게 복습 → 틀린 문제만 재확인**한다.
+- D3·D5에는 오답/약점 단어 비중을 높여 선정한다.
+- 2세트 적응형 상태: `diagnosticDone`, `remedialWordIds`, `reviewMode`, `retryOnly`.
+- 하루 완료 화면에 500P, Dn/5, 학습 단어 수, 집중복습 단어 수, D1~D5 완료표를 표시한다.
+- 회귀검증: `tests/v28-adaptive-cycle.js`.
+
+
+---
+
+## 18. v0.28.1 — 약점 분류·모르겠어요·부모 빠른시험
+
+- 단순 오답 1개로 묶지 않고 다음 약점을 별도로 기록한다:
+  - 훈
+  - 음
+  - 획수
+  - 획순
+  - 읽기
+  - 뜻
+  - 쓰기
+  - 모르겠어요 사용
+- 저장 상태:
+  - `db.skillProfile.chars`
+  - `db.skillProfile.words`
+  - `db.skillToday`
+- 한 글자 훈·음·획수 확인에서 **모르겠어요 · 획순 다시 보기**를 누르면 정답을 확인하고 같은 글자의 큰글씨 획순 단계로 되돌아간다. 건너뛰기는 허용하지 않는다.
+- 단어 최종 확인에서 **모르겠어요 · 다시 배우기**를 누르면 해당 단어를 첫 글자 획순부터 다시 학습한다.
+- 2세트 읽기/쓰기 시험에도 **모르겠어요**를 추가하고 해당 문제를 오답·집중복습 대상으로 자동 등록한다.
+- 획수 초과, 획순 힌트 사용, 읽기/뜻 오답, 쓰기 오답을 각각 약점 영역에 기록한다.
+- 부모 모드에 **약한 글자** 탭을 추가하여 글자/단어별 취약 영역을 표시한다.
+- 깜짝시험에 빠른 생성 3종을 추가한다:
+  - 오늘 배운 것 5문제
+  - 약한 단어 5문제
+  - 오늘 범위 랜덤 10문제
+  - 기존 수기 선택도 유지
+- 하루 완료 카드에는 학습 단어, 집중복습 단어, 다시 확인한 신호 수, 가장 많이 확인한 약점, D1~D5 완료표를 표시한다.
+- 회귀검증: `tests/v281-mastery-system.js`.
