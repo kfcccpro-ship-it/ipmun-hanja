@@ -3,7 +3,7 @@ const fs=require('fs');
 const index=fs.readFileSync('index.html','utf8');
 const flow=fs.readFileSync('assets/v25-five-day-flow.js','utf8');
 
-assert(index.includes('v0.28.0</title>'));
+assert(index.includes('v0.28.1</title>'));
 assert(index.includes('const placed=[],gap='));
 assert(index.includes('Math.hypot(q.x-x,q.y-y)<gap'));
 assert(index.includes('window.innerHeight*.70'));
