@@ -3,7 +3,7 @@ const fs=require('fs');
 const index=fs.readFileSync('index.html','utf8');
 const flow=fs.readFileSync('assets/v25-five-day-flow.js','utf8');
 
-assert(index.includes('v0.27.0</title>'));
+assert(index.includes('v0.27.1</title>'));
 assert(index.includes("er.className='padEraserMini'"));
 assert(index.includes('const eraseAt=p=>'));
 assert(index.includes('setEraser(v){setEraser(v)}'));
@@ -15,7 +15,7 @@ assert(flow.includes('🎤 따라 말하기'));
 assert(flow.includes('음성은 저장하지 않습니다.'));
 assert(flow.includes('function charRecallGate'));
 assert(flow.includes('음·뜻·획수를 모두 기억했어요.'));
-assert(flow.includes('st.writeCheckpoint[checkpointKey]=true'));
+assert(flow.includes('5번 쓰기 전 · 훈·음·획수 확인'));
 assert(flow.includes("pad1.strokes()===+cs[0].hoek"));
 assert(flow.includes("pad2.strokes()===+cs[1].hoek"));
 assert(flow.includes("normRecall(document.querySelector('#v27WordRead').value)===normRecall(w.read)"));
