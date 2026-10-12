@@ -1,0 +1,110 @@
+/* v0.29.0 - 4학년 학습자 중심 화면, iPad 세로 모드, Apple Pencil 보호 */
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+body{ overflow-x:hidden; }
+main,#app,#app .card{min-width:0;}
+main{width:100%;max-width:980px;}
+header{padding-top:max(10px,env(safe-area-inset-top));padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));gap:8px;}
+header h1{font-size:clamp(17px,2.6vw,23px);line-height:1.2;min-width:0;}
+header .seal{flex-shrink:0;width:35px;height:35px;font-size:22px;}
+header .brandText{min-width:0;overflow-wrap:anywhere;}
+#homeBtn,#parentBtn{flex-shrink:0;padding:10px 12px;border-radius:12px;font-size:clamp(14px,1.8vw,18px);}
+.kidHome{display:grid;gap:14px;max-width:860px;margin:0 auto;}
+.kidIntro{text-align:center;padding:12px 8px 6px;}
+.kidIntro h2{font-family:'Jua',sans-serif;font-size:clamp(30px,4.5vw,43px);line-height:1.2;margin:8px 0 5px;}
+.kidIntro p{color:var(--sub);font-size:clamp(17px,2.2vw,21px);margin:0;}
+.kidDayBadge{display:inline-block;padding:6px 14px;border-radius:100px;border:1px solid var(--line);background:var(--card);font-family:'Jua';font-size:17px;}
+.kidChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.kidChoice{appearance:none;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:245px;gap:11px;text-align:center;border:3px solid var(--line);border-radius:26px;background:var(--card);padding:23px 14px;box-shadow:0 5px 12px rgba(34,48,74,.07);}
+.kidChoice.learnChoice{border-color:#93CFC0;background:#EDF9F4;color:#164B3D;}
+.kidChoice.testChoice{border-color:#A6C8ED;background:#EEF5FD;color:#254F86;}
+.kidChoice .kidSymbol{font-family:var(--hanja);font-size:clamp(46px,7vw,72px);line-height:1;}
+.kidChoice strong{font-family:'Jua',sans-serif;font-size:clamp(36px,4.6vw,50px);}
+.kidChoice small{font-family:'Jua',sans-serif;font-size:clamp(17px,2.25vw,22px);line-height:1.4;}
+.kidStats{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;color:var(--sub);font-family:'Jua';font-size:18px;}
+.kidStats b{color:var(--ink);font-size:20px;}
+.kidHub{max-width:800px;margin:0 auto;display:grid;gap:14px;}
+.kidHubHead{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.kidHubHead h2{margin:0;font-family:'Jua';font-size:38px;}
+.kidHubHead p{color:var(--sub);font-size:18px;margin:4px 0 0;}
+.kidHubLead{text-align:center;line-height:1.5;}
+.kidHubLead h3{font-family:'Jua';font-size:28px;margin:0 0 8px;}
+.kidHubLead p{margin:0 auto 12px;max-width:560px;}
+.kidWords{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:16px 0;}
+.kidWords span{display:inline-grid;gap:3px;min-width:100px;padding:11px 14px;background:var(--paper);border:1px solid var(--line);border-radius:14px;font-family:'Jua';font-size:18px;text-align:center;}
+.kidWords b{font-family:var(--hanja);font-size:31px;}
+.kidPrimary{font-family:'Jua';font-size:clamp(23px,3vw,29px);padding:17px 24px;min-height:74px;min-width:min(100%,300px);}
+.kidHub .kidPrimary{display:block;margin:15px auto 4px;}
+.kidHint{padding:12px 15px;background:var(--paper);border:1px solid var(--line);border-radius:14px;font-size:18px;}
+.kidExtra{max-width:780px;margin:0 auto;border:1px solid var(--line);border-radius:15px;background:var(--card);padding:0 14px;}
+.kidExtra summary{font-family:'Jua';font-size:20px;padding:13px 4px;cursor:pointer;}
+.kidExtra .row{padding:0 2px 14px;}
+.kidExtra button{font-size:18px;}
+.kidEasyExample{border:2px solid #A6D2BE;background:#F0FAF4;border-radius:17px;padding:16px 18px;text-align:center;margin:15px auto;max-width:760px;color:#193F35;}
+.kidEasyExample strong{font-family:'Jua';font-size:25px;}
+.kidEasyExample p{margin:6px auto 4px;font-size:21px;line-height:1.55;}
+.kidEasyExample .kidSentence{font-size:clamp(23px,3.3vw,29px);line-height:1.55;font-weight:700;max-width:620px;}
+.kidLearnMore{max-width:770px;margin:12px auto;padding:2px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);}
+.kidLearnMore summary{font-family:'Jua';font-size:19px;cursor:pointer;padding:13px 2px;}
+.kidLearnMore .v26CharLearn{margin:2px 0 13px;}
+.kidLearnMore .v26Examples{margin:0 0 12px;}
+.kidLearnMore .v251Combine{margin:5px 0 12px;}
+.kidWriteInstruction{text-align:center;font-family:'Jua';font-size:22px;line-height:1.4;margin:10px 0;}
+#app .v28Progress{position:sticky;top:64px;padding:8px 14px;margin-bottom:10px;z-index:6;}
+#app .v28ProgressTop{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+#app .v28ProgressTop>div{display:block;flex:1;text-align:left;}
+#app .v28ProgressTop small,#app .v28StageRow,#app .v28Current{display:none!important;}
+#app .v28ProgressTop b{font-size:19px;}
+#app .v28ProgressTop>strong{font-size:23px;grid-column:auto;text-align:right;margin:0;}
+#app .v28Bar{height:7px;margin:4px 0 0;}
+#app .v26FiveWrite .note5{grid-template-columns:repeat(3,max-content)!important;justify-content:center!important;gap:10px!important;max-width:100%;}
+#app .v26FiveWrite .pad{max-width:100%;}
+#app .v251CharCard,#app .v26FiveWrite,#app .v251WordCard{overflow:hidden;}
+#app .v251SingleStroke{max-width:100%;}
+#app .strokeLessonStage,#app .strokeLessonStage .stroke{max-width:100%;}
+#app .v27RecallFields input{box-sizing:border-box;max-width:100%;min-width:0;}
+#app .v251StudyPad{max-width:100%;}
+
+/* Pencil / S Pen 필기칸에서 iPadOS 텍스트 드래그, 복사 메뉴, 제스처 방지 */
+.pad,.pad *,#app .strokeLessonStage,#app .strokeLessonStage *{
+  -webkit-user-select:none!important;user-select:none!important;
+  -webkit-touch-callout:none!important;-webkit-user-drag:none!important;
+  -webkit-tap-highlight-color:transparent;
+}
+.pad,.pad canvas{touch-action:none!important;overscroll-behavior:contain;}
+.pad canvas{display:block;}
+#app .pad .padEraserMini{touch-action:manipulation;}
+#app input,#app textarea,#app select,header input{
+  -webkit-user-select:text!important;user-select:text!important;
+  -webkit-touch-callout:default!important;touch-action:auto;
+}
+
+@media(orientation:portrait){
+  .kidChoices{grid-template-columns:1fr;}
+  .kidChoice{min-height:184px;padding:20px;gap:6px;}
+  .kidIntro{padding-top:6px;}
+  .kidHubHead h2{font-size:32px;}
+  #app .v26FiveWrite .note5{grid-template-columns:repeat(3,max-content)!important;}
+  .v251Combine .result b{font-size:52px!important;}
+}
+@media(max-width:700px){
+  header{gap:5px;}
+  header h1{font-size:16px;gap:6px;}
+  header .seal{width:30px;height:30px;font-size:19px;}
+  #homeBtn,#parentBtn{font-size:13px;padding:9px 8px;}
+  main{padding:12px 12px 36px;}
+  #app .v28Progress{top:54px;}
+  .kidChoice{min-height:165px;}
+  .kidWords span{min-width:83px;}
+  #app .v26FiveWrite .note5{grid-template-columns:repeat(2,max-content)!important;gap:8px!important;}
+  .kidEasyExample{padding:12px 10px;}
+  .kidEasyExample p{font-size:19px;}
+  .kidEasyExample .kidSentence{font-size:22px;}
+  .kidHubHead h2{font-size:29px;}
+  .v26WordHero{font-size:clamp(65px,17vw,110px)!important;}
+  .v251Combine b{font-size:42px!important;}
+}
+@media(max-width:360px){
+  .kidStats{font-size:15px;gap:7px;}
+  #homeBtn,#parentBtn{font-size:12px;padding:8px 5px;}
+  .kidChoice{min-height:140px;}
+}
