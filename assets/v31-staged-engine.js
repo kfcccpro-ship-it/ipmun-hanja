@@ -53,8 +53,9 @@ function charPool(p=scope()){
 }
 function termPool(p=scope(),page=null){
  const s=ensure(),found=new Map();
- for(const c of charPool(p)){
-  if(page!==null&&+page!==c.page)continue;
+ const referenceChars=page!==null?words(p).filter(w=>w.detailPage===+page).flatMap(w=>charsOf(w).map(c=>({...c,page:w.detailPage,wordId:w.id}))):words(p).flatMap(w=>charsOf(w).map(c=>({...c,page:w.detailPage,wordId:w.id})));
+ for(const c of referenceChars){
+  if(!c||!c.ch)continue;
   for(const term of (CHAR_INFO[c.ch]?.referenceTerms||[])){
    if(Array.from(term).length!==2||found.has(term))continue;
    const read=window.__hanja31TermData?.sound(term,s.overrides);
