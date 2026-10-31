@@ -3,8 +3,8 @@
   "repo": "kfcccpro-ship-it/ipmun-hanja",
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
-  "version": "0.29.0",
-  "latest_app_commit": "8a2116eb12bf5f3a7a4733802a1a71d2ff21d4bb",
+  "version": "0.30.0",
+  "latest_app_commit": "fa9f2c00ea432e44c2934c0f5dd63a4583ef3285",
   "source": {
     "textbook": "장원한자.pdf",
     "primary_printed_pages": [
@@ -63,7 +63,9 @@
     "app_commit_validate": "SUCCESS",
     "app_commit_pages": "SUCCESS",
     "v029_automated_status": "NOT_VERIFIED",
-    "v029_ipad_pencil_real_device": "PENDING"
+    "v029_ipad_pencil_real_device": "PENDING",
+    "v030_automated_status": "NOT_VERIFIED",
+    "v030_ipad_pencil_real_device": "PENDING"
   },
   "backup_branch": "backup-v0.23.0-before-v0.24.0-20260921",
   "key_files": [
@@ -253,5 +255,38 @@
       "assets/v29-easy-sentences.js"
     ],
     "test_note": "GitHub Actions 및 실기기 완료 상태는 별도 확인 필요"
+  },
+  "v030": {
+    "primary_parent_tab": "① 시험범위·유형",
+    "textbook_range": "인쇄 29~52쪽 시작/끝과 마지막 단어를 부모가 선택",
+    "question_types": [
+      "한글→한자 쓰기",
+      "한자어 음 쓰기",
+      "한자 훈 쓰기",
+      "한자 음 쓰기",
+      "훈→한자 쓰기",
+      "음→한자 쓰기",
+      "부수 고르기(2~4지)",
+      "획수 쓰기",
+      "한자어 뜻 쓰기",
+      "뜻→한자어 쓰기"
+    ],
+    "count_options": [
+      5,
+      10,
+      15,
+      20,
+      30,
+      40
+    ],
+    "submission": "Apple Pencil/S Pen handwriting stored locally; parent marks O/X",
+    "integration": [
+      "assets/v30-exam.js",
+      "assets/v30-exam.css",
+      "tests/v30-page-exam.js"
+    ],
+    "automated_validation": "NOT_VERIFIED",
+    "real_ipad_pencil": "PENDING",
+    "deployment": "GITHUB_PAGES_WORKFLOW_RESULT_NOT_VERIFIED"
   }
 }
