@@ -3,8 +3,8 @@
   "repo": "kfcccpro-ship-it/ipmun-hanja",
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
-  "version": "0.28.1",
-  "latest_app_commit": "005712398d3a796780c6750db812360e969b8997",
+  "version": "0.29.0",
+  "latest_app_commit": "8a2116eb12bf5f3a7a4733802a1a71d2ff21d4bb",
   "source": {
     "textbook": "장원한자.pdf",
     "primary_printed_pages": [
@@ -61,7 +61,9 @@
     "workflow": ".github/workflows/validate.yml",
     "app_commit": "005712398d3a796780c6750db812360e969b8997",
     "app_commit_validate": "SUCCESS",
-    "app_commit_pages": "SUCCESS"
+    "app_commit_pages": "SUCCESS",
+    "v029_automated_status": "NOT_VERIFIED",
+    "v029_ipad_pencil_real_device": "PENDING"
   },
   "backup_branch": "backup-v0.23.0-before-v0.24.0-20260921",
   "key_files": [
@@ -240,5 +242,16 @@
       "기존 수기 선택"
     ],
     "completion_card": "학습 단어, 집중복습 단어, 다시 확인 신호, 가장 많이 확인한 약점, D1~D5 완료표"
+  },
+  "v029": {
+    "home": "학습/테스트 두 선택지만 노출",
+    "student_flow": "읽고 획순 보고 직접 쓰고 쉬운 문장으로 뜻 익히기",
+    "sentences": "29~52쪽 96단어 쉬운 문장 별도 파일",
+    "iPad": "세로 반응형, 펜 단일 포인터, 텍스트 선택 방지, 필기칸 반응형 축소",
+    "files": [
+      "assets/v29-student.css",
+      "assets/v29-easy-sentences.js"
+    ],
+    "test_note": "GitHub Actions 및 실기기 완료 상태는 별도 확인 필요"
   }
 }
