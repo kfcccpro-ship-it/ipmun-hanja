@@ -21,7 +21,7 @@ function speak(s){
 function scrollTop(){window.scrollTo(0,0)}
 function show(html){window.__hanjaActiveWriter=null;app.innerHTML=html;scrollTop()}
 function extraEnabled(key){return !!C.ensure().settings[key]}
-function oldMainLearn(){window.__hanjaV29?.kidHub?.('learn')||go('home')}
+function oldMainLearn(){const f=window.__hanjaV29&&window.__hanjaV29.kidHub;if(typeof f==='function')return f('learn');go('home')}
 function bookTop(mode){
  const en=extraEnabled(mode==='learn'?'termLearn':'termTest');
  const p=C.scope(),recent=C.termPool(p,p.end),cnt=recent.length||C.termPool(p).length;
