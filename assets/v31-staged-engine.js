@@ -107,7 +107,7 @@ function s2Questions(p,n){
 function s3Questions(p,n){
  const cs=shuffled(charPool(p)),parts=uniq(cs.map(c=>String(c.bu||'').trim()).filter(Boolean));
  const radicals=cs.filter(c=>c.bu).map(c=>({type:'radicalChoice',mode:'choice',prompt:c.ch,expected:c.bu,
-   options:options(c.bu,parts.length>=2?parts:uniq(Object.values(CHAR_INFO).map(x=>x.bu).filter(Boolean))),sourceChar:c.ch,page:c.page,wordId:c.wordId,answer:null,grade:null}));
+   options:options(c.bu,parts.length>=2?parts:uniq(ITEMS.map(x=>x.bu).filter(Boolean))),sourceChar:c.ch,page:c.page,wordId:c.wordId,answer:null,grade:null}));
  const strokes=cs.map(c=>({type:'strokeWrite',mode:'write',prompt:c.ch,expected:String(c.hoek),sourceChar:c.ch,page:c.page,wordId:c.wordId,answer:null,grade:null}));
  const arr=[],max=Math.max(radicals.length,strokes.length);
  for(let i=0;i<max&&arr.length<n;i++){
@@ -151,8 +151,13 @@ function finalize(r){
   r.status='passed';credit(r);save();return 'passed';
  }
  r.status='retry_ready';r.retryIndexes=r.items.map((x,i)=>x.grade===false?i:null).filter(x=>x!==null);
- if(r.kind==='terms'){
-  for(const it of r.items)if(it.grade===false)ensure().weakTerms[it.prompt]=(ensure().weakTerms[it.prompt]||0)+1;
+ // Feed missed words back to the existing wrong-answer review, once per graded round.
+ if(r.lastTrackedRound!==r.round){
+  for(const it of r.items)if(it.grade===false){
+   if(typeof addWrong==='function'&&it.wordId)addWrong(it.wordId);
+   if(it.type==='termReading')ensure().weakTerms[it.prompt]=(ensure().weakTerms[it.prompt]||0)+1;
+  }
+  r.lastTrackedRound=r.round;
  }
  save();return 'retry_ready';
 }
@@ -194,9 +199,9 @@ function canStart(kind,p=scope()){
 }
 function prune(){
  const s=ensure(),limit=Date.now()-14*86400000;
- // Keep grade counts, payout and dates; discard only graded pen images after two weeks.
+ // Keep grades and allowance; discard old response images after two weeks in all states.
  for(const r of s.runs){
-  if(r.checkedAt&&r.checkedAt<limit&&r.status==='passed')for(const it of r.items){
+  if(new Date(r.day+'T12:00:00').getTime()<limit)for(const it of r.items){
    if(it.answer?.img)delete it.answer.img;
    if(it.answer?.raw)delete it.answer.raw;
   }
