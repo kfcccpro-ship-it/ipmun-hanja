@@ -247,7 +247,7 @@ function install(){
   if(ptab==='exam30')return parentSetup(v);
   if(ptab==='exam30grade')return grade(v);
   const old=ptab;ptab=old;
-  if(old==='five')return window.__hanjaV30?.pFive?.(v)||originalParent();
+  if(old==='five')return originalParent();
   // legacy parent owns all other tabs; it can render them using its original routing.
   originalParent();
  };
