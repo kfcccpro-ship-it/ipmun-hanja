@@ -372,47 +372,74 @@
   `;
   document.head.appendChild(style);
 
-  home=function(){
+  // v0.29: 학생에게는 두 가지 큰 선택지만 보여 주고, 기존 5일/오답 기능은 그대로 보존.
+  function kidWordsHtml(words){
+    return (words||[]).slice(0,10).map(function(w){return '<span><b class="hz">'+esc(w.word)+'</b>'+esc(w.read)+'</span>'}).join('');
+  }
+  function kidHome(){
     ensureV25();
-    const p=activePlan(),d=p?getDailyPlan(true):null,day=cycleDay(p),mission=dayMission(day),s1=p?set1Words(p):[],pool=p?cumulativeWords(p):[];
-    const pending=db.surpriseTests.filter(function(x){return x.date===today()&&(x.status==='ready'||x.status==='in_progress')}).sort(function(a,b){return b.id-a.id})[0];
+    const p=activePlan(),d=p?getDailyPlan(true):null,day=cycleDay(p);
     const done=!!(d&&d.set1.quizDone&&d.set2.quizDone);
-    app.innerHTML=`
-      ${d?progressBannerHtml(d):''}
-      <div class="card v25Hero">
-        <div class="row" style="justify-content:space-between;align-items:flex-start;gap:14px">
-          <div><div class="v25Kicker">학원 수업·쪽지시험 대비</div><h1 style="margin:5px 0 6px">오늘도 한자 공부 시작!</h1>
-          <p class="muted" style="margin:0"><b>1세트는 깊게 반복</b>하고, <b>2세트는 시험부터</b> 본 뒤 틀린 단어만 다시 공부합니다.</p></div>
-          <div style="text-align:right">${p?`<span class="v25Day">D${day} / D5</span><div class="muted" style="margin-top:6px">${p.start} ~ ${p.end}</div>`:'<span class="pill wait">부모 설정 필요</span>'}</div>
-        </div>
-        ${p?`<div class="v28Mission"><b>${mission.icon} D${day} · ${mission.title}</b><p>${mission.desc}</p></div>`:''}
-        ${done?`<p class="okMsg" style="margin:12px 0 0">오늘 학습 완료 · 500P ${db.points.days[today()]?'적립 완료':'적립 확인 중'}</p>`:''}
-      </div>
-      ${pending?`<div class="card v25Surprise" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div><h2 style="margin:0">깜짝 쪽지시험 도착</h2><p style="margin:5px 0 0">${pending.wordIds.length}문제 · 오늘 공부한 단어에서 부모님이 직접 골랐어요.</p></div><span class="big">📝</span></div><button class="sun big" id="v25SurpriseStart">지금 시험 보기</button></div>`:''}
-      ${p?`<div class="v25Cards">
-        <div class="card v25Set"><span class="num">1</span><h2>① 깊게 복습하는 세트</h2><p class="muted">부모가 고른 ${s1.length}단어를 5일 동안 반복합니다. 획순·훈·음·획수·5번 쓰기를 끝까지 합니다.</p>
-          <div class="v25PlanSummary">${s1.map(function(w){return `<span class="hz">${w.word}</span>`}).join('')}</div>
-          <div class="v25Status ${d.set1.quizDone?'done':''}">${statusText(d.set1,d.set1.wordIds.length)}</div>
-          <button class="pri big" id="v25Set1">${d.set1.quizDone?'오늘 1세트 완료':d.set1.learnDone?'1세트 쪽지시험 보기':d.set1.studyIndex?'1세트 이어하기':'1세트 학습 시작'}</button>
-        </div>
-        <div class="card v25Set ${d.set1.quizDone?'':'v25Locked'}"><span class="num">2</span><h2>② 실제 시험 대비 세트</h2><p class="muted">29쪽부터 현재 진도까지 누적 ${pool.length}단어. 오늘 ${d.set2.wordIds.length}단어는 <b>시험을 먼저 보고, 틀린 단어만 깊게 복습</b>합니다.</p>
-          <div class="v25Status ${d.set2.quizDone?'done':''}">${d.set1.quizDone?set2StatusText(d.set2):'1세트 완료 후 열립니다'}</div>
-          <button class="pri big" id="v25Set2" ${d.set1.quizDone?'':'disabled'}>${set2ButtonText(d.set2)}</button>
-        </div>
-      </div>`:`<div class="card" style="margin-top:14px;text-align:center"><h2>5일 학습 계획이 없습니다</h2><p class="muted">부모 모드에서 ① 복습 단어와 ② 현재 학원 진도 끝을 한 번 정하면 5일 동안 그대로 사용합니다.</p><button class="sun big" id="v25ParentSetup">부모 모드에서 설정</button></div>`}
-      <div class="card" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div><b class="jua" style="font-size:20px">오늘 보상</b><div class="muted">1세트와 2세트를 끝까지 완료하면 하루 500P</div></div><div class="score">${db.points.total||0}P</div></div></div>
-      <div class="path" style="margin-top:14px">
-        <button class="step strokeHome" data-go="strokeHub"><span class="big hz">一二三</span><span class="t">큰글씨 획순</span><span class="muted">숫자 획순 자동재생</span></button>
-        <button class="step" data-go="fast"><span class="big">⚡</span><span class="t">시험 전 점검</span><span class="muted">오답 ${Object.keys(db.wrong||{}).length}개 · 스피드 퀴즈</span></button>
-        <button class="step" data-go="bookIdx"><span class="big">📖</span><span class="t">책으로 찾기</span><span class="muted">쪽별 단어 다시 보기</span></button>
-        <button class="step" data-go="record"><span class="big">📊</span><span class="t">내 기록</span><span class="muted">공부한 날 ${Object.keys(db.days||{}).length}일</span></button>
-      </div>`;
-    if(document.querySelector('#v25Set1'))document.querySelector('#v25Set1').onclick=function(){if(!d.set1.quizDone)startSet('set1')};
-    if(document.querySelector('#v25Set2'))document.querySelector('#v25Set2').onclick=function(){if(d.set1.quizDone&&!d.set2.quizDone)startSet('set2')};
-    if(document.querySelector('#v25ParentSetup'))document.querySelector('#v25ParentSetup').onclick=function(){go('parent')};
-    if(document.querySelector('#v25SurpriseStart'))document.querySelector('#v25SurpriseStart').onclick=function(){runSurprise(pending.id)};
-    app.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go)}});
-  };
+    const pr=d?dailyProgress(d):null;
+    app.innerHTML='<div class="kidHome">'
+     +'<div class="kidIntro">'+(p?'<span class="kidDayBadge">오늘 D'+day+'/5 · '+(pr?pr.pct:0)+'% 완료</span>':'<span class="kidDayBadge">한자 공부</span>')
+     +'<h2>오늘은 무엇을 할까?</h2><p>읽고, 쓰고, 한자 뜻을 알아보자!</p></div>'
+     +'<div class="kidChoices">'
+     +'<button class="kidChoice learnChoice" id="kidLearn"><span class="kidSymbol">漢</span><strong>학습</strong><small>획순 보기 · 읽기 · 쓰기 · 뜻 알기</small></button>'
+     +'<button class="kidChoice testChoice" id="kidTest"><span class="kidSymbol">問</span><strong>테스트</strong><small>배운 단어를 문제로 풀기</small></button>'
+     +'</div><div class="kidStats"><span>지금까지 <b>'+(db.points?.total||0)+'P</b></span>'
+     +(done?'<span>오늘 공부 완료!</span>':'<span>조금씩 해도 괜찮아</span>')+'</div></div>';
+    document.querySelector('#kidLearn').onclick=function(){kidHub('learn')};
+    document.querySelector('#kidTest').onclick=function(){kidHub('test')};
+  }
+  function kidHub(mode){
+    ensureV25();
+    const p=activePlan(),d=p?getDailyPlan(true):null,day=cycleDay(p);
+    const study=mode==='learn';
+    const title=study?'학습':'테스트';
+    let action='',actionText='',words=[],desc='';
+    if(!p){
+      desc='부모님이 공부할 단어를 먼저 정해 주세요.';
+      actionText='부모님과 범위 정하기';
+      action=function(){go('parent')};
+    }else if(study){
+      if(!d.set1.learnDone){
+        words=set1Words(p);desc='한 글자씩 획순을 본 뒤, 소리 내어 읽고 5번 써 봐요.';
+        actionText=d.set1.studyIndex?'이어서 학습하기':'학습 시작';
+        action=function(){runStudy('set1')};
+      }else if(d.set1.quizDone&&d.set2.reviewMode&&!d.set2.learnDone){
+        words=(d.set2.remedialWordIds||[]).map(byId).filter(Boolean);desc='틀렸던 글자만 다시 배우면 돼요.';
+        actionText='틀린 한자 다시 배우기';action=function(){runStudy('set2')};
+      }else{
+        desc='오늘 배운 내용은 끝났어요. 테스트에서 실력을 확인할 수 있어요.';
+        actionText='테스트로 가기';action=function(){kidHub('test')};
+      }
+    }else{
+      if(!d.set1.learnDone){desc='학습에서 먼저 획순과 뜻을 배워요.';actionText='학습부터 하기';action=function(){runStudy('set1')}}
+      else if(!d.set1.quizDone){desc='오늘 배운 한자어를 읽고 직접 써 봐요.';words=set1Words(p);actionText='첫 번째 테스트 시작';action=function(){runSetQuiz('set1')}}
+      else if(!d.set2.quizDone){
+        words=d.set2.wordIds.map(byId).filter(Boolean);
+        desc=d.set2.diagnosticDone?'틀린 단어만 복습하고 다시 풀어요.':'지금까지 배운 범위에서 문제가 나와요.';
+        actionText=d.set2.reviewMode?'틀린 단어 복습하기':d.set2.diagnosticDone?'다시 테스트하기':'전체 범위 테스트';
+        action=function(){startSet('set2')};
+      }else{desc='오늘 테스트를 모두 끝냈어요!';actionText='처음 화면으로';action=function(){kidHome()}}
+    }
+    app.innerHTML='<div class="kidHub"><div class="kidHubHead"><div><h2>'+title+'</h2><p>'+(p?'D'+day+'/5 · '+(study?'차근차근 배우기':'내 실력 확인하기'):'부모님 설정 필요')+'</p></div><button class="ghost" id="kidBack">처음으로</button></div>'
+    +'<div class="card kidHubLead"><h3>'+(study?'한자랑 친해지는 시간':'혼자서 해 볼까?')+'</h3><p>'+esc(desc)+'</p>'
+    +(words.length?'<div class="kidWords">'+kidWordsHtml(words)+'</div>':'')
+    +'<button class="pri kidPrimary" id="kidGo">'+esc(actionText)+'</button></div>'
+    +'<details class="kidExtra"><summary>다른 연습과 기록 보기</summary><div class="row">'
+    +'<button class="ghost" id="kidExtraStroke">획순만 보기</button><button class="ghost" id="kidExtraBook">책에서 찾기</button>'
+    +'<button class="ghost" id="kidExtraFast">빠른 연습</button><button class="ghost" id="kidExtraRecord">내 기록</button>'
+    +(study?'':'<button class="ghost" id="kidExtraExam">학원 쪽지시험</button>')
+    +'</div></details></div>';
+    document.querySelector('#kidBack').onclick=kidHome;
+    document.querySelector('#kidGo').onclick=action;
+    [['kidExtraStroke','strokeHub'],['kidExtraBook','bookIdx'],['kidExtraFast','fast'],['kidExtraRecord','record'],['kidExtraExam','exam']].forEach(function(x){
+      const el=document.querySelector('#'+x[0]);if(el)el.onclick=function(){go(x[1])};
+    });
+  }
+  home=kidHome;
 
   function normRecall(s){return String(s==null?'':s).toLowerCase().replace(/[\s.,·!?'"“”‘’()\[\]{}:;\-_/]/g,'')}
   function speakKo(text,statusEl){
@@ -498,6 +525,11 @@
     });
     return out.slice(0,4);
   }
+  function kidEasyHtml(w){
+    const e=window.HANJA_EASY_SENTENCES&&window.HANJA_EASY_SENTENCES[w.word];
+    const meaning=e&&e.meaning||w.mean, sentence=e&&e.sentence||w.nat||w.sent;
+    return '<div class="kidEasyExample"><strong>이 말은 무슨 뜻일까?</strong><p>'+esc(meaning)+'</p><div class="kidSentence">“'+esc(sentence)+'”</div></div>';
+  }
   function charMemoryHtml(c,w){
     const ex=charWordExamples(c,w),info=CHAR_INFO[c.ch]||{};
     return `<div class="v26CharLearn">
@@ -509,7 +541,7 @@
   }
   function v26WriteCellSize(){
     const w=Math.min(window.innerWidth||800,980);
-    return Math.min(215,Math.max(155,Math.floor((w-82)/3)));
+    return Math.max(104,Math.min(205,Math.floor((w-120)/(w<=700?2:3))));
   }
   function runFiveWrite(setKey,st,w,c,charIndex,label){
     const cs=v26WriteCellSize();
@@ -606,7 +638,7 @@
     if(phase<4){
       const charIndex=Math.floor(phase/2),isStroke=phase%2===0,c=cs[charIndex],charLabel=charIndex===0?'첫 글자':'둘째 글자';
       if(!isStroke)return runFiveWrite(setKey,st,w,c,charIndex,label);
-      const size=Math.min(620,Math.max(410,Math.min(window.innerWidth-46,window.innerHeight*.68)));
+      const size=Math.min(530,Math.max(220,Math.min(window.innerWidth-76,window.innerHeight*.53)));
       const voiceLabel=c.hun.split('/')[0]+' '+c.eum;
       app.innerHTML=progressBannerHtml(d)+`<div class="row" style="justify-content:space-between"><span class="stepTag" style="margin:0">${label} · ${charLabel} 큰글씨 획순</span><span class="jua">${i+1} / ${words.length}단어 · ${charIndex+1}/2글자</span></div>
         <div class="prog" style="margin:10px 0 14px"><div style="width:${progress}%"></div></div>
@@ -615,7 +647,7 @@
           <div class="v251CharMeta"><span class="hz v26HeroChar">${c.ch}</span><span>[${esc(c.hun)} ${esc(c.eum)}] · <b>${c.hoek}획</b></span></div>
           <div class="v26StrokeRule"><b>1 → 2 → 3… 숫자를 눈으로 따라가며</b> 펜을 공중에서 같이 움직여 보세요. 획순 자동재생이 끝나야 5번 쓰기로 넘어갑니다.</div>
           ${voiceBoxHtml('v27CharVoice','['+c.hun+' '+c.eum+']')}
-          ${charMemoryHtml(c,w)}
+          <details class="kidLearnMore"><summary>궁금하면 더 알아보기</summary>${charMemoryHtml(c,w)}</details>
           <div class="row" style="justify-content:space-between;margin-top:14px"><button class="ghost" id="v251StudyHome">오늘 화면</button><button class="pri" id="v251CharNext" disabled>획순 자동 재생 중…</button></div>
         </div>`;
       bindVoice('#v27CharVoiceListen','#v27CharVoiceRepeat','#v27CharVoiceStatus',voiceLabel,voiceLabel);
@@ -641,13 +673,15 @@
           <div><b class="hz">${cs[1].ch}</b><span>[${esc(cs[1].hun)} ${esc(cs[1].eum)}]</span></div><strong>→</strong>
           <div class="result"><b class="hz">${w.word}</b><span>${esc(w.read)}</span></div>
         </div>
-        <div class="v26Meaning"><b>이 단어는 이렇게 써요</b><p>뜻: ${esc(w.mean)}<br>이 뜻을 나타낼 때 <strong>${esc(w.read)}</strong>이라고 말하거나 써요.</p></div>
+        ${kidEasyHtml(w)}
+<details class="kidLearnMore"><summary>다른 예문도 읽어보기</summary>
         <div class="v26Examples">
           <div class="ex" style="border-color:var(--ink)"><small>교재 예문</small>${w.sent}</div>
           <div class="ex"><small>초등 4학년 생활 예시</small>${w.nat}</div>
           <div class="ex star entertainmentEx"><small>연예·아이돌·무대 예시</small>${star}</div>
           <div class="v26Dialogue"><small>드라마·방송 대사처럼 소리 내어 읽기</small><b>“${star}”</b><button class="ghost" id="v27LineListen" style="margin-top:8px">🔊 대사 듣기</button></div>
         </div>
+</details>
         <div class="v27WordRecall">
           <h3>단어 기억 확인</h3><p class="muted">읽는 소리(음), 뜻, 두 글자의 획수를 모두 맞혀야 다음 단어로 넘어갑니다.</p>
           <div class="v27RecallFields two">
@@ -1001,6 +1035,7 @@
     };
   }
 
+  window.__hanjaV29={kidHome:kidHome,kidHub:kidHub};
   window.__v25Debug={activePlan,cycleDay,set1Words,cumulativeWords,selectSet2,getDailyPlan,manualPool,award500,dayMission,dailyProgress,set2StatusText,wordWeakScore,weakWords,todayGapSummary,quickWordPool};
   ensureV25();
 })();
