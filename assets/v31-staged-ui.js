@@ -305,7 +305,7 @@ function parentGrade(v){
  if(!r)return;
  const graded=r.status==='passed'||r.status==='retry_ready';
  const host=$v('v31GradeBody');host.innerHTML='<div class="card"><h2>'+X(C.STAGES[r.kind])+' · '+r.day+'</h2>'
-  +'<div class="v31Progress"><span>문제 수 '+r.items.length+'</span><span>현재 O '+r.items.filter(x=>x.grade===true).length+'</span>'
+  +'<div class="v31Progress"><span>문제 수 '+r.items.length+'</span><span>현재 O <b id="v31GradeCount">'+r.items.filter(x=>x.grade===true).length+'</b></span>'
   +'<span>'+(graded?'채점 완료':'필기 채점 진행 중')+'</span></div><div id="v31GradeRows"></div>'
   +(!graded?'<button class="pri v31Primary" id="v31FinishGrade">채점 확정하기</button>':'')
   +'</div>';
@@ -322,7 +322,9 @@ function parentGrade(v){
    +'<button data-pass="0" class="'+(it.grade===false?'selX':'')+'" '+(graded?'disabled':'')+'>X</button>'
    +'</div>';
   if(!graded)row.querySelectorAll('[data-pass]').forEach(b=>b.onclick=()=>{
-   it.grade=b.dataset.pass==='1';save();parentGrade(v);
+   it.grade=b.dataset.pass==='1';save();
+   row.querySelectorAll('[data-pass]').forEach(x=>x.className=x.dataset.pass==='1'?(it.grade?'selO':''):(it.grade===false?'selX':''));
+   const summary=v.querySelector('#v31GradeCount');if(summary)summary.textContent=r.items.filter(x=>x.grade===true).length;
   });
   rows.appendChild(row);
  });
