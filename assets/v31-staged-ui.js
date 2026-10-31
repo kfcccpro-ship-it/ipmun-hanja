@@ -18,7 +18,7 @@ function speak(s){
  try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(s);u.lang='ko-KR';u.rate=.76;window.speechSynthesis.speak(u)}
  catch(e){toast('음성 재생을 지원하지 않아요')}
 }
-function scrollTop(){window.scrollTo({top:0,behavior:'instant'})}
+function scrollTop(){window.scrollTo(0,0)}
 function show(html){window.__hanjaActiveWriter=null;app.innerHTML=html;scrollTop()}
 function extraEnabled(key){return !!C.ensure().settings[key]}
 function oldMainLearn(){window.__hanjaV29?.kidHub?.('learn')||go('home')}
@@ -241,7 +241,9 @@ function settingsPanel(v){
   const terms=C.termPool({start:a,end:b,lastId:last});
   $v('v31ScopePreview').innerHTML='<b>'+a+'~'+b+'쪽 · '+words.length+'개 기본 한자어</b><br>교재 속 두 글자 관련 낱말 '+terms.length+'개';
  }
- $v('v31Start').onchange=preview;$v('v31End').onchange=fillLast;$v('v31Last').onchange=preview;fillLast();
+ $v('v31Start').onchange=()=>{if(+$v('v31Start').value>+$v('v31End').value)$v('v31End').value=$v('v31Start').value;fillLast()};
+ $v('v31End').onchange=()=>{if(+$v('v31End').value<+$v('v31Start').value)$v('v31Start').value=$v('v31End').value;fillLast()};
+ $v('v31Last').onchange=preview;fillLast();
  $v('v31Default').onclick=()=>{
   if(!confirm('평가 단계·용돈·모음 학습 옵션을 B안 기본값으로 되돌릴까요? 시험범위와 기존 학습기록은 유지됩니다.'))return;
   s.settings=JSON.parse(JSON.stringify(C.DEFS.settings));save();settingsPanel(v);
