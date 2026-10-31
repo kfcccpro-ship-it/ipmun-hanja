@@ -142,6 +142,7 @@ function run(id){
  const t=tests().find(x=>x.id===+id)||latest();
  if(!t){app.innerHTML='<div class="card exam30Empty"><h2>시험이 없어요</h2><p>부모님이 먼저 책 페이지와 문제 종류를 정해야 해요.</p><button class="pri" id="e30Back">처음으로</button></div>';document.querySelector('#e30Back').onclick=()=>go('home');return}
  if(t.status!=='in_progress'){app.innerHTML='<div class="card exam30Empty"><h2>이미 제출한 시험이에요</h2><button class="pri" onclick="go(&quot;home&quot;)">처음으로</button></div>';return}
+ window.__hanjaActiveWriter=null;
  const item=t.items[t.cursor];if(!item)return review(t);
  const w=byId(item.id),ch=item.char?charsOf(w).find(x=>x.ch===item.char):null,choice=item.type==='radical',n=t.items.length;
  let pad=null;
@@ -169,11 +170,12 @@ function run(id){
   if(!choice&&pad){if(!pad.empty())item.answer={raw:pad.raw(),img:pad.image(.8)};else if(!item.answer?.img)item.answer=null}
   save();
  }
- document.querySelector('#e30Home').onclick=()=>{persist();go('home')};
+ if(!choice)window.__hanjaActiveWriter=persist;
+ document.querySelector('#e30Home').onclick=()=>{persist();window.__hanjaActiveWriter=null;go('home')};
  document.querySelector('#e30Next').onclick=()=>{
   persist();if(choice&&!item.answer?.selected)return toast('부수를 하나 골라 주세요');
   if(!choice&&!item.answer?.img&&!confirm('답을 쓰지 않았습니다. 빈 답안으로 넘길까요?'))return;
-  t.cursor++;save();run(t.id);
+  window.__hanjaActiveWriter=null;t.cursor++;save();run(t.id);
  };
 }
 function question(type){
