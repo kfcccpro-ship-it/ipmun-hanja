@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>태이를 위해 아빠가 만든 한자앱 · v0.30.0</title>
+<title>태이를 위해 아빠가 만든 한자앱 · v0.31.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5.0/dist/hanzi-writer.min.js"></script>
 <script src="data/meta.js?v=0.11.0"></script>
@@ -680,11 +680,11 @@ function makePad(host,{cells=2,size=150,grid=true,trace='',alpha=0.2,w=null,h=nu
   const ua=navigator.userAgent||'';
   const isIPad=/iPad/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
   const isGalaxy=/Android/.test(ua)&&(/SM-|Samsung/i.test(ua));
-  let drawing=false,last=null,strokes=0,locked=false,currentPath=null,paths=[],eraserMode=false,eraseDirty=false,activePointer=null;
+  let drawing=false,last=null,strokes=0,locked=false,currentPath=null,paths=[],eraserMode=false,eraseDirty=false,activePointer=null,savedRaster=null;
   const pos=e=>{const r=cv.getBoundingClientRect(),sx=W/(r.width||W),sy=H/(r.height||H);return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy,p:(e.pressure>0?e.pressure:0.5),pt:e.pointerType||'unknown'}};
   const penWidth=p=>{const base=isIPad?4.8:isGalaxy?4.1:4.5,gain=isIPad?7.2:isGalaxy?5.8:7;return(base+p*gain)*k};
   const line=(a,b)=>{ctx.lineWidth=penWidth(b.p);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()};
-  const redrawInk=()=>{ctx.clearRect(0,0,W,H);for(const path of paths){if(!path.length)continue;if(path.length===1){const a=path[0];line(a,{...a,x:a.x+.1});continue}for(let i=1;i<path.length;i++)line(path[i-1],path[i])}};
+  const redrawInk=()=>{ctx.clearRect(0,0,W,H);if(savedRaster)ctx.drawImage(savedRaster,0,0,W,H);for(const path of paths){if(!path.length)continue;if(path.length===1){const a=path[0];line(a,{...a,x:a.x+.1});continue}for(let i=1;i<path.length;i++)line(path[i-1],path[i])}};
   const eraseRadius=Math.max(20,Math.min(36,H*.13));
   const eraseAt=p=>{
     const r2=eraseRadius*eraseRadius;let changed=false;const kept=[];
@@ -694,7 +694,7 @@ function makePad(host,{cells=2,size=150,grid=true,trace='',alpha=0.2,w=null,h=nu
     }
     if(changed){paths=kept;strokes=paths.length;redrawInk();eraseDirty=true}
   };
-  const clearInk=()=>{ctx.clearRect(0,0,W,H);paths=[];currentPath=null;strokes=0;pad.classList.remove('over');onChange&&onChange()};
+  const clearInk=()=>{savedRaster=null;ctx.clearRect(0,0,W,H);paths=[];currentPath=null;strokes=0;pad.classList.remove('over');onChange&&onChange()};
   const er=document.createElement('button');er.type='button';er.className='padEraserMini';er.textContent='🧽 획 지우개';pad.appendChild(er);
   const overClear=document.createElement('button');overClear.type='button';overClear.className='overClearBtn';overClear.textContent='획수가 많아요 · 이 칸 지우기';pad.appendChild(overClear);
   const setEraser=v=>{eraserMode=!!v;pad.classList.toggle('eraserMode',eraserMode);er.classList.toggle('on',eraserMode);er.textContent=eraserMode?'✏️ 쓰기':'🧽 획 지우개'};
@@ -736,13 +736,13 @@ function makePad(host,{cells=2,size=150,grid=true,trace='',alpha=0.2,w=null,h=nu
   return{
     el:pad,canvas:cv,
     clear(){clearInk()},
-    undo(){if(drawing||!paths.length)return;paths.pop();strokes=paths.length;redrawInk();onChange&&onChange()},
+    undo(){if(drawing)return;if(!paths.length){if(savedRaster)toast('저장된 이전 필기는 전체 지우기로 다시 쓸 수 있어요');return}paths.pop();strokes=paths.length+(savedRaster?1:0);redrawInk();onChange&&onChange()},
     empty:()=>strokes===0,
     strokes:()=>strokes,
     setEraser(v){setEraser(v)},
     eraser:()=>eraserMode,
     lock(v){locked=v;if(v)setEraser(false);er.hidden=!!v;pad.classList.toggle('locked',v)},
-    load(src){if(!src)return;const im=new Image();im.onload=()=>{ctx.drawImage(im,0,0,W,H);paths=[];strokes=Math.max(strokes,1)};im.src=src},
+    load(src){if(!src)return;const im=new Image();im.onload=()=>{if(!alive(pad))return;savedRaster=im;paths=[];strokes=1;redrawInk()};im.src=src},
     raw:()=>cv.toDataURL('image/png'),
     image(scale=0.6){return joinImg([{canvas:cv}],H*scale,W/H,grid?cells:0)}
   };
@@ -1663,6 +1663,10 @@ go('home');
 <script src="assets/v25-five-day-flow.js?v=0.29.0"></script>
 <link rel="stylesheet" href="assets/v30-exam.css?v=0.30.0">
 <script src="assets/v30-exam.js?v=0.30.0"></script>
+<link rel="stylesheet" href="assets/v31-staged.css?v=0.31.0">
+<script src="assets/v31-term-readings.js?v=0.31.0"></script>
+<script src="assets/v31-staged-engine.js?v=0.31.0"></script>
+<script src="assets/v31-staged-ui.js?v=0.31.0"></script>
 <script>go('home');</script>
 </body>
 </html>
