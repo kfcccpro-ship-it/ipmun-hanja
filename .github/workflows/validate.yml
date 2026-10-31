@@ -28,6 +28,7 @@ jobs:
           node --check assets/v22-points.js
           node --check assets/v23-daily-routine.js
           node --check assets/v25-five-day-flow.js
+          node --check assets/v30-exam.js
       - name: Daily routine logic tests
         run: |
           node tests/routine-logic.js
@@ -38,6 +39,7 @@ jobs:
           node tests/v271-he-before-write-clear.js
           node tests/v28-adaptive-cycle.js
           node tests/v281-mastery-system.js
+          node tests/v30-page-exam.js
       - name: Structural checks
         run: |
           python3 - <<'PY'
