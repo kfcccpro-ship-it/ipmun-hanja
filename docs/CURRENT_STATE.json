@@ -3,8 +3,8 @@
   "repo": "kfcccpro-ship-it/ipmun-hanja",
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
-  "version": "0.30.0",
-  "latest_app_commit": "fa9f2c00ea432e44c2934c0f5dd63a4583ef3285",
+  "version": "0.31.0",
+  "latest_app_commit": "13afacd62ff7c4056f2113bacdc5e40c6e1556b5",
   "source": {
     "textbook": "장원한자.pdf",
     "primary_printed_pages": [
@@ -65,7 +65,11 @@
     "v029_automated_status": "NOT_VERIFIED",
     "v029_ipad_pencil_real_device": "PENDING",
     "v030_automated_status": "NOT_VERIFIED",
-    "v030_ipad_pencil_real_device": "PENDING"
+    "v030_ipad_pencil_real_device": "PENDING",
+    "v031_logic_validation": "PASS_SOURCE_BASED",
+    "v031_github_actions": "NOT_VERIFIED",
+    "v031_live_site": "NOT_VERIFIED",
+    "v031_real_ipad_pencil": "PENDING"
   },
   "backup_branch": "backup-v0.23.0-before-v0.24.0-20260921",
   "key_files": [
@@ -288,5 +292,33 @@
     "automated_validation": "NOT_VERIFIED",
     "real_ipad_pencil": "PENDING",
     "deployment": "GITHUB_PAGES_WORKFLOW_RESULT_NOT_VERIFIED"
+  },
+  "v031": {
+    "source": "장원한자.pdf 인쇄29~52쪽, PDF 21~44쪽; source referenceTerms two-character glossaries",
+    "basic_word_count": 96,
+    "source_two_char_occurrences": 1358,
+    "unique_two_char_terms": 1154,
+    "reading_note": "referenceTerms small Chinese words do not contain Hangul in scanned textbook; Korean readings are character-sound-derived, parents can edit per term",
+    "module_position": "top of Learn and Test, independently enabled by parent; default both enabled",
+    "term_study": "per printed page and character, reveal Korean reading and TTS; 6 per group initially with expand all",
+    "term_quiz": "handwritten Hangul reading, default 5 questions, parent marks O/X, optional bonus 0 won",
+    "stages": [
+      "1: sound MCQ 6, >=80%, 50 won",
+      "2: hun/eum/word handwriting 8, >=80%, 300 won",
+      "3: radical MCQ+stroke-count handwriting 6, >=80%, 150 won"
+    ],
+    "allowance": "stored in localStorage db.hanja31.ledger, daily cap 500 won; one credit per stage/day; parent marks paid manually, no real transfer; separate from v25 500P",
+    "parent": "simple grade-4 presets, range start/end/last word, glossary learning/test toggle, pass rate, counts, amounts, grading and wallet tabs",
+    "pen": "savedRaster baseline protects resumed old answer during undo; pagehide + home header snapshots; iPad portrait layout",
+    "files": [
+      "assets/v31-term-readings.js",
+      "assets/v31-staged-engine.js",
+      "assets/v31-staged-ui.js",
+      "assets/v31-staged.css",
+      "tests/v31-staged-regression.js",
+      "docs/V31_IMPLEMENTATION.md"
+    ],
+    "validation": "pure JavaScript source-based tests PASS; GitHub Actions and live Safari not independently confirmed",
+    "manual": "iPad Air13 and Pro10.5 Apple Pencil real-device scroll, palm, orientation, resume, grading"
   }
 }
