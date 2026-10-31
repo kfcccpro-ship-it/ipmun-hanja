@@ -4,7 +4,7 @@ const vm=require('vm');
 const src=fs.readFileSync('assets/v30-exam.js','utf8');
 const html=fs.readFileSync('index.html','utf8');
 const css=fs.readFileSync('assets/v30-exam.css','utf8');
-assert(html.includes('v0.30.0</title>'));
+assert(html.includes('v0.31.0</title>'));
 assert(html.includes('assets/v30-exam.js?v=0.30.0'));
 assert(css.includes('@media(orientation:portrait)'));
 const items=[
