@@ -8,8 +8,8 @@
 - GitHub repository: `kfcccpro-ship-it/ipmun-hanja`
 - branch: `main`
 - GitHub Pages: https://kfcccpro-ship-it.github.io/ipmun-hanja/
-- current app version: **0.28.1**
-- current validation/deploy: **Validate Hanja App SUCCESS / Deploy GitHub Pages SUCCESS**
+- current app version: **0.31.0** (GitHub main source updated)
+- current validation/deploy: **v0.28.1 was SUCCESS; v0.31.0 automated/live/iPad validation not yet independently confirmed**
 - source textbook: **장원한자.pdf**
 - 핵심 대상: 초등 4학년, iPad + Apple Pencil 1세대 / Galaxy Tab + S Pen
 - 운영 모델: 학생 1명 + 부모 1명, 로그인/회원가입 없음, localStorage 중심
@@ -461,3 +461,30 @@ GitHub Actions:
   - 기존 수기 선택도 유지
 - 하루 완료 카드에는 학습 단어, 집중복습 단어, 다시 확인한 신호 수, 가장 많이 확인한 약점, D1~D5 완료표를 표시한다.
 - 회귀검증: `tests/v281-mastery-system.js`.
+
+---
+
+## 19. v0.29~v0.30 화면·교재 시험 개편
+
+- v0.29: 학생 홈 메뉴 **학습/테스트** 2개, 29~52쪽 96단어 쉬운 문장, Apple Pencil 포인터 분리 및 세로 반응형.
+- v0.30: 부모의 인쇄 29~52쪽 시작/끝/마지막 단어·시험유형 설정, 필기 제출/부모 OX 채점, 부수 2~4지선다.
+- 옛 시험과 5일 학습은 유지됨. `assets/v30-exam.js`, `assets/v29-student.css` 참조.
+
+## 20. v0.31.0 교재 '작은 두 글자 낱말 집합' + B안 단계 평가/용돈
+
+**이 항목이 최신 기준.** 자세한 설계/데이터/주의사항은 `docs/V31_IMPLEMENTATION.md` 참고.
+
+- 원본 `장원한자.pdf`의 **인쇄 29~52쪽** 각 한자 옆에 적힌 한자어 목록을 사용.
+- `CHAR_INFO[ch].referenceTerms`에서 **한자 2글자짜리만** 추출: 1,154개 중복 없는 한자어, 1,358개 원본 출현 항목. 원본 한자와 원본 획수, 훈음 데이터는 훼손하지 말 것.
+- **작은 한자어의 한글 읽기는 PDF에 없음**: `assets/v31-term-readings.js`에서 187자 기본 음 + 194자 추가 음 + 두음법칙 등을 이용하여 조합한 읽기. 정확한 사전 검증과는 다르며 부모가 단어별로 수정 가능. 임의 해석과 혼용 금지.
+- 학생의 **학습**과 **테스트** 안에서 모듈 최상단에 `교재 속 두 글자 낱말 읽기` 고정. 학습: 읽기 눌러 공개, 한국어 TTS, 페이지·글자 선택. 평가: 5문제 읽기를 한글로 펜 필기하고 부모 O/X.
+- 부모가 모음 학습/평가를 각각 켜고 끄는 옵션. 기본은 양쪽 ON. 옵션 OFF여도 첫 카드 위치는 유지.
+- B안 3단계 **1 음 객관식 6개 → 2 훈·음·한자 펜 직접 쓰기 8개 → 3 부수 객관식·횟수 펜 쓰기 6개**, 통과 기준 기본 80%.
+- 용돈은 **1단계 50원 + 2단계 300원 + 3단계 150원**, 하루 최대 500원. `db.hanja31.ledger`에 중복 없이 기록하고 부모는 실제 지급 여부만 별도 표시. *실제 송금 없음*, 기존 500P와 분리.
+- 미통과 시 틀린 문제만 재도전. 수기 답안은 부모 채점 후 단계 승급.
+- `index.html`의 필기 `makePad`에서 과거 저장 답안은 `savedRaster`로 보존, 이후 Undo가 전체를 지우지 못하게 보호.
+- 소스: `assets/v31-term-readings.js`, `assets/v31-staged-engine.js`, `assets/v31-staged-ui.js`, `assets/v31-staged.css`.
+- 테스트: `tests/v31-staged-regression.js` 및 `.github/workflows/validate.yml`. 소스 기반 로직 점검 성공; Pages 실제 배포·GitHub Actions·iPad 실기기 성공 여부는 별도로 확인 필요.
+- 저장위치: 기존 `hanja_app_v3` localStorage 내부의 `hanja31` 네임스페이스. 기존 사용자 학습기록을 삭제하지 말 것.
+
+**미래 작업 시 주의:** 사용자가 원하는 핵심은 4학년용 직관적인 **학습/테스트**와 **Apple Pencil 수기 작성 + 부모 직접 채점**. 기능 추가가 학생 홈을 복잡하게 만들지 않도록 주의.
