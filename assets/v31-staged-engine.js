@@ -147,11 +147,7 @@ function finalize(r){
  const correct=r.items.filter(it=>it.grade===true).length;
  const threshold=Math.ceil(r.items.length*clamp(ensure().settings.passPct,50,100)/100);
  r.score=correct;r.threshold=threshold;r.checkedAt=Date.now();
- if(correct>=threshold){
-  r.status='passed';credit(r);save();return 'passed';
- }
- r.status='retry_ready';r.retryIndexes=r.items.map((x,i)=>x.grade===false?i:null).filter(x=>x!==null);
- // Feed missed words back to the existing wrong-answer review, once per graded round.
+ // Record weaknesses even when a child passes the 80% threshold with one missed question.
  if(r.lastTrackedRound!==r.round){
   for(const it of r.items)if(it.grade===false){
    if(typeof addWrong==='function'&&it.wordId)addWrong(it.wordId);
@@ -159,6 +155,10 @@ function finalize(r){
   }
   r.lastTrackedRound=r.round;
  }
+ if(correct>=threshold){
+  r.status='passed';credit(r);save();return 'passed';
+ }
+ r.status='retry_ready';r.retryIndexes=r.items.map((x,i)=>x.grade===false?i:null).filter(x=>x!==null);
  save();return 'retry_ready';
 }
 function retry(r){
