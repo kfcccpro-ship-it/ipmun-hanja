@@ -1,0 +1,83 @@
+/* v0.30.0: parent-first textbook range & pen-first customizable tests */
+.exam30Top{max-width:920px;margin:0 auto;display:grid;gap:13px}
+.exam30Step{font-family:'Jua';font-size:24px;margin:0 0 10px}
+.exam30Subtitle{color:var(--sub);font-size:17px;line-height:1.45;margin:4px 0 14px}
+.exam30Row{display:flex;align-items:end;flex-wrap:wrap;gap:10px}
+.exam30Range{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.exam30Range label,.exam30EndWord label{display:grid;gap:6px;font-family:'Jua';font-size:19px}
+.exam30Range select,.exam30EndWord select,.exam30Count select{width:100%;padding:13px 10px;border:2px solid var(--line);border-radius:13px;background:var(--card);color:var(--ink);font:inherit;font-size:21px;min-height:53px}
+.exam30PageGrid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px;margin:12px 0}
+.exam30Page{padding:10px 3px;border:2px solid var(--line);border-radius:12px;background:var(--card);font-family:'Jua';font-size:18px;min-height:48px}
+.exam30Page.inRange{border-color:var(--sky);background:#EAF2FE;color:#1D528D}
+.exam30Page.last{background:var(--sky);border-color:var(--sky);color:#fff}
+.exam30Page:focus-visible,.exam30Choice:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.exam30Preview{padding:13px 15px;border-radius:14px;background:var(--paper);font-size:18px;line-height:1.5}
+.exam30WordList{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+.exam30WordList span{padding:7px 9px;border:1px solid var(--line);background:var(--card);border-radius:10px;font-family:var(--hanja);font-size:22px}
+.exam30TypeGroup{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.exam30Type{display:flex;align-items:center;gap:9px;min-height:54px;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--card);font-family:'Jua';font-size:18px;cursor:pointer}
+.exam30Type:has(input:checked){border-color:var(--sky);background:#EAF2FE}
+.exam30Type input{width:23px;height:23px;flex-shrink:0;accent-color:var(--sky)}
+.exam30More{border:1px solid var(--line);border-radius:13px;padding:0 12px;margin-top:10px}
+.exam30More summary{padding:12px 2px;font-family:'Jua';font-size:19px;cursor:pointer}
+.exam30More .exam30TypeGroup{padding-bottom:13px}
+.exam30Count{display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:14px;align-items:center;margin:13px 0}
+.exam30Count label{font-family:'Jua';font-size:20px}
+.exam30Save{width:100%;min-height:68px;font-family:'Jua';font-size:26px}
+.exam30Saved{border:2px solid var(--leaf);background:#F0FAF4;border-radius:15px;padding:13px 15px;margin-top:12px;font-family:'Jua';font-size:20px;color:#1D5848}
+.exam30TestHero{max-width:780px;margin:0 auto;display:grid;gap:14px}
+.exam30TestHero .card{padding:24px}
+.exam30TestHero h2{text-align:center;font-family:'Jua';font-size:35px;margin:3px 0 7px}
+.exam30TestHero .lead{text-align:center;color:var(--sub);font-size:19px}
+.exam30Prompt{font-family:'Jua';font-size:clamp(29px,5.6vw,45px);line-height:1.32;text-align:center;margin:9px 0 16px;overflow-wrap:anywhere}
+.exam30Hanja{font-family:var(--hanja);font-size:clamp(65px,12vw,108px);line-height:1.25}
+.exam30Question{font-family:'Jua';font-size:clamp(21px,3vw,27px);text-align:center;margin:8px 0}
+.exam30AnswerArea{display:flex;align-items:center;justify-content:center;min-height:110px;max-width:100%;overflow:hidden}
+.exam30AnswerArea .pad{margin:0 auto!important}
+.exam30AnswerArea canvas{touch-action:none!important}
+.exam30Choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px auto;max-width:570px}
+.exam30Choice{min-height:93px;border:3px solid var(--line);background:var(--card);border-radius:16px;font-family:var(--hanja);font-size:47px;display:grid;place-items:center;padding:11px}
+.exam30Choice.selected{border-color:var(--sky);background:#EAF2FE;color:#174E94;box-shadow:0 0 0 3px rgba(74,127,212,.12)}
+.exam30Mini{font-family:'Jua';font-size:18px;color:var(--sub);text-align:center}
+.exam30Nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+.exam30Nav button{flex:1;min-height:58px;font-size:20px}
+.exam30Nav button.pri{flex:1.3}
+.exam30Summary{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;font-family:'Jua';font-size:17px;margin:10px 0}
+.exam30Summary b{color:var(--sky)}
+.exam30Grade{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px 5px;border-bottom:1px solid var(--line)}
+.exam30Grade h4{font:21px 'Jua';margin:0 0 7px}
+.exam30Grade .answer{font-family:var(--hanja);font-size:27px;margin:6px 0}
+.exam30Grade img{display:block;max-width:100%;width:min(360px,100%);max-height:150px;object-fit:contain;border:1px solid var(--line);border-radius:10px;background:#fff}
+.exam30Grade .gbtn{display:flex;gap:5px;align-self:center}
+.exam30Grade .gbtn button{min-width:57px;min-height:54px;padding:8px;font-size:22px}
+.exam30Grade .gbtn button.selO{background:var(--leaf);color:white}
+.exam30Grade .gbtn button.selX{background:var(--seal);color:white}
+.exam30Grade .book{display:inline-block;margin-bottom:5px}
+.exam30BookTag{font:16px 'Jua';color:var(--sub)}
+.exam30Manage{padding:11px 12px;border:1px solid var(--line);border-radius:14px;margin-top:10px}
+.exam30Manage summary{font-family:'Jua';font-size:20px;cursor:pointer;padding:5px 0}
+.exam30Manage .row{margin:10px 0}
+.exam30Tiny{font-size:14px;color:var(--sub)}
+.exam30Empty{text-align:center;padding:35px 20px}
+@media(max-width:740px){
+ .exam30PageGrid{grid-template-columns:repeat(6,minmax(0,1fr))}
+ .exam30Grade{grid-template-columns:26px minmax(0,1fr)}
+ .exam30Grade .gbtn{grid-column:2;justify-self:end}
+ .exam30TestHero .card{padding:15px}
+}
+@media(max-width:470px){
+ .exam30PageGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .exam30TypeGroup{grid-template-columns:1fr}
+ .exam30Type{min-height:50px;font-size:18px}
+ .exam30Range{gap:8px}
+ .exam30Choices{gap:8px}
+ .exam30Choice{min-height:85px;font-size:40px}
+ .exam30Nav button{font-size:18px;padding:12px 7px}
+ .exam30Count{grid-template-columns:1fr}
+ .exam30TestHero h2{font-size:30px}
+}
+@media(orientation:portrait) and (min-width:741px) and (max-width:1100px){
+ .exam30TestHero{max-width:770px}
+ .exam30AnswerArea{min-height:165px}
+ .exam30Type{font-size:20px}
+}
