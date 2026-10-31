@@ -4,7 +4,7 @@
   "branch": "main",
   "pages_url": "https://kfcccpro-ship-it.github.io/ipmun-hanja/",
   "version": "0.31.0",
-  "latest_app_commit": "13afacd62ff7c4056f2113bacdc5e40c6e1556b5",
+  "latest_app_commit": "fd4a522124acd4f6bace9647a6183257ec46743d",
   "source": {
     "textbook": "장원한자.pdf",
     "primary_printed_pages": [
@@ -66,10 +66,11 @@
     "v029_ipad_pencil_real_device": "PENDING",
     "v030_automated_status": "NOT_VERIFIED",
     "v030_ipad_pencil_real_device": "PENDING",
-    "v031_logic_validation": "PASS_SOURCE_BASED",
+    "v031_logic_validation": "PASS: 1154 readable compounds; 6+8+6 stages; 500 KRW/day allowance; duplicate protection",
     "v031_github_actions": "NOT_VERIFIED",
     "v031_live_site": "NOT_VERIFIED",
-    "v031_real_ipad_pencil": "PENDING"
+    "v031_real_ipad_pencil": "PENDING",
+    "v031_static_regressions": "PASS: 84 legacy index/flow assertion strings checked after release"
   },
   "backup_branch": "backup-v0.23.0-before-v0.24.0-20260921",
   "key_files": [
