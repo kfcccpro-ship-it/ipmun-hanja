@@ -384,7 +384,7 @@ function install(){
  };
  // All routes via global header preserve the current pen response first.
  const safe=()=>{if(typeof window.__hanjaActiveWriter==='function')try{window.__hanjaActiveWriter()}catch(e){}};
- ['homeBtn','parentBtn'].forEach(id=>{const el=$v(id);if(el)el.addEventListener('pointerdown',safe,true)});
+ ['homeBtn','parentBtn'].forEach(id=>{const el=$v(id);if(el){el.addEventListener('pointerdown',safe,true);el.addEventListener('click',safe,true)}});
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')safe()});
  window.addEventListener('pagehide',safe);
  // Keep the daily ledger compact; retaining stage results and currency amounts.
