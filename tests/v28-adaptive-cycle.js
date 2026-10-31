@@ -10,7 +10,7 @@ assert(flow.includes("5:{title:'최종 점검'"));
 assert(flow.includes('function dailyProgress'));
 assert(flow.includes('function progressBannerHtml'));
 assert(flow.includes('v28Day'));
-assert(flow.includes('시험을 먼저 보고, 틀린'));
+assert(flow.includes("if(!st.diagnosticDone)return runSetQuiz('set2')"));
 assert(flow.includes('st.diagnosticDone=true'));
 assert(flow.includes('st.remedialWordIds=ids'));
 assert(flow.includes('st.reviewMode=true'));
